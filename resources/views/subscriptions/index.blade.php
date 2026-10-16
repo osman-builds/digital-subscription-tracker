@@ -141,7 +141,7 @@
         </div>
     </div>
     @if($subscriptions->hasPages())
-        <div class="card-footer bg-white border-0 py-3">
+        <div class="card-footer border-0 py-3">
             {{ $subscriptions->links() }}
         </div>
     @endif

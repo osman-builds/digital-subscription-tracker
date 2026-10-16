@@ -190,30 +190,64 @@
 @push('scripts')
 @if($categoryBreakdown->isNotEmpty())
 <script>
-const ctx = document.getElementById('categoryChart');
-const palette = ['#6366f1','#ef4444','#f97316','#eab308','#22c55e','#06b6d4','#a855f7','#ec4899','#10b981','#3b82f6'];
-new Chart(ctx, {
-    type: 'doughnut',
-    data: {
-        labels: {!! json_encode($categoryBreakdown->keys()->values()) !!},
-        datasets: [{
-            data: {!! json_encode($categoryBreakdown->values()) !!},
-            backgroundColor: palette.slice(0, {{ $categoryBreakdown->count() }}),
-            borderWidth: 2,
-        }]
-    },
-    options: {
-        responsive: true,
-        plugins: {
-            legend: { position: 'bottom', labels: { font: { size: 11 } } },
-            tooltip: {
-                callbacks: {
-                    label: ctx => ' RM ' + ctx.parsed.toFixed(2) + '/mo'
+(function() {
+    const palette = ['#6366f1','#ef4444','#f97316','#eab308','#22c55e','#06b6d4','#a855f7','#ec4899','#10b981','#3b82f6'];
+
+    function isDark() {
+        return document.documentElement.getAttribute('data-bs-theme') === 'dark';
+    }
+
+    function chartColors() {
+        return {
+            text:    isDark() ? '#8b949e' : '#6c757d',
+            border:  isDark() ? '#161b22' : '#ffffff',
+        };
+    }
+
+    let donutChart = null;
+
+    function buildDonut() {
+        const c = chartColors();
+        const ctx = document.getElementById('categoryChart');
+        if (!ctx) return;
+        if (donutChart) donutChart.destroy();
+
+        donutChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: {!! json_encode($categoryBreakdown->keys()->values()) !!},
+                datasets: [{
+                    data: {!! json_encode($categoryBreakdown->values()) !!},
+                    backgroundColor: palette.slice(0, {{ $categoryBreakdown->count() }}),
+                    borderColor: c.border,
+                    borderWidth: 2,
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { font: { size: 11 }, color: c.text, boxWidth: 14 }
+                    },
+                    tooltip: {
+                        callbacks: { label: ctx => ' RM ' + ctx.parsed.toFixed(2) + '/mo' }
+                    }
                 }
             }
-        }
+        });
     }
-});
+
+    buildDonut();
+
+    // Rebuild chart when theme switches
+    var observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(m) {
+            if (m.attributeName === 'data-bs-theme') buildDonut();
+        });
+    });
+    observer.observe(document.documentElement, { attributes: true });
+})();
 </script>
 @endif
 @endpush

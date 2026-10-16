@@ -171,59 +171,105 @@
 
 @push('scripts')
 <script>
-// Monthly bar chart
-const monthlyCtx = document.getElementById('monthlyChart');
-new Chart(monthlyCtx, {
-    type: 'bar',
-    data: {
-        labels: {!! json_encode($monthly->pluck('month')) !!},
-        datasets: [{
-            label: 'Monthly Spend (RM)',
-            data: {!! json_encode($monthly->pluck('total')) !!},
-            backgroundColor: 'rgba(99,102,241,0.75)',
-            borderColor: 'rgba(99,102,241,1)',
-            borderWidth: 1,
-            borderRadius: 6,
-        }]
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-            legend: { display: false },
-            tooltip: { callbacks: { label: ctx => ' RM ' + ctx.parsed.y.toFixed(2) } }
-        },
-        scales: {
-            y: {
-                beginAtZero: true,
-                ticks: { callback: v => 'RM ' + v.toFixed(0) }
-            }
-        }
-    }
-});
+(function () {
+    const palette = ['#6366f1','#ef4444','#f97316','#eab308','#22c55e','#06b6d4','#a855f7','#ec4899','#10b981','#3b82f6'];
 
-@if($categoryBreakdown->isNotEmpty())
-// Category doughnut
-const catCtx = document.getElementById('categoryChart');
-const palette = ['#6366f1','#ef4444','#f97316','#eab308','#22c55e','#06b6d4','#a855f7','#ec4899','#10b981','#3b82f6'];
-new Chart(catCtx, {
-    type: 'doughnut',
-    data: {
-        labels: {!! json_encode($categoryBreakdown->keys()->values()) !!},
-        datasets: [{
-            data: {!! json_encode($categoryBreakdown->values()) !!},
-            backgroundColor: palette.slice(0, {{ $categoryBreakdown->count() }}),
-            borderWidth: 2,
-        }]
-    },
-    options: {
-        responsive: true,
-        plugins: {
-            legend: { position: 'bottom', labels: { font: { size: 11 } } },
-            tooltip: { callbacks: { label: ctx => ' RM ' + ctx.parsed.toFixed(2) + '/yr' } }
-        }
+    function isDark() {
+        return document.documentElement.getAttribute('data-bs-theme') === 'dark';
     }
-});
-@endif
+    function cc() {
+        return {
+            text:    isDark() ? '#8b949e' : '#6c757d',
+            grid:    isDark() ? 'rgba(255,255,255,.07)' : 'rgba(0,0,0,.07)',
+            border:  isDark() ? '#161b22' : '#ffffff',
+        };
+    }
+
+    let barChart = null, donutChart = null;
+
+    function buildBar() {
+        const c = cc();
+        const ctx = document.getElementById('monthlyChart');
+        if (!ctx) return;
+        if (barChart) barChart.destroy();
+
+        barChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: {!! json_encode($monthly->pluck('month')) !!},
+                datasets: [{
+                    label: 'Monthly Spend (RM)',
+                    data: {!! json_encode($monthly->pluck('total')) !!},
+                    backgroundColor: 'rgba(99,102,241,0.8)',
+                    borderColor: 'rgba(99,102,241,1)',
+                    borderWidth: 1,
+                    borderRadius: 6,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { callbacks: { label: ctx => ' RM ' + ctx.parsed.y.toFixed(2) } }
+                },
+                scales: {
+                    x: { ticks: { color: c.text }, grid: { color: c.grid } },
+                    y: {
+                        beginAtZero: true,
+                        ticks: { color: c.text, callback: v => 'RM ' + v.toFixed(0) },
+                        grid: { color: c.grid }
+                    }
+                }
+            }
+        });
+    }
+
+    @if($categoryBreakdown->isNotEmpty())
+    function buildDonut() {
+        const c = cc();
+        const ctx = document.getElementById('categoryChart');
+        if (!ctx) return;
+        if (donutChart) donutChart.destroy();
+
+        donutChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: {!! json_encode($categoryBreakdown->keys()->values()) !!},
+                datasets: [{
+                    data: {!! json_encode($categoryBreakdown->values()) !!},
+                    backgroundColor: palette.slice(0, {{ $categoryBreakdown->count() }}),
+                    borderColor: c.border,
+                    borderWidth: 2,
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { font: { size: 11 }, color: c.text, boxWidth: 14 }
+                    },
+                    tooltip: { callbacks: { label: ctx => ' RM ' + ctx.parsed.toFixed(2) + '/yr' } }
+                }
+            }
+        });
+    }
+    @endif
+
+    // Initial render
+    buildBar();
+    @if($categoryBreakdown->isNotEmpty()) buildDonut(); @endif
+
+    // Re-render on theme switch
+    new MutationObserver(function(mutations) {
+        mutations.forEach(function(m) {
+            if (m.attributeName === 'data-bs-theme') {
+                buildBar();
+                @if($categoryBreakdown->isNotEmpty()) buildDonut(); @endif
+            }
+        });
+    }).observe(document.documentElement, { attributes: true });
+})();
 </script>
 @endpush
