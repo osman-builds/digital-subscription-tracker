@@ -96,7 +96,7 @@
     {{-- Cost breakdown --}}
     <div class="col-12 col-md-5">
         <div class="card border-0 shadow-sm h-100">
-            <div class="card-header bg-white border-0 pt-3">
+            <div class="card-header border-0 pt-3">
                 <h6 class="fw-bold mb-0"><i class="bi bi-bar-chart-fill text-primary me-2"></i>Cost Breakdown</h6>
             </div>
             <div class="card-body">
