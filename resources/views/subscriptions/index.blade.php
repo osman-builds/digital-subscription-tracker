@@ -64,10 +64,15 @@
                     @forelse($subscriptions as $sub)
                         <tr>
                             <td class="ps-4">
-                                <div class="fw-semibold">{{ $sub->name }}</div>
-                                @if($sub->description)
-                                    <small class="text-muted">{{ Str::limit($sub->description, 45) }}</small>
-                                @endif
+                                <div class="d-flex align-items-center gap-2">
+                                    <x-brand-logo :subscription="$sub" :size="34" rounded="rounded-2" />
+                                    <div>
+                                        <div class="fw-semibold">{{ $sub->name }}</div>
+                                        @if($sub->description)
+                                            <small class="text-muted">{{ Str::limit($sub->description, 40) }}</small>
+                                        @endif
+                                    </div>
+                                </div>
                             </td>
                             <td>
                                 @if($sub->category)
@@ -78,7 +83,12 @@
                                     <span class="text-muted small">—</span>
                                 @endif
                             </td>
-                            <td class="fw-semibold">${{ number_format($sub->amount, 2) }}</td>
+                            <td>
+                                <div class="fw-semibold">{{ $sub->currency }} {{ number_format($sub->amount, 2) }}</div>
+                                @if($sub->currency !== 'MYR')
+                                    <small class="text-success">≈ RM {{ number_format($sub->effectiveMyr(), 2) }}</small>
+                                @endif
+                            </td>
                             <td><span class="badge bg-light text-dark border">{{ $sub->billingCycleLabel() }}</span></td>
                             <td>
                                 {{ $sub->next_billing_date->format('M d, Y') }}

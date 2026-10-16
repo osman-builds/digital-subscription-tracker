@@ -1,1 +1,4 @@
-*.sqlite*
+# Ignore SQLite database files if accidentally created
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal

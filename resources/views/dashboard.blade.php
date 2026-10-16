@@ -107,10 +107,7 @@
                 @forelse($dueSoon as $sub)
                     <div class="d-flex align-items-center px-3 py-3 border-bottom">
                         <div class="me-3">
-                            <span class="rounded-circle d-inline-flex align-items-center justify-content-center"
-                                  style="width:38px;height:38px;background:{{ $sub->category->color ?? '#6366f1' }}22;color:{{ $sub->category->color ?? '#6366f1' }};">
-                                <i class="bi bi-app-indicator"></i>
-                            </span>
+                            <x-brand-logo :subscription="$sub" :size="38" rounded="rounded-2" />
                         </div>
                         <div class="flex-grow-1">
                             <div class="fw-semibold">{{ $sub->name }}</div>
@@ -159,7 +156,12 @@
                 <tbody>
                     @forelse($subscriptions->take(8) as $sub)
                         <tr>
-                            <td class="ps-3 fw-semibold">{{ $sub->name }}</td>
+                            <td class="ps-3">
+                                <div class="d-flex align-items-center gap-2">
+                                    <x-brand-logo :subscription="$sub" :size="30" rounded="rounded-2" />
+                                    <span class="fw-semibold">{{ $sub->name }}</span>
+                                </div>
+                            </td>
                             <td>
                                 @if($sub->category)
                                     <span class="badge rounded-pill" style="background:{{ $sub->category->color }};">{{ $sub->category->name }}</span>
