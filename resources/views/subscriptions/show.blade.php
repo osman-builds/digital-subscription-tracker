@@ -28,14 +28,7 @@
         <div class="card border-0 shadow-sm h-100">
             <div class="card-body">
                 <div class="d-flex align-items-center mb-3 gap-3">
-                    @if($subscription->logo_url)
-                        <img src="{{ $subscription->logo_url }}" alt="logo" class="rounded" style="width:52px;height:52px;object-fit:contain;">
-                    @else
-                        <div class="rounded d-flex align-items-center justify-content-center"
-                             style="width:52px;height:52px;background:{{ $subscription->category->color ?? '#6366f1' }}22;font-size:1.4rem;color:{{ $subscription->category->color ?? '#6366f1' }};">
-                            <i class="bi bi-app-indicator"></i>
-                        </div>
-                    @endif
+                    <x-brand-logo :subscription="$subscription" :size="52" rounded="rounded-3" />
                     <div>
                         <h5 class="mb-0 fw-bold">{{ $subscription->name }}</h5>
                         @if($subscription->category)
