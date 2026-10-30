@@ -157,8 +157,14 @@
 
         /* ── Footer ── */
         .splash-footer {
-            background: var(--slate-900);
-            border-top: 1px solid rgba(255,255,255,.05);
+            background: #090d16;
+            border-top: 1px solid rgba(255,255,255,.1);
+        }
+        .splash-footer a {
+            transition: color .2s ease;
+        }
+        .splash-footer a:hover {
+            color: #fff !important;
         }
     </style>
 </head>
@@ -427,27 +433,32 @@
         <div class="row align-items-center g-3">
             <div class="col-12 col-md-6">
                 <div class="d-flex align-items-center gap-2 mb-1">
-                    <img src="/favicon.svg" width="20" height="20" alt="SubShield">
-                    <span class="text-white fw-semibold">SubShield</span>
+                    <img src="/favicon.svg" width="22" height="22" alt="SubShield">
+                    <span class="text-white fw-bold">SubShield</span>
                     <span class="badge bg-primary ms-1">v1.0</span>
                 </div>
-                <p class="text-muted small mb-0">
+                <p class="text-white-50 small mb-0">
                     Digital Subscription Tracker — Final Year Project
                 </p>
             </div>
             <div class="col-12 col-md-6 text-md-end">
-                <p class="text-muted small mb-0">
-                    Developed by <span class="text-white">Osman Abdullahi Ahmed</span><br>
-                    Bachelor of Software Engineering (Honours), <span class="text-white">UNITEN</span>
+                <p class="text-white-50 small mb-0">
+                    Developed by <span class="text-white fw-semibold">Osman Abdullahi Ahmed</span><br>
+                    Bachelor of Software Engineering (Honours), <span class="text-white fw-semibold">UNITEN</span>
                 </p>
             </div>
         </div>
-        <hr style="border-color:rgba(255,255,255,.08);" class="my-3">
-        <p class="text-center text-muted small mb-0">
-            Built with Laravel 13 · Bootstrap 5 · MySQL &nbsp;·&nbsp;
-            <a href="{{ route('login') }}" class="text-muted">Sign In</a> &nbsp;·&nbsp;
-            <a href="{{ route('register') }}" class="text-muted">Register</a>
-        </p>
+        <hr style="border-color:rgba(255,255,255,.12);" class="my-3">
+        <div class="d-flex flex-wrap justify-content-between align-items-center small text-white-50 gap-2">
+            <div>
+                &copy; {{ date('Y') }} <span class="text-white fw-semibold">SubShield</span>. All rights reserved. Developed by <span class="text-white fw-semibold">Osman Abdullahi Ahmed</span>.
+            </div>
+            <div class="d-flex gap-3 align-items-center">
+                <a href="{{ route('login') }}" class="text-white-50 text-decoration-none">Sign In</a>
+                <span class="text-white-50 opacity-50">&bull;</span>
+                <a href="{{ route('register') }}" class="text-white-50 text-decoration-none">Register</a>
+            </div>
+        </div>
     </div>
 </footer>
 

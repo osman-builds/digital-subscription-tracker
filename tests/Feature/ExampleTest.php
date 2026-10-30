@@ -15,5 +15,8 @@ class ExampleTest extends TestCase
         $response = $this->get('/');
 
         $response->assertStatus(200);
+        $response->assertSee('SubShield');
+        $response->assertSee('Osman Abdullahi Ahmed');
+        $response->assertSee('All rights reserved');
     }
 }
