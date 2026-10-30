@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\UserSetting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules\Password;
@@ -12,6 +11,7 @@ class SettingsController extends Controller
     public function index()
     {
         $settings = auth()->user()->getSettings();
+
         return view('settings.index', compact('settings'));
     }
 
@@ -20,15 +20,15 @@ class SettingsController extends Controller
     {
         $validated = $request->validate([
             'base_currency' => 'required|string|size:3',
-            'alert_7_days'  => 'nullable|boolean',
-            'alert_3_days'  => 'nullable|boolean',
+            'alert_7_days' => 'nullable|boolean',
+            'alert_3_days' => 'nullable|boolean',
         ]);
 
         $settings = auth()->user()->getSettings();
         $settings->update([
             'base_currency' => strtoupper($validated['base_currency']),
-            'alert_7_days'  => $request->boolean('alert_7_days'),
-            'alert_3_days'  => $request->boolean('alert_3_days'),
+            'alert_7_days' => $request->boolean('alert_7_days'),
+            'alert_3_days' => $request->boolean('alert_3_days'),
         ]);
 
         return back()->with('success', 'Preferences saved.');
@@ -49,11 +49,26 @@ class SettingsController extends Controller
         $user = auth()->user();
 
         $validated = $request->validate([
-            'name'  => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email,' . $user->id,
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email,'.$user->id,
         ]);
 
-        $user->update($validated);
+        $user->fill($validated);
+
+        $emailChanged = $user->isDirty('email');
+
+        if ($emailChanged) {
+            $user->email_verified_at = null;
+        }
+
+        $user->save();
+
+        if ($emailChanged) {
+            $user->sendEmailVerificationNotification();
+
+            return redirect()->route('verification.notice')
+                ->with('status', 'verification-link-sent');
+        }
 
         return back()->with('success', 'Account details updated.');
     }
@@ -63,7 +78,7 @@ class SettingsController extends Controller
     {
         $request->validate([
             'current_password' => ['required', 'current_password'],
-            'password'         => ['required', 'confirmed', Password::min(8)->mixedCase()->numbers()],
+            'password' => ['required', 'confirmed', Password::min(8)->mixedCase()->numbers()],
         ]);
 
         auth()->user()->update([
