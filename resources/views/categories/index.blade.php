@@ -1,10 +1,13 @@
 @extends('layouts.app')
 
-@section('title', 'Categories – SubShield')
+@section('title', 'Categories — SubShield')
 
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h4 class="mb-0 fw-bold">Categories</h4>
+    <div>
+        <h4 class="mb-0 fw-bold">Categories</h4>
+        <small class="text-muted">Manage system default categories and your personal tags.</small>
+    </div>
     <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addCategoryModal">
         <i class="bi bi-plus-lg me-1"></i>Add Category
     </button>
@@ -22,63 +25,76 @@
                         </span>
                     </div>
                     <div class="flex-grow-1">
-                        <h6 class="mb-0 fw-bold">{{ $category->name }}</h6>
+                        <div class="d-flex align-items-center gap-2">
+                            <h6 class="mb-0 fw-bold">{{ $category->name }}</h6>
+                            @if($category->isSystem())
+                                <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle py-1" style="font-size: 0.7rem;">Default</span>
+                            @else
+                                <span class="badge bg-primary-subtle text-primary border border-primary-subtle py-1" style="font-size: 0.7rem;">Custom</span>
+                            @endif
+                        </div>
                         <small class="text-muted">{{ $category->subscriptions_count }} subscription{{ $category->subscriptions_count !== 1 ? 's' : '' }}</small>
                     </div>
-                    <div class="d-flex gap-1">
-                        <button class="btn btn-sm btn-outline-primary"
-                                data-bs-toggle="modal"
-                                data-bs-target="#editCategoryModal{{ $category->id }}">
-                            <i class="bi bi-pencil"></i>
-                        </button>
-                        <form action="{{ route('categories.destroy', $category) }}" method="POST"
-                              onsubmit="return confirm('Delete category {{ addslashes($category->name) }}? Subscriptions will not be deleted.')">
-                            @csrf @method('DELETE')
-                            <button type="submit" class="btn btn-sm btn-outline-danger">
-                                <i class="bi bi-trash"></i>
+
+                    @if(! $category->isSystem())
+                        <div class="d-flex gap-1">
+                            <button class="btn btn-sm btn-outline-primary"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#editCategoryModal{{ $category->id }}"
+                                    title="Edit category">
+                                <i class="bi bi-pencil"></i>
                             </button>
-                        </form>
-                    </div>
+                            <form action="{{ route('categories.destroy', $category) }}" method="POST"
+                                  onsubmit="return confirm('Delete category {{ addslashes($category->name) }}? Your subscriptions in this category will become uncategorised.')">
+                                @csrf @method('DELETE')
+                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete category">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        </div>
+                    @endif
                 </div>
             </div>
 
-            {{-- Edit modal for each category --}}
-            <div class="modal fade" id="editCategoryModal{{ $category->id }}" tabindex="-1">
-                <div class="modal-dialog modal-sm">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title">Edit Category</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            @if(! $category->isSystem())
+                {{-- Edit modal for custom categories only --}}
+                <div class="modal fade" id="editCategoryModal{{ $category->id }}" tabindex="-1">
+                    <div class="modal-dialog modal-sm">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Edit Category</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <form action="{{ route('categories.update', $category) }}" method="POST">
+                                @csrf @method('PUT')
+                                <div class="modal-body">
+                                    <div class="mb-3">
+                                        <label class="form-label fw-semibold">Name</label>
+                                        <input type="text" name="name" class="form-control"
+                                               value="{{ $category->name }}" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label fw-semibold">Color</label>
+                                        <input type="color" name="color" class="form-control form-control-color w-100"
+                                               value="{{ $category->color }}" required>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                                    <button type="submit" class="btn btn-primary btn-sm">Save</button>
+                                </div>
+                            </form>
                         </div>
-                        <form action="{{ route('categories.update', $category) }}" method="POST">
-                            @csrf @method('PUT')
-                            <div class="modal-body">
-                                <div class="mb-3">
-                                    <label class="form-label fw-semibold">Name</label>
-                                    <input type="text" name="name" class="form-control"
-                                           value="{{ $category->name }}" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label fw-semibold">Color</label>
-                                    <input type="color" name="color" class="form-control form-control-color w-100"
-                                           value="{{ $category->color }}" required>
-                                </div>
-                            </div>
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
-                                <button type="submit" class="btn btn-primary btn-sm">Save</button>
-                            </div>
-                        </form>
                     </div>
                 </div>
-            </div>
+            @endif
         </div>
     @empty
         <div class="col-12">
             <div class="card border-0 shadow-sm">
                 <div class="card-body text-center py-5 text-muted">
                     <i class="bi bi-tags fs-1 d-block mb-2"></i>
-                    No categories yet.
+                    No categories found.
                     <button class="btn btn-link p-0 ms-1" data-bs-toggle="modal" data-bs-target="#addCategoryModal">Add one!</button>
                 </div>
             </div>
@@ -100,7 +116,7 @@
                     <div class="mb-3">
                         <label class="form-label fw-semibold">Name <span class="text-danger">*</span></label>
                         <input type="text" name="name" class="form-control @error('name') is-invalid @enderror"
-                               value="{{ old('name') }}" placeholder="e.g. Entertainment" required>
+                               value="{{ old('name') }}" placeholder="e.g. Health & Fitness" required>
                         @error('name')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
                     <div class="mb-3">

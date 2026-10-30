@@ -6,6 +6,7 @@ use App\Models\Category;
 use App\Models\Subscription;
 use App\Services\FxRateService;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class SubscriptionController extends Controller
 {
@@ -22,40 +23,46 @@ class SubscriptionController extends Controller
             $query->where('category_id', $request->category_id);
         }
         if ($request->filled('search')) {
-            $query->where('name', 'like', '%' . $request->search . '%');
+            $query->where('name', 'like', '%'.$request->search.'%');
         }
 
         $subscriptions = $query->orderBy('next_billing_date')->paginate(12)->withQueryString();
-        $categories    = Category::orderBy('name')->get();
+        $categories = Category::forUser(auth()->id())->orderBy('name')->get();
 
         return view('subscriptions.index', compact('subscriptions', 'categories'));
     }
 
     public function create()
     {
-        $categories    = Category::orderBy('name')->get();
-        $currencies    = $this->currencyList();
+        $categories = Category::forUser(auth()->id())->orderBy('name')->get();
+        $currencies = $this->currencyList();
+
         return view('subscriptions.create', compact('categories', 'currencies'));
     }
 
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'name'              => 'required|string|max:255',
-            'description'       => 'nullable|string',
-            'amount'            => 'required|numeric|min:0',
-            'currency'          => 'required|string|size:3',
-            'billing_cycle'     => 'required|in:weekly,monthly,quarterly,semi_annual,annual',
-            'start_date'        => 'required|date',
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'amount' => 'required|numeric|min:0',
+            'currency' => 'required|string|size:3',
+            'billing_cycle' => 'required|in:weekly,monthly,quarterly,semi_annual,annual',
+            'start_date' => 'required|date',
             'next_billing_date' => 'required|date',
-            'status'            => 'required|in:active,inactive,cancelled',
-            'category_id'       => 'nullable|exists:categories,id',
-            'website_url'       => 'nullable|url|max:255',
-            'logo_url'          => 'nullable|url|max:255',
-            'notes'             => 'nullable|string|max:500',
+            'status' => 'required|in:active,inactive,cancelled',
+            'category_id' => [
+                'nullable',
+                Rule::exists('categories', 'id')->where(function ($query) {
+                    $query->whereNull('user_id')->orWhere('user_id', auth()->id());
+                }),
+            ],
+            'website_url' => 'nullable|url|max:255',
+            'logo_url' => 'nullable|url|max:255',
+            'notes' => 'nullable|string|max:500',
         ]);
 
-        $validated['user_id']    = auth()->id();
+        $validated['user_id'] = auth()->id();
         $validated['amount_myr'] = $this->fx->toMyr((float) $validated['amount'], $validated['currency']);
 
         Subscription::create($validated);
@@ -68,14 +75,16 @@ class SubscriptionController extends Controller
     {
         $this->authorize($subscription);
         $subscription->load('category');
+
         return view('subscriptions.show', compact('subscription'));
     }
 
     public function edit(Subscription $subscription)
     {
         $this->authorize($subscription);
-        $categories = Category::orderBy('name')->get();
+        $categories = Category::forUser(auth()->id())->orderBy('name')->get();
         $currencies = $this->currencyList();
+
         return view('subscriptions.edit', compact('subscription', 'categories', 'currencies'));
     }
 
@@ -84,18 +93,23 @@ class SubscriptionController extends Controller
         $this->authorize($subscription);
 
         $validated = $request->validate([
-            'name'              => 'required|string|max:255',
-            'description'       => 'nullable|string',
-            'amount'            => 'required|numeric|min:0',
-            'currency'          => 'required|string|size:3',
-            'billing_cycle'     => 'required|in:weekly,monthly,quarterly,semi_annual,annual',
-            'start_date'        => 'required|date',
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'amount' => 'required|numeric|min:0',
+            'currency' => 'required|string|size:3',
+            'billing_cycle' => 'required|in:weekly,monthly,quarterly,semi_annual,annual',
+            'start_date' => 'required|date',
             'next_billing_date' => 'required|date',
-            'status'            => 'required|in:active,inactive,cancelled',
-            'category_id'       => 'nullable|exists:categories,id',
-            'website_url'       => 'nullable|url|max:255',
-            'logo_url'          => 'nullable|url|max:255',
-            'notes'             => 'nullable|string|max:500',
+            'status' => 'required|in:active,inactive,cancelled',
+            'category_id' => [
+                'nullable',
+                Rule::exists('categories', 'id')->where(function ($query) {
+                    $query->whereNull('user_id')->orWhere('user_id', auth()->id());
+                }),
+            ],
+            'website_url' => 'nullable|url|max:255',
+            'logo_url' => 'nullable|url|max:255',
+            'notes' => 'nullable|string|max:500',
         ]);
 
         $validated['amount_myr'] = $this->fx->toMyr((float) $validated['amount'], $validated['currency']);
