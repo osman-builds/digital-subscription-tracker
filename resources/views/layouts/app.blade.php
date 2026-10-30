@@ -233,8 +233,9 @@
 <div class="d-flex">
     {{-- ── Desktop Sidebar (always dark-themed) ─────────────────────── --}}
     <nav class="sidebar d-none d-md-flex flex-column">
-        <div class="brand">
-            <i class="bi bi-shield-shaded me-2 text-primary"></i>SubShield
+        <div class="brand d-flex align-items-center gap-2">
+            <img src="/favicon.svg" width="26" height="26" alt="SubShield">
+            <span>SubShield</span>
         </div>
         <ul class="nav flex-column mt-3 flex-grow-1">
             <li class="nav-item">
@@ -294,8 +295,9 @@
     {{-- ── Mobile top bar ────────────────────────────────────────────── --}}
     <nav class="navbar navbar-dark bg-dark d-md-none w-100 position-fixed top-0" style="z-index:200;">
         <div class="container-fluid">
-            <span class="navbar-brand fw-bold">
-                <i class="bi bi-shield-shaded me-1 text-primary"></i>SubShield
+            <span class="navbar-brand fw-bold d-flex align-items-center gap-2">
+                <img src="/favicon.svg" width="22" height="22" alt="SubShield">
+                <span>SubShield</span>
             </span>
             <div class="d-flex gap-2 align-items-center">
                 <button id="mobileDarkToggle" class="btn btn-sm btn-outline-light" type="button" title="Toggle dark/light mode">
@@ -310,7 +312,10 @@
 
     <div class="offcanvas offcanvas-start bg-dark text-white" id="mobileNav">
         <div class="offcanvas-header">
-            <h5 class="offcanvas-title fw-bold">SubShield</h5>
+            <div class="d-flex align-items-center gap-2">
+                <img src="/favicon.svg" width="22" height="22" alt="SubShield">
+                <h5 class="offcanvas-title fw-bold mb-0">SubShield</h5>
+            </div>
             <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"></button>
         </div>
         <div class="offcanvas-body p-0 d-flex flex-column">
