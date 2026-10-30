@@ -24,12 +24,17 @@ class Subscription extends Model
         'notes',
     ];
 
-    protected $casts = [
-        'start_date'        => 'date',
-        'next_billing_date' => 'date',
-        'amount'            => 'decimal:2',
-        'amount_myr'        => 'decimal:2',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'user_id' => 'integer',
+            'category_id' => 'integer',
+            'start_date' => 'date',
+            'next_billing_date' => 'date',
+            'amount' => 'decimal:2',
+            'amount_myr' => 'decimal:2',
+        ];
+    }
 
     public function category(): BelongsTo
     {
@@ -55,12 +60,12 @@ class Subscription extends Model
     public function monthlyAmountMyr(): float
     {
         return match ($this->billing_cycle) {
-            'weekly'      => $this->effectiveMyr() * 52 / 12,
-            'monthly'     => $this->effectiveMyr(),
-            'quarterly'   => $this->effectiveMyr() / 3,
+            'weekly' => $this->effectiveMyr() * 52 / 12,
+            'monthly' => $this->effectiveMyr(),
+            'quarterly' => $this->effectiveMyr() / 3,
             'semi_annual' => $this->effectiveMyr() / 6,
-            'annual'      => $this->effectiveMyr() / 12,
-            default       => $this->effectiveMyr(),
+            'annual' => $this->effectiveMyr() / 12,
+            default => $this->effectiveMyr(),
         };
     }
 
@@ -68,12 +73,12 @@ class Subscription extends Model
     public function yearlyAmountMyr(): float
     {
         return match ($this->billing_cycle) {
-            'weekly'      => $this->effectiveMyr() * 52,
-            'monthly'     => $this->effectiveMyr() * 12,
-            'quarterly'   => $this->effectiveMyr() * 4,
+            'weekly' => $this->effectiveMyr() * 52,
+            'monthly' => $this->effectiveMyr() * 12,
+            'quarterly' => $this->effectiveMyr() * 4,
             'semi_annual' => $this->effectiveMyr() * 2,
-            'annual'      => $this->effectiveMyr(),
-            default       => $this->effectiveMyr() * 12,
+            'annual' => $this->effectiveMyr(),
+            default => $this->effectiveMyr() * 12,
         };
     }
 
@@ -81,12 +86,12 @@ class Subscription extends Model
     public function monthlyAmount(): float
     {
         return match ($this->billing_cycle) {
-            'weekly'      => (float)$this->amount * 52 / 12,
-            'monthly'     => (float)$this->amount,
-            'quarterly'   => (float)$this->amount / 3,
-            'semi_annual' => (float)$this->amount / 6,
-            'annual'      => (float)$this->amount / 12,
-            default       => (float)$this->amount,
+            'weekly' => (float) $this->amount * 52 / 12,
+            'monthly' => (float) $this->amount,
+            'quarterly' => (float) $this->amount / 3,
+            'semi_annual' => (float) $this->amount / 6,
+            'annual' => (float) $this->amount / 12,
+            default => (float) $this->amount,
         };
     }
 
@@ -94,12 +99,12 @@ class Subscription extends Model
     public function yearlyAmount(): float
     {
         return match ($this->billing_cycle) {
-            'weekly'      => (float)$this->amount * 52,
-            'monthly'     => (float)$this->amount * 12,
-            'quarterly'   => (float)$this->amount * 4,
-            'semi_annual' => (float)$this->amount * 2,
-            'annual'      => (float)$this->amount,
-            default       => (float)$this->amount * 12,
+            'weekly' => (float) $this->amount * 52,
+            'monthly' => (float) $this->amount * 12,
+            'quarterly' => (float) $this->amount * 4,
+            'semi_annual' => (float) $this->amount * 2,
+            'annual' => (float) $this->amount,
+            default => (float) $this->amount * 12,
         };
     }
 
@@ -107,12 +112,12 @@ class Subscription extends Model
     public function billingCycleLabel(): string
     {
         return match ($this->billing_cycle) {
-            'weekly'      => 'Weekly',
-            'monthly'     => 'Monthly',
-            'quarterly'   => 'Quarterly',
+            'weekly' => 'Weekly',
+            'monthly' => 'Monthly',
+            'quarterly' => 'Quarterly',
             'semi_annual' => 'Semi-Annual',
-            'annual'      => 'Annual',
-            default       => ucfirst($this->billing_cycle),
+            'annual' => 'Annual',
+            default => ucfirst($this->billing_cycle),
         };
     }
 
@@ -139,9 +144,9 @@ class Subscription extends Model
     public function scopeDueSoon($query, int $days = 7)
     {
         return $query->where('status', 'active')
-                     ->whereBetween('next_billing_date', [
-                         now()->toDateString(),
-                         now()->addDays($days)->toDateString(),
-                     ]);
+            ->whereBetween('next_billing_date', [
+                now()->toDateString(),
+                now()->addDays($days)->toDateString(),
+            ]);
     }
 }
