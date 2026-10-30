@@ -22,8 +22,8 @@
     <div class="auth-card card mx-auto">
         <div class="card-body p-4 p-md-5">
             <div class="text-center mb-4">
-                <i class="bi bi-shield-shaded brand-icon"></i>
-                <h4 class="fw-bold mt-2 mb-0">SubShield</h4>
+                <img src="/favicon.svg" width="56" height="56" alt="SubShield" class="mb-2">
+                <h4 class="fw-bold mb-0">SubShield</h4>
                 <p class="text-muted small">Create your free account</p>
             </div>
 
