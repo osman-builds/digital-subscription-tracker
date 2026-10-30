@@ -3,7 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\User;
-use Illuminate\Auth\Notifications\VerifyEmail;
+use App\Notifications\EmailVerificationOtpNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
@@ -41,7 +41,7 @@ class SettingsTest extends TestCase
 
         $this->assertSame('new@example.com', $user->email);
         $this->assertNull($user->email_verified_at);
-        Notification::assertSentToTimes($user, VerifyEmail::class, 1);
+        Notification::assertSentToTimes($user, EmailVerificationOtpNotification::class, 1);
     }
 
     public function test_updating_name_only_keeps_email_verified(): void
