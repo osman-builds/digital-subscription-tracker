@@ -3,7 +3,7 @@
 namespace Tests\Feature\Auth;
 
 use App\Models\User;
-use Illuminate\Auth\Notifications\VerifyEmail;
+use App\Notifications\EmailVerificationOtpNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
 use Tests\TestCase;
@@ -45,7 +45,7 @@ class RegistrationTest extends TestCase
 
         $user = User::where('email', 'test@example.com')->firstOrFail();
 
-        Notification::assertSentToTimes($user, VerifyEmail::class, 1);
+        Notification::assertSentToTimes($user, EmailVerificationOtpNotification::class, 1);
     }
 
     public function test_unverified_users_cannot_access_the_dashboard(): void
