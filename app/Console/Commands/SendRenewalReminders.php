@@ -3,13 +3,14 @@
 namespace App\Console\Commands;
 
 use App\Models\Subscription;
+use App\Notifications\RenewalReminderNotification;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
 
 class SendRenewalReminders extends Command
 {
     protected $signature   = 'subscriptions:remind {--days=3 : Days ahead to check for renewals}';
-    protected $description = 'Log (and optionally notify) users about subscriptions renewing soon';
+    protected $description = 'Log and notify users about subscriptions renewing soon';
 
     public function handle(): int
     {
@@ -42,32 +43,33 @@ class SendRenewalReminders extends Command
             })->toArray()
         );
 
-        // Log for audit trail
-        foreach ($subscriptions as $sub) {
-            Log::info('Renewal reminder', [
-                'subscription' => $sub->name,
-                'user_id'      => $sub->user_id,
-                'amount_myr'   => $sub->effectiveMyr(),
-                'due_date'     => $sub->next_billing_date->toDateString(),
-                'days_left'    => $sub->daysUntilRenewal(),
-            ]);
+        // Group by user to send one combined email per user
+        $grouped = $subscriptions->groupBy('user_id');
+        $sentCount = 0;
+
+        foreach ($grouped as $userId => $userSubs) {
+            $user = $userSubs->first()->user;
+
+            if ($user && $user->email) {
+                // Dispatch real email via Brevo relay
+                $user->notify(new RenewalReminderNotification($userSubs));
+                $this->line("Sent reminder email to: {$user->email} ({$userSubs->count()} subscription(s))");
+                $sentCount++;
+            }
+
+            // Audit log
+            foreach ($userSubs as $sub) {
+                Log::info('Renewal reminder sent', [
+                    'subscription' => $sub->name,
+                    'user_id'      => $sub->user_id,
+                    'amount_myr'   => $sub->effectiveMyr(),
+                    'due_date'     => $sub->next_billing_date->toDateString(),
+                    'days_left'    => $sub->daysUntilRenewal(),
+                ]);
+            }
         }
 
-        $this->info("Processed {$subscriptions->count()} upcoming renewal(s).");
-
-        // -----------------------------------------------------------------------
-        // TO ENABLE EMAIL NOTIFICATIONS:
-        // 1. Configure MAIL_* in .env (e.g. Mailtrap for local testing)
-        // 2. Create a RenewalReminderMail Mailable
-        // 3. Uncomment and adapt:
-        //
-        // foreach ($subscriptions->groupBy('user_id') as $userId => $userSubs) {
-        //     $user = $userSubs->first()->user;
-        //     if ($user) {
-        //         Mail::to($user->email)->send(new RenewalReminderMail($user, $userSubs));
-        //     }
-        // }
-        // -----------------------------------------------------------------------
+        $this->info("Completed. Successfully notified {$sentCount} user(s).");
 
         return self::SUCCESS;
     }
