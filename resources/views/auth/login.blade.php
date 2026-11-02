@@ -43,19 +43,19 @@
                 @csrf
 
                 <div class="mb-3">
-                    <label class="form-label fw-semibold">Email Address</label>
+                    <label for="email" class="form-label fw-semibold">Email Address</label>
                     <div class="input-group">
                         <span class="input-group-text"><i class="bi bi-envelope"></i></span>
                         <input type="email" name="email" id="email"
                                class="form-control @error('email') is-invalid @enderror"
-                               value="{{ old('email') }}" required autofocus autocomplete="username"
+                               value="{{ old('email') }}" required autocomplete="username"
                                placeholder="you@example.com">
                     </div>
                 </div>
 
                 <div class="mb-3">
                     <div class="d-flex justify-content-between">
-                        <label class="form-label fw-semibold">Password</label>
+                        <label for="password" class="form-label fw-semibold">Password</label>
                         @if(Route::has('password.request'))
                             <a href="{{ route('password.request') }}" class="small text-muted">Forgot password?</a>
                         @endif
