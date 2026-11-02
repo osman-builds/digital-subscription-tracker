@@ -35,8 +35,8 @@
 
                     <div class="row g-3">
                         <div class="col-12 col-sm-6">
-                            <label class="form-label fw-semibold">Base Display Currency</label>
-                            <select name="base_currency" class="form-select">
+                            <label for="base_currency" class="form-label fw-semibold">Base Display Currency</label>
+                            <select id="base_currency" name="base_currency" class="form-select">
                                 @foreach([
                                     'MYR' => 'MYR – Malaysian Ringgit',
                                     'USD' => 'USD – US Dollar',
@@ -54,7 +54,7 @@
                         </div>
 
                         <div class="col-12 col-sm-6">
-                            <label class="form-label fw-semibold">Dark Mode</label>
+                            <span class="form-label fw-semibold d-block">Dark Mode</span>
                             <div class="d-flex align-items-center gap-3 mt-1">
                                 <div class="form-check form-switch mb-0">
                                     <input class="form-check-input" type="checkbox" role="switch"
@@ -117,14 +117,14 @@
                     @csrf @method('PATCH')
                     <div class="row g-3">
                         <div class="col-12 col-sm-6">
-                            <label class="form-label fw-semibold">Full Name</label>
-                            <input type="text" name="name" class="form-control @error('name') is-invalid @enderror"
+                            <label for="account_name" class="form-label fw-semibold">Full Name</label>
+                            <input type="text" id="account_name" name="name" class="form-control @error('name') is-invalid @enderror"
                                    value="{{ old('name', auth()->user()->name) }}" required>
                             @error('name')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
                         <div class="col-12 col-sm-6">
-                            <label class="form-label fw-semibold">Email Address</label>
-                            <input type="email" name="email" class="form-control @error('email') is-invalid @enderror"
+                            <label for="account_email" class="form-label fw-semibold">Email Address</label>
+                            <input type="email" id="account_email" name="email" class="form-control @error('email') is-invalid @enderror"
                                    value="{{ old('email', auth()->user()->email) }}" required>
                             @error('email')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
@@ -151,22 +151,22 @@
                     @csrf @method('PATCH')
                     <div class="row g-3">
                         <div class="col-12">
-                            <label class="form-label fw-semibold">Current Password</label>
-                            <input type="password" name="current_password"
+                            <label for="current_password" class="form-label fw-semibold">Current Password</label>
+                            <input type="password" id="current_password" name="current_password"
                                    class="form-control @error('current_password') is-invalid @enderror"
                                    placeholder="Enter current password">
                             @error('current_password')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
                         <div class="col-12 col-sm-6">
-                            <label class="form-label fw-semibold">New Password</label>
-                            <input type="password" name="password"
+                            <label for="new_password" class="form-label fw-semibold">New Password</label>
+                            <input type="password" id="new_password" name="password"
                                    class="form-control @error('password') is-invalid @enderror"
                                    placeholder="Min 8 chars, mixed case + numbers">
                             @error('password')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
                         <div class="col-12 col-sm-6">
-                            <label class="form-label fw-semibold">Confirm New Password</label>
-                            <input type="password" name="password_confirmation"
+                            <label for="password_confirmation" class="form-label fw-semibold">Confirm New Password</label>
+                            <input type="password" id="password_confirmation" name="password_confirmation"
                                    class="form-control" placeholder="Repeat new password">
                         </div>
                     </div>
