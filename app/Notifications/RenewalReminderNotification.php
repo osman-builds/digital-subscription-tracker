@@ -32,8 +32,12 @@ class RenewalReminderNotification extends Notification
 
         foreach ($this->subscriptions as $sub) {
             $days = $sub->daysUntilRenewal();
-            $dueText = $days === 0 ? 'TODAY' : ($days === 1 ? 'tomorrow' : "in {$days} days");
-            $mail->line("• **{$sub->name}** — RM " . number_format($sub->effectiveMyr(), 2) . " (Due {$dueText} on {$sub->next_billing_date->format('M d, Y')})");
+            $dueText = match ($days) {
+                0 => 'TODAY',
+                1 => 'tomorrow',
+                default => "in {$days} days",
+            };
+            $mail->line("• **{$sub->name}** — RM ".number_format($sub->effectiveMyr(), 2)." (Due {$dueText} on {$sub->next_billing_date->format('M d, Y')})");
         }
 
         return $mail

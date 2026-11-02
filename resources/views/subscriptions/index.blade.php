@@ -17,11 +17,11 @@
             <div class="col-12 col-md-4">
                 <label for="filter_search" class="visually-hidden">Search Subscriptions</label>
                 <input type="text" id="filter_search" name="search" class="form-control" placeholder="Search by name…"
-                       value="{{ request('search') }}" aria-label="Search subscriptions by name">
+                       value="{{ request('search') }}">
             </div>
             <div class="col-6 col-md-3">
                 <label for="filter_status" class="visually-hidden">Filter by Status</label>
-                <select id="filter_status" name="status" class="form-select" aria-label="Filter subscriptions by status">
+                <select id="filter_status" name="status" class="form-select">
                     <option value="">All Statuses</option>
                     <option value="active"    {{ request('status') === 'active'    ? 'selected' : '' }}>Active</option>
                     <option value="inactive"  {{ request('status') === 'inactive'  ? 'selected' : '' }}>Inactive</option>
@@ -30,7 +30,7 @@
             </div>
             <div class="col-6 col-md-3">
                 <label for="filter_category_id" class="visually-hidden">Filter by Category</label>
-                <select id="filter_category_id" name="category_id" class="form-select" aria-label="Filter subscriptions by category">
+                <select id="filter_category_id" name="category_id" class="form-select">
                     <option value="">All Categories</option>
                     @foreach($categories as $cat)
                         <option value="{{ $cat->id }}" {{ request('category_id') == $cat->id ? 'selected' : '' }}>

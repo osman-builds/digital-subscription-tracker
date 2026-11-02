@@ -13,6 +13,8 @@ class SettingsTest extends TestCase
 {
     use RefreshDatabase;
 
+    private const NEW_NAME = 'New Name';
+
     public function test_settings_page_can_be_rendered(): void
     {
         $user = User::factory()->create();
@@ -32,7 +34,7 @@ class SettingsTest extends TestCase
 
         $this->actingAs($user)
             ->patch(route('settings.account'), [
-                'name' => 'New Name',
+                'name' => self::NEW_NAME,
                 'email' => 'new@example.com',
             ])
             ->assertRedirect(route('verification.notice'));
@@ -52,7 +54,7 @@ class SettingsTest extends TestCase
 
         $this->actingAs($user)
             ->patch(route('settings.account'), [
-                'name' => 'New Name',
+                'name' => self::NEW_NAME,
                 'email' => $user->email,
             ])
             ->assertSessionHasNoErrors()
@@ -60,7 +62,7 @@ class SettingsTest extends TestCase
 
         $user->refresh();
 
-        $this->assertSame('New Name', $user->name);
+        $this->assertSame(self::NEW_NAME, $user->name);
         $this->assertNotNull($user->email_verified_at);
         Notification::assertNothingSent();
     }

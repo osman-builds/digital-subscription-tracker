@@ -58,6 +58,7 @@
                             <div class="d-flex align-items-center gap-3 mt-1">
                                 <div class="form-check form-switch mb-0">
                                     <input class="form-check-input" type="checkbox" role="switch"
+                                           aria-checked="{{ $settings->dark_mode ? 'true' : 'false' }}"
                                            id="darkModeToggle" {{ $settings->dark_mode ? 'checked' : '' }}>
                                     <label class="form-check-label" for="darkModeToggle">
                                         <span id="darkModeLabel">{{ $settings->dark_mode ? 'Dark' : 'Light' }} mode</span>
@@ -76,6 +77,7 @@
                         <div class="d-flex flex-column gap-2">
                             <div class="form-check form-switch">
                                 <input class="form-check-input" type="checkbox" role="switch"
+                                       aria-checked="{{ $settings->alert_7_days ? 'true' : 'false' }}"
                                        name="alert_7_days" id="alert7" value="1"
                                        {{ $settings->alert_7_days ? 'checked' : '' }}>
                                 <label class="form-check-label" for="alert7">
@@ -85,6 +87,7 @@
                             </div>
                             <div class="form-check form-switch">
                                 <input class="form-check-input" type="checkbox" role="switch"
+                                       aria-checked="{{ $settings->alert_3_days ? 'true' : 'false' }}"
                                        name="alert_3_days" id="alert3" value="1"
                                        {{ $settings->alert_3_days ? 'checked' : '' }}>
                                 <label class="form-check-label" for="alert3">

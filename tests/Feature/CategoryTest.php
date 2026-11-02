@@ -12,14 +12,18 @@ class CategoryTest extends TestCase
 {
     use RefreshDatabase;
 
+    private const COLOR_PRIMARY = '#112233';
+
+    private const COLOR_SECONDARY = '#223344';
+
     public function test_users_can_view_system_categories_and_their_own(): void
     {
         $userA = User::factory()->create();
         $userB = User::factory()->create();
 
-        $systemCat = Category::create(['name' => 'System Streaming', 'color' => '#112233', 'user_id' => null]);
-        $customCatA = Category::create(['name' => 'Custom A', 'color' => '#223344', 'user_id' => $userA->id]);
-        $customCatB = Category::create(['name' => 'Custom B', 'color' => '#334455', 'user_id' => $userB->id]);
+        Category::create(['name' => 'System Streaming', 'color' => self::COLOR_PRIMARY, 'user_id' => null]);
+        Category::create(['name' => 'Custom A', 'color' => self::COLOR_SECONDARY, 'user_id' => $userA->id]);
+        Category::create(['name' => 'Custom B', 'color' => '#334455', 'user_id' => $userB->id]);
 
         $response = $this->actingAs($userA)->get(route('categories.index'));
 
@@ -108,7 +112,7 @@ class CategoryTest extends TestCase
     public function test_system_categories_cannot_be_updated_or_deleted(): void
     {
         $user = User::factory()->create();
-        $systemCat = Category::create(['name' => 'System Category', 'color' => '#112233', 'user_id' => null]);
+        $systemCat = Category::create(['name' => 'System Category', 'color' => self::COLOR_PRIMARY, 'user_id' => null]);
 
         $updateResponse = $this->actingAs($user)->put(route('categories.update', $systemCat), [
             'name' => 'Hacked Name',
@@ -127,7 +131,7 @@ class CategoryTest extends TestCase
         $userA = User::factory()->create();
         $userB = User::factory()->create();
 
-        $catB = Category::create(['name' => 'Private B', 'color' => '#112233', 'user_id' => $userB->id]);
+        $catB = Category::create(['name' => 'Private B', 'color' => self::COLOR_PRIMARY, 'user_id' => $userB->id]);
 
         $updateResponse = $this->actingAs($userA)->put(route('categories.update', $catB), [
             'name' => 'Tampered',
@@ -144,14 +148,14 @@ class CategoryTest extends TestCase
     public function test_users_can_update_and_delete_their_own_custom_category(): void
     {
         $user = User::factory()->create();
-        $cat = Category::create(['name' => 'My Cat', 'color' => '#112233', 'user_id' => $user->id]);
+        $cat = Category::create(['name' => 'My Cat', 'color' => self::COLOR_PRIMARY, 'user_id' => $user->id]);
 
         $updateResponse = $this->actingAs($user)->put(route('categories.update', $cat), [
             'name' => 'Updated Cat',
-            'color' => '#223344',
+            'color' => self::COLOR_SECONDARY,
         ]);
         $updateResponse->assertRedirect(route('categories.index'));
-        $this->assertDatabaseHas('categories', ['id' => $cat->id, 'name' => 'Updated Cat', 'color' => '#223344']);
+        $this->assertDatabaseHas('categories', ['id' => $cat->id, 'name' => 'Updated Cat', 'color' => self::COLOR_SECONDARY]);
 
         $deleteResponse = $this->actingAs($user)->delete(route('categories.destroy', $cat));
         $deleteResponse->assertRedirect(route('categories.index'));

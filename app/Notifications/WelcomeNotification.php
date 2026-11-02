@@ -10,8 +10,6 @@ class WelcomeNotification extends Notification
 {
     use Queueable;
 
-    public function __construct() {}
-
     /**
      * Get the notification's delivery channels.
      *
