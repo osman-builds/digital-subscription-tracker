@@ -1,260 +1,212 @@
 <p align="center">
-  <img src="public/favicon.svg" width="80" height="80" alt="SubShield Logo">
+  <img src="public/favicon.svg" width="90" height="90" alt="SubShield Logo">
 </p>
 
 <h1 align="center">SubShield</h1>
 <p align="center">
-  <strong>Digital Subscription Tracker — Built with Laravel 13 &amp; MySQL</strong><br>
-  Track every subscription, see your spend in MYR, and never get surprised by a renewal again.
+  <strong>Digital Subscription Tracker with MYR FX Normalization &amp; Automated Renewal Alerts</strong><br>
+  Track recurring digital subscriptions, normalize foreign exchange expenses to Malaysian Ringgit (MYR), and receive automated background email notifications before billing deadlines.
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Laravel-13-FF2D20?style=flat-square&logo=laravel&logoColor=white">
+  <a href="https://mysubshield.me">
+    <img src="https://img.shields.io/badge/Live_Site-https%3A%2F%2Fmysubshield.me-success?style=for-the-badge&logo=azure&logoColor=white" alt="Live Site">
+  </a>
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Laravel-13-FF2D20?style=flat-square&logo=laravel&logoColor=white" alt="Laravel 13">
   <img src="https://img.shields.io/badge/PHP-8.3-777BB4?style=flat-square&logo=php&logoColor=white">
-  <img src="https://img.shields.io/badge/MySQL-8.4-4479A1?style=flat-square&logo=mysql&logoColor=white">
-  <img src="https://img.shields.io/badge/Bootstrap-5.3-7952B3?style=flat-square&logo=bootstrap&logoColor=white">
+  <img src="https://img.shields.io/badge/Cloud-Microsoft_Azure-0078D4?style=flat-square&logo=microsoftazure&logoColor=white">
+  <img src="https://img.shields.io/badge/Region-Malaysia_West-008080?style=flat-square">
+  <img src="https://img.shields.io/badge/Email-Resend_Verified-000000?style=flat-square&logo=resend&logoColor=white">
+  <img src="https://img.shields.io/badge/Security-SSL_Let's_Encrypt-10B981?style=flat-square&logo=letsencrypt&logoColor=white">
   <img src="https://img.shields.io/badge/License-MIT-green?style=flat-square">
 </p>
+
+---
+
+## 🌐 Live Cloud Deployment
+
+* **Production URL:** [https://mysubshield.me](https://mysubshield.me)
+* **Alternate URL:** [https://www.mysubshield.me](https://www.mysubshield.me)
+* **Cloud Infrastructure:** Microsoft Azure Virtual Machine (Ubuntu 24.04 LTS, Nginx, PHP 8.3-FPM, MySQL 8)
+* **Datacenter Region:** `(Asia Pacific) Malaysia West`
+* **Custom Domain & DNS:** Registered via Namecheap, verified on GitHub Student Pack & Resend
+* **SSL Certificate:** Automated TLS 1.3 encryption via Let's Encrypt (Certbot auto-renewing)
 
 ---
 
 ## Table of Contents
 
 - [Overview](#overview)
-- [Features](#features)
+- [Key Features](#key-features)
+- [System Architecture](#system-architecture)
+- [Automated Cloud Background Processing](#automated-cloud-background-processing)
 - [Tech Stack](#tech-stack)
-- [Screenshots](#screenshots)
-- [Prerequisites](#prerequisites)
-- [Installation](#installation)
-- [Configuration](#configuration)
-- [FX Currency Setup](#fx-currency-setup)
-- [Running the App](#running-the-app)
-- [Scheduled Tasks (Cron)](#scheduled-tasks-cron)
+- [Demo Credentials](#demo-credentials)
+- [Local Installation & Setup](#local-installation--setup)
 - [Artisan Commands](#artisan-commands)
 - [Database Schema](#database-schema)
-- [Project Structure](#project-structure)
-- [Demo Account](#demo-account)
-- [Contributing](#contributing)
+- [Project Author](#project-author)
 - [License](#license)
 
 ---
 
 ## Overview
 
-**SubShield** is a self-hosted digital subscription tracker that helps you manage all your recurring payments in one place. Enter subscriptions in any currency — SubShield automatically converts everything to **Malaysian Ringgit (MYR)** using live FX rates, so you always know your true local spend.
+**SubShield** is a web-based digital subscription tracking platform developed as an undergraduate Final Year Project (FYP) at **Universiti Tenaga Nasional (UNITEN)**.
 
-Built with **Laravel 13**, **MySQL**, and **Bootstrap 5**, it runs beautifully on a local **Laragon** stack or any standard LAMP/LEMP server.
+Modern digital consumers subscribe to software and streaming services across varying global currencies (USD, EUR, GBP, SGD, JPY). Fluctuating exchange rates often result in unexpected bill shocks. **SubShield solves this by normalizing all recurring expenses into Malaysian Ringgit (MYR)** using automated currency feeds, and dispatches autonomous renewal alerts before subscriptions hit renewal deadlines.
 
 ---
 
-## Features
+## Key Features
 
-### 💰 Spending Intelligence
-- **Real-time MYR normalization** — enter USD, EUR, SGD, or 15+ currencies; SubShield converts to MYR automatically
-- **Monthly & yearly cost breakdown** — see exactly what each subscription costs per month and per year
-- **Cost equivalents** — weekly, monthly, quarterly, and yearly views for every subscription
+### 💰 Real-Time MYR FX Normalization
+- Supports 15+ global currencies (USD, EUR, GBP, SGD, AUD, JPY, CAD, etc.).
+- Auto-fetches live exchange rates via **ExchangeRate-API** with a 6-hour caching layer.
+- Instantly displays the true cost in **Malaysian Ringgit (MYR)** alongside the original currency price.
+- Dynamic weekly, monthly, quarterly, and annual cost-equivalent projections.
 
-### 📋 Subscription Management
-- Full **CRUD** — add, view, edit, delete subscriptions
-- Billing cycles: **Weekly, Monthly, Quarterly, Semi-Annual, Annual**
-- Status tracking: **Active, Inactive, Cancelled**
-- Category tagging with custom **colour-coded** labels
+### 🔔 Autonomous Cloud Renewal Alerts
+- Background cron job scans subscriptions daily at **08:00 AM (Asia/Kuala_Lumpur time)** for upcoming renewals within 3 days.
+- Automatically dispatches consolidated renewal warning emails to users via **Resend SMTP relay** using verified domain `notifications@mysubshield.me`.
+- Zero manual CLI commands required — fully automated in the cloud 24/7.
 
-### 📊 Expenditure Tracker
-- **Monthly bar chart** — visualise spending across all 12 months
-- **Category doughnut chart** — see where your money goes by category
-- **Per-subscription yearly table** — ranked highest to lowest cost
-- Year selector to compare across different years
+### 🔐 6-Digit Email OTP Verification & Security
+- User registration requires interactive **6-digit One-Time Password (OTP)** verification delivered via email.
+- Automated welcome notification triggered upon account confirmation.
+- Rate-limited auth routes (`throttle:5,10` for login/registration, `throttle:3,60` for OTP resends) to prevent abuse.
+- Re-verification required if an existing user changes their email address in Settings.
 
-### 🔔 Renewal Alerts
-- Dashboard **"Due This Week"** panel — renewals in the next 7 days
-- Colour-coded urgency badges (Today / Tomorrow / N days)
-- Scheduled background command to log and optionally email reminders
+### 📁 Category Management & User Isolation
+- Default system categories protected from accidental deletion.
+- Custom categories isolated per user with bespoke colour-coding tags.
+- Per-user subscription isolation — zero cross-tenant data exposure.
 
-### 🔐 Authentication
-- Full **registration & login** with **bcrypt**-hashed passwords (Laravel's `hashed` cast)
-- Per-user data isolation — each user only sees their own subscriptions
-- Forgot password & password reset flows (via Breeze)
-- Remember Me, session management
+### 📊 Expenditure Analytics & Visualizations
+- Interactive monthly spending trends bar chart via Chart.js.
+- Category spending distribution doughnut chart.
+- Ranked yearly expenditure summary with annual budget forecasts.
 
-### 🌍 Live FX Rates
-- Fetches rates from **ExchangeRate-API** (free tier: 1,500 requests/month)
-- Rates **cached for 6 hours** to stay within free limits
-- Automatic **fallback rates** if API key is not set or the request fails
-- FX refresh timestamp shown on dashboard
+---
 
-### 🎨 UI & UX
-- Clean **sidebar layout** with Bootstrap 5
-- Fully **responsive** — works on mobile, tablet, and desktop
-- SVG favicon/icon — the SubShield shield emblem
-- Flash messages for all CRUD operations
-- Search & filter on the subscriptions list
+## System Architecture
+
+```
++-----------------------------------------------------------------------------------+
+|                                 Client Browser                                    |
+|                       https://mysubshield.me (SSL / HTTPS)                        |
++------------------------------------------+----------------------------------------+
+                                           |
+                                     (HTTPS Port 443)
+                                           v
++-----------------------------------------------------------------------------------+
+|                        Microsoft Azure Virtual Machine                            |
+|                        Region: Malaysia West (Ubuntu 24.04)                       |
+|                                                                                   |
+|  [ Nginx Reverse Proxy ] ──> [ PHP 8.3-FPM FastCGI ] ──> [ Laravel 13 Core ]      |
+|                                                                    |              |
+|                                                             (Port 3306)           |
+|                                                                    v              |
+|                                                          [ MySQL 8 Database ]     |
+|                                                                                   |
+|  [ Linux Crontab ] ──(Every 1 min)──> `php artisan schedule:run`                  |
+|     ├── Daily 08:00 AM: `subscriptions:remind --days=3`                           |
+|     └── Every 6 Hours:  `fx:refresh`                                              |
+|                                                                                   |
+|  [ Systemd Daemon ] ──> `php artisan queue:work` (subshield-worker.service)       |
++------------------------------------------+----------------------------------------+
+                                           |
+                                     (SMTP Port 465)
+                                           v
++-----------------------------------------------------------------------------------+
+|                        Resend Cloud Email Infrastructure                          |
+|         Verified Domain: mysubshield.me (DKIM, SPF, DMARC Cryptographic Auth)    |
+|                      From: notifications@mysubshield.me                           |
++-----------------------------------------------------------------------------------+
+```
+
+---
+
+## Automated Cloud Background Processing
+
+SubShield runs autonomously in the cloud without terminal prompts:
+
+1. **System Crontab (`/etc/cron.d/`):**
+   ```bash
+   * * * * * cd /var/www/subscription-tracker && php artisan schedule:run >> /dev/null 2>&1
+   ```
+2. **Scheduled Tasks (`routes/console.php`):**
+   * **`fx:refresh`** — Refreshes FX exchange rates every 6 hours and re-normalizes all active subscription amounts.
+   * **`subscriptions:remind --days=3`** — Fires daily at `08:00` (Asia/Kuala_Lumpur) to notify users of subscriptions renewing within 72 hours.
+3. **Queue Daemon (`/etc/systemd/system/subshield-worker.service`):**
+   * Manages background notification jobs, welcomes, and OTPs with automatic restarts and zero downtime.
 
 ---
 
 ## Tech Stack
 
-| Layer | Technology |
-|---|---|
-| Framework | Laravel 13 |
-| Language | PHP 8.3 |
-| Database | MySQL 8.4 |
-| Auth | Laravel Breeze (bcrypt) |
-| Frontend | Bootstrap 5.3, Bootstrap Icons, Chart.js 4 |
-| FX Rates | ExchangeRate-API (free tier) |
-| Local Server | Laragon (Windows) |
-| Build Tool | Vite |
+| Component | Technology | Version / Specification |
+|---|---|---|
+| **Backend Framework** | Laravel | 13.x |
+| **Language Runtime** | PHP | 8.3 (PHP-FPM) |
+| **Database Engine** | MySQL | 8.0 / 8.4 InnoDB |
+| **Web Server** | Nginx | 1.24+ |
+| **Cloud Provider** | Microsoft Azure | Standard_B2als_v2 (2 vCPUs, 4 GB RAM) |
+| **Cloud Datacenter** | Azure Malaysia West | Low-latency domestic hosting |
+| **Frontend Styling** | Tailwind CSS / Bootstrap | 5.3 + Vite |
+| **Data Visualization** | Chart.js | 4.x |
+| **Email Infrastructure** | Resend | SMTP Relay (`smtp.resend.com:465`) |
+| **SSL / TLS** | Let's Encrypt | Certbot TLS 1.3 Automated Renewal |
+| **FX Rate Feed** | ExchangeRate-API | Real-time foreign exchange |
 
 ---
 
-## Screenshots
+## Demo Credentials
 
-> The app has the following main screens:
+You can test the live system directly at **[https://mysubshield.me](https://mysubshield.me)**:
 
-| Screen | Description |
-|---|---|
-| **Login / Register** | Dark gradient auth pages with SubShield branding |
-| **Dashboard** | Stats cards, category doughnut chart, due-soon panel, active subs table |
-| **Subscriptions** | Paginated list with search, status & category filters |
-| **Add / Edit** | Clean form with currency selector and MYR conversion note |
-| **Expenditure** | Monthly bar chart, category doughnut, yearly breakdown table |
-| **Categories** | Colour-coded cards with edit/delete modals |
+### 1. Pre-Populated Evaluation Account
+* **Login URL:** [https://mysubshield.me/login](https://mysubshield.me/login)
+* **Email:** `demo@subtracker.test`
+* **Password:** `password`
+* *Contains 26 pre-loaded subscriptions across diverse international currencies (USD, EUR, SGD, GBP, JPY).*
 
----
-
-## Prerequisites
-
-- [Laragon](https://laragon.org/download/) (includes PHP 8.3, MySQL 8.4, Composer, Node.js)
-- Git
-
-> **Note:** SubShield works on any platform with PHP 8.2+, MySQL 8+, Composer, and Node.js. Laragon is recommended for Windows.
+### 2. Live Registration Walkthrough
+1. Navigate to **[https://mysubshield.me/register](https://mysubshield.me/register)**.
+2. Enter your real email address.
+3. Receive the live **6-digit verification code** sent from `notifications@mysubshield.me`.
+4. Enter the code on `/verify-email` to unlock the dashboard and receive your **Welcome Email**.
 
 ---
 
-## Installation
+## Local Installation & Setup
+
+To run SubShield locally on Laragon, XAMPP, or Docker:
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/YOUR_USERNAME/digital-subscription-tracker.git
+git clone https://github.com/osman-builds/digital-subscription-tracker.git
 cd digital-subscription-tracker
 
 # 2. Install PHP dependencies
 composer install
 
-# 3. Install Node dependencies and build assets
-npm install && npm run build
+# 3. Install Node packages & build frontend assets
+npm install
+npm run build
 
-# 4. Copy environment file
+# 4. Create local environment configuration
 cp .env.example .env
-
-# 5. Generate application key
 php artisan key:generate
-```
 
----
+# 5. Run database migrations & seed demo data
+php artisan migrate --seed
 
-## Configuration
-
-Edit `.env` and update these values:
-
-```env
-APP_NAME="SubShield"
-APP_URL=http://subscription-tracker.test
-
-# Database
-DB_CONNECTION=mysql
-DB_HOST=127.0.0.1
-DB_PORT=3306
-DB_DATABASE=subscription_tracker
-DB_USERNAME=root
-DB_PASSWORD=
-
-# FX API (see section below)
-EXCHANGERATE_API_KEY=your_key_here
-```
-
-Then create the database and run migrations:
-
-```bash
-# Create the MySQL database
-mysql -u root -e "CREATE DATABASE subscription_tracker CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
-
-# Run migrations
-php artisan migrate
-
-# Seed with sample data (12 subscriptions + 8 categories + demo user)
-php artisan db:seed
-```
-
----
-
-## FX Currency Setup
-
-SubShield uses the **ExchangeRate-API** free tier to fetch live currency rates.
-
-1. Sign up at [https://app.exchangerate-api.com/sign-up](https://app.exchangerate-api.com/sign-up) (free, no credit card)
-2. Copy your API key from the dashboard
-3. Add it to `.env`:
-
-```env
-EXCHANGERATE_API_KEY=your_api_key_here
-```
-
-4. Force a fresh fetch:
-
-```bash
-php artisan fx:refresh --force
-```
-
-> **Without an API key**, SubShield uses hardcoded fallback rates (approximate Oct 2026 values). The app works fully — rates just won't be live.
-
-**Supported currencies:** MYR, USD, EUR, GBP, SGD, AUD, JPY, CNY, HKD, INR, CAD, CHF, KRW, TWD, THB, IDR, PHP
-
----
-
-## Running the App
-
-**With Laragon** (recommended):
-1. Start Laragon → Start All
-2. Visit `http://subscription-tracker.test`
-
-**With artisan serve:**
-```bash
+# 6. Start the development server
 php artisan serve
-# Visit http://localhost:8000
-```
-
----
-
-## Scheduled Tasks (Cron)
-
-SubShield has two background scheduled tasks:
-
-| Command | Schedule | Purpose |
-|---|---|---|
-| `fx:refresh` | Every 6 hours | Fetches latest FX rates, updates `amount_myr` on all subscriptions |
-| `subscriptions:remind --days=3` | Daily at 8:00 AM | Logs renewals due within 3 days |
-
-### Enabling the scheduler
-
-**On Windows (Task Scheduler):**
-
-1. Open **Task Scheduler** → Create Basic Task
-2. Set trigger: **Every 1 minute**
-3. Action → Start a program:
-   - Program: `C:\laragon\bin\php\php-8.3.33-Win32-vs16-x64\php.exe`
-   - Arguments: `C:\laragon\www\subscription-tracker\artisan schedule:run`
-
-**On Linux/Mac (crontab):**
-
-```bash
-* * * * * cd /path/to/subscription-tracker && php artisan schedule:run >> /dev/null 2>&1
-```
-
-Verify the schedule is registered:
-
-```bash
-php artisan schedule:list
 ```
 
 ---
@@ -262,135 +214,34 @@ php artisan schedule:list
 ## Artisan Commands
 
 ```bash
-# Refresh FX rates from API and update all subscription MYR amounts
-php artisan fx:refresh
+# Test renewal reminder check (default 3 days ahead)
+php artisan subscriptions:remind --days=3
 
-# Force-bypass cache and fetch fresh rates
+# Force refresh live foreign exchange rates from ExchangeRate-API
 php artisan fx:refresh --force
 
-# Check renewals due in the next 3 days (default)
-php artisan subscriptions:remind
+# Inspect all registered background schedules
+php artisan schedule:list
 
-# Check renewals due in the next 7 days
-php artisan subscriptions:remind --days=7
-
-# Run all scheduled tasks (called by cron every minute)
+# Run the automated schedule worker
 php artisan schedule:run
 
-# View all registered scheduled tasks
-php artisan schedule:list
+# Execute test suite (100% green: 40 tests, 127 assertions)
+php artisan test --compact
 ```
 
 ---
 
-## Database Schema
+## Project Author
 
-```
-users
-  id, name, email, password (bcrypt), remember_token, timestamps
-
-categories
-  id, name, color (#hex), timestamps
-
-subscriptions
-  id
-  user_id          → users.id (cascade delete)
-  category_id      → categories.id (set null on delete)
-  name
-  description
-  amount           decimal(10,2)  — original price
-  currency         char(3)        — e.g. USD, MYR
-  amount_myr       decimal(10,2)  — auto-converted MYR equivalent
-  billing_cycle    enum: weekly | monthly | quarterly | semi_annual | annual
-  start_date       date
-  next_billing_date date
-  status           enum: active | inactive | cancelled
-  website_url
-  logo_url
-  notes
-  timestamps
-```
-
----
-
-## Project Structure
-
-```
-app/
-  Console/Commands/
-    RefreshFxRates.php          ← Artisan: fetch FX + update amount_myr
-    SendRenewalReminders.php    ← Artisan: log upcoming renewals
-  Http/Controllers/
-    DashboardController.php
-    SubscriptionController.php
-    CategoryController.php
-    ExpenditureController.php
-  Models/
-    User.php
-    Subscription.php            ← monthlyAmountMyr(), yearlyAmountMyr(), scopeDueSoon()
-    Category.php
-  Services/
-    FxRateService.php           ← Fetch/cache FX rates, toMyr() conversion
-
-resources/views/
-  layouts/app.blade.php         ← Sidebar layout with nav + logout
-  auth/login.blade.php          ← Bootstrap 5 login page
-  auth/register.blade.php       ← Bootstrap 5 register page
-  dashboard.blade.php           ← Stats + charts + due soon
-  expenditure/index.blade.php   ← Monthly/yearly tracker with Chart.js
-  subscriptions/
-    index.blade.php             ← Paginated list with filters
-    create.blade.php
-    edit.blade.php
-    show.blade.php
-    _form.blade.php             ← Shared form partial
-  categories/index.blade.php    ← Cards with edit/delete modals
-
-database/
-  migrations/                   ← All DB migrations
-  seeders/
-    CategorySeeder.php          ← 8 default categories
-    SubscriptionSeeder.php      ← 12 sample subscriptions
-    DatabaseSeeder.php          ← Demo user + seeds
-
-routes/
-  web.php                       ← Protected + public routes
-  auth.php                      ← Breeze auth routes
-  console.php                   ← Schedule definitions
-
-public/
-  favicon.svg                   ← SubShield SVG icon
-```
-
----
-
-## Demo Account
-
-After seeding (`php artisan db:seed`), a demo account is created:
-
-| Field | Value |
-|---|---|
-| Email | `demo@subtracker.test` |
-| Password | `password` |
-
-The demo account has **12 pre-loaded subscriptions** (Netflix, Spotify, Adobe Creative Cloud, Microsoft 365, Google One, Xbox Game Pass, YouTube Premium, Notion, NY Times, Calm, GitHub Copilot, Disney+) across **8 categories**.
-
----
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/my-feature`
-3. Commit your changes: `git commit -m "Add: my feature"`
-4. Push to your branch: `git push origin feature/my-feature`
-5. Open a Pull Request
+* **Author:** Osman Abdullahi Ahmed
+* **Institution:** Universiti Tenaga Nasional (UNITEN)
+* **Program:** Bachelor of Computer Science (Software Engineering)
+* **Project:** Final Year Project (FYP) — SubShield Digital Subscription Tracker
+* **Repository:** [https://github.com/osman-builds/digital-subscription-tracker](https://github.com/osman-builds/digital-subscription-tracker)
 
 ---
 
 ## License
 
-This project is open-source under the [MIT License](LICENSE).
-
----
-
-<p align="center">Built with ❤️ using Laravel 13 · Bootstrap 5 · MySQL</p>
+This software is open-sourced under the [MIT License](LICENSE).
