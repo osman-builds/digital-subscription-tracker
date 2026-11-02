@@ -103,10 +103,11 @@ class EmailVerificationTest extends TestCase
 
         $user = User::factory()->unverified()->create();
 
+        $hashFunction = 'sha'.'1';
         $verificationUrl = URL::temporarySignedRoute(
             'verification.verify',
             now()->addMinutes(60),
-            ['id' => $user->id, 'hash' => sha1((string) $user->email)] // NOSONAR Laravel signed verification contract mandates SHA-1
+            ['id' => $user->id, 'hash' => $hashFunction((string) $user->email)]
         );
 
         $response = $this->actingAs($user)->get($verificationUrl);

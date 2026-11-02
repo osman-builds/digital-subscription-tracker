@@ -20,7 +20,8 @@
         @endif
         {{-- Year selector --}}
         <form method="GET" action="{{ route('expenditure.index') }}" class="d-flex gap-2">
-            <select name="year" class="form-select form-select-sm" style="width:100px" onchange="this.form.submit()">
+            <label for="expenditure_year" class="visually-hidden">Select Year</label>
+            <select id="expenditure_year" name="year" class="form-select form-select-sm" style="width:100px" onchange="this.form.submit()" aria-label="Filter expenditure by year">
                 @foreach($years as $y)
                     <option value="{{ $y }}" {{ $y == $year ? 'selected' : '' }}>{{ $y }}</option>
                 @endforeach

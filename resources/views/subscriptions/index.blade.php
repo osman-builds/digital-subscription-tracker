@@ -15,11 +15,13 @@
     <div class="card-body py-3">
         <form method="GET" action="{{ route('subscriptions.index') }}" class="row g-2 align-items-end">
             <div class="col-12 col-md-4">
-                <input type="text" name="search" class="form-control" placeholder="Search by name…"
-                       value="{{ request('search') }}">
+                <label for="filter_search" class="visually-hidden">Search Subscriptions</label>
+                <input type="text" id="filter_search" name="search" class="form-control" placeholder="Search by name…"
+                       value="{{ request('search') }}" aria-label="Search subscriptions by name">
             </div>
             <div class="col-6 col-md-3">
-                <select name="status" class="form-select">
+                <label for="filter_status" class="visually-hidden">Filter by Status</label>
+                <select id="filter_status" name="status" class="form-select" aria-label="Filter subscriptions by status">
                     <option value="">All Statuses</option>
                     <option value="active"    {{ request('status') === 'active'    ? 'selected' : '' }}>Active</option>
                     <option value="inactive"  {{ request('status') === 'inactive'  ? 'selected' : '' }}>Inactive</option>
@@ -27,7 +29,8 @@
                 </select>
             </div>
             <div class="col-6 col-md-3">
-                <select name="category_id" class="form-select">
+                <label for="filter_category_id" class="visually-hidden">Filter by Category</label>
+                <select id="filter_category_id" name="category_id" class="form-select" aria-label="Filter subscriptions by category">
                     <option value="">All Categories</option>
                     @foreach($categories as $cat)
                         <option value="{{ $cat->id }}" {{ request('category_id') == $cat->id ? 'selected' : '' }}>
