@@ -106,7 +106,7 @@ class EmailVerificationTest extends TestCase
         $verificationUrl = URL::temporarySignedRoute(
             'verification.verify',
             now()->addMinutes(60),
-            ['id' => $user->id, 'hash' => sha1($user->email)]
+            ['id' => $user->id, 'hash' => sha1((string) $user->email)] // NOSONAR Laravel signed verification contract mandates SHA-1
         );
 
         $response = $this->actingAs($user)->get($verificationUrl);

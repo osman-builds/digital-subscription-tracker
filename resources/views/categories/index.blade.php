@@ -69,13 +69,13 @@
                                 @csrf @method('PUT')
                                 <div class="modal-body">
                                     <div class="mb-3">
-                                        <label class="form-label fw-semibold">Name</label>
-                                        <input type="text" name="name" class="form-control"
+                                        <label for="category_name_{{ $category->id }}" class="form-label fw-semibold">Name</label>
+                                        <input type="text" name="name" id="category_name_{{ $category->id }}" class="form-control"
                                                value="{{ $category->name }}" required>
                                     </div>
                                     <div class="mb-3">
-                                        <label class="form-label fw-semibold">Color</label>
-                                        <input type="color" name="color" class="form-control form-control-color w-100"
+                                        <label for="category_color_{{ $category->id }}" class="form-label fw-semibold">Color</label>
+                                        <input type="color" name="color" id="category_color_{{ $category->id }}" class="form-control form-control-color w-100"
                                                value="{{ $category->color }}" required>
                                     </div>
                                 </div>
@@ -114,14 +114,14 @@
                 @csrf
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label class="form-label fw-semibold">Name <span class="text-danger">*</span></label>
-                        <input type="text" name="name" class="form-control @error('name') is-invalid @enderror"
+                        <label for="new_category_name" class="form-label fw-semibold">Name <span class="text-danger">*</span></label>
+                        <input type="text" name="name" id="new_category_name" class="form-control @error('name') is-invalid @enderror"
                                value="{{ old('name') }}" placeholder="e.g. Health & Fitness" required>
                         @error('name')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
                     <div class="mb-3">
-                        <label class="form-label fw-semibold">Color <span class="text-danger">*</span></label>
-                        <input type="color" name="color" class="form-control form-control-color w-100"
+                        <label for="new_category_color" class="form-label fw-semibold">Color <span class="text-danger">*</span></label>
+                        <input type="color" name="color" id="new_category_color" class="form-control form-control-color w-100"
                                value="{{ old('color', '#6366f1') }}" required>
                     </div>
                 </div>

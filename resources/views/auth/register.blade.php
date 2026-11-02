@@ -39,22 +39,22 @@
                 @csrf
 
                 <div class="mb-3">
-                    <label class="form-label fw-semibold">Full Name</label>
+                    <label for="name" class="form-label fw-semibold">Full Name</label>
                     <div class="input-group">
                         <span class="input-group-text"><i class="bi bi-person"></i></span>
-                        <input type="text" name="name"
+                        <input type="text" name="name" id="name"
                                class="form-control @error('name') is-invalid @enderror"
-                               value="{{ old('name') }}" required autofocus autocomplete="name"
+                               value="{{ old('name') }}" required autocomplete="name"
                                placeholder="John Doe">
                         @error('name')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label fw-semibold">Email Address</label>
+                    <label for="email" class="form-label fw-semibold">Email Address</label>
                     <div class="input-group">
                         <span class="input-group-text"><i class="bi bi-envelope"></i></span>
-                        <input type="email" name="email"
+                        <input type="email" name="email" id="email"
                                class="form-control @error('email') is-invalid @enderror"
                                value="{{ old('email') }}" required autocomplete="username"
                                placeholder="you@example.com">
@@ -63,10 +63,10 @@
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label fw-semibold">Password</label>
+                    <label for="password" class="form-label fw-semibold">Password</label>
                     <div class="input-group">
                         <span class="input-group-text"><i class="bi bi-lock"></i></span>
-                        <input type="password" name="password"
+                        <input type="password" name="password" id="password"
                                class="form-control @error('password') is-invalid @enderror"
                                required autocomplete="new-password" placeholder="Min. 8 characters">
                         @error('password')<div class="invalid-feedback">{{ $message }}</div>@enderror
@@ -74,10 +74,10 @@
                 </div>
 
                 <div class="mb-4">
-                    <label class="form-label fw-semibold">Confirm Password</label>
+                    <label for="password_confirmation" class="form-label fw-semibold">Confirm Password</label>
                     <div class="input-group">
                         <span class="input-group-text"><i class="bi bi-lock-fill"></i></span>
-                        <input type="password" name="password_confirmation"
+                        <input type="password" name="password_confirmation" id="password_confirmation"
                                class="form-control" required autocomplete="new-password"
                                placeholder="Repeat password">
                     </div>

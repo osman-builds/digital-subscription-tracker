@@ -82,7 +82,6 @@
                            class="form-control form-control-lg otp-input @error('otp') is-invalid @enderror"
                            placeholder="······"
                            autocomplete="one-time-code"
-                           autofocus
                            required>
                     <div class="form-text text-center small text-muted mt-2">
                         <i class="bi bi-clock-history me-1"></i>Code expires in 10 minutes
