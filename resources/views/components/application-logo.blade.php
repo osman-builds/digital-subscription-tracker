@@ -1,4 +1,5 @@
-<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" {{ $attributes }}>
+<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="SubShield Logo" {{ $attributes }}>
+  <title>SubShield Logo</title>
   <defs>
     <linearGradient id="appLogoShieldBg" x1="10%" y1="0%" x2="90%" y2="100%">
       <stop offset="0%" stop-color="#1e1b4b" />

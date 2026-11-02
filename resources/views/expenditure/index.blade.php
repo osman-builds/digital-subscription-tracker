@@ -3,7 +3,7 @@
 @section('title', 'Expenditure – SubShield')
 
 @push('styles')
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js" integrity="sha384-JUh163oCRItcbPme8pYnROHQMC6fNKTBWtRG3I3I0erJkzNgL7uxKlNwcrcFKeqF" crossorigin="anonymous"></script>
 @endpush
 
 @section('content')
@@ -21,7 +21,7 @@
         {{-- Year selector --}}
         <form method="GET" action="{{ route('expenditure.index') }}" class="d-flex gap-2">
             <label for="expenditure_year" class="visually-hidden">Select Year</label>
-            <select id="expenditure_year" name="year" class="form-select form-select-sm" style="width:100px" onchange="this.form.submit()" aria-label="Filter expenditure by year">
+            <select id="expenditure_year" name="year" class="form-select form-select-sm" style="width:100px" onchange="this.form.submit()">
                 @foreach($years as $y)
                     <option value="{{ $y }}" {{ $y == $year ? 'selected' : '' }}>{{ $y }}</option>
                 @endforeach

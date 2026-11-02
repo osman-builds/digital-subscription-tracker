@@ -89,17 +89,16 @@ class User extends Authenticatable implements MustVerifyEmail
             return false;
         }
 
-        if (! Hash::check($enteredOtp, $data['hash'])) {
+        $isValid = Hash::check($enteredOtp, $data['hash']);
+        if (! $isValid) {
             $data['attempts'] = ($data['attempts'] ?? 0) + 1;
             Cache::put($key, $data, now()->addMinutes(10));
-
-            return false;
+        } else {
+            Cache::forget($key);
+            $this->markEmailAsVerified();
+            event(new Verified($this));
         }
 
-        Cache::forget($key);
-        $this->markEmailAsVerified();
-        event(new Verified($this));
-
-        return true;
+        return $isValid;
     }
 }

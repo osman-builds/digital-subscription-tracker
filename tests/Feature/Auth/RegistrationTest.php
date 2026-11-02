@@ -12,18 +12,22 @@ class RegistrationTest extends TestCase
 {
     use RefreshDatabase;
 
+    private const ROUTE_REGISTER = '/register';
+
+    private const TEST_EMAIL = 'test@example.com';
+
     public function test_registration_screen_can_be_rendered(): void
     {
-        $response = $this->get('/register');
+        $response = $this->get(self::ROUTE_REGISTER);
 
         $response->assertStatus(200);
     }
 
     public function test_new_users_can_register(): void
     {
-        $response = $this->post('/register', [
+        $response = $this->post(self::ROUTE_REGISTER, [
             'name' => 'Test User',
-            'email' => 'test@example.com',
+            'email' => self::TEST_EMAIL,
             'password' => 'password',
             'password_confirmation' => 'password',
         ]);
@@ -36,14 +40,14 @@ class RegistrationTest extends TestCase
     {
         Notification::fake();
 
-        $this->post('/register', [
+        $this->post(self::ROUTE_REGISTER, [
             'name' => 'Test User',
-            'email' => 'test@example.com',
+            'email' => self::TEST_EMAIL,
             'password' => 'password',
             'password_confirmation' => 'password',
         ]);
 
-        $user = User::where('email', 'test@example.com')->firstOrFail();
+        $user = User::where('email', self::TEST_EMAIL)->firstOrFail();
 
         Notification::assertSentToTimes($user, EmailVerificationOtpNotification::class, 1);
     }
