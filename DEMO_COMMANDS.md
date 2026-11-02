@@ -129,6 +129,7 @@ To demonstrate the full user onboarding experience from scratch:
 
 1. Open [http://127.0.0.1:8000/register](http://127.0.0.1:8000/register).
 2. Enter your real email address and choose a password.
-3. Check your inbox for the **6-digit verification code** sent via Brevo.
+3. Check your inbox for the **6-digit verification code** sent via Resend (`notifications@mysubshield.me`).
 4. Enter the 6 digits on the `/verify-email` screen.
 5. Watch the account verify and receive the automated **Welcome Email**.
+
