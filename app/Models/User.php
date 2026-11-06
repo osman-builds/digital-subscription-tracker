@@ -53,10 +53,27 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
+     * Determine if the user has verified their email address.
+     * The demo account does not require email OTP verification.
+     */
+    public function hasVerifiedEmail(): bool
+    {
+        if ($this->email === 'demo@subtracker.test') {
+            return true;
+        }
+
+        return ! is_null($this->email_verified_at);
+    }
+
+    /**
      * Send the email verification OTP notification.
      */
     public function sendEmailVerificationNotification(): void
     {
+        if ($this->email === 'demo@subtracker.test') {
+            return;
+        }
+
         $otp = (string) random_int(100000, 999999);
 
         Cache::put(
