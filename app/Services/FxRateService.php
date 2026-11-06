@@ -12,14 +12,16 @@ class FxRateService
      * Cache duration: 6 hours (free tier has 1500 req/month ≈ 50/day, so 4/day is safe)
      */
     private const CACHE_TTL_SECONDS = 21600;
+
     private const CACHE_KEY = 'fx_rates_myr';
+
     private const TARGET = 'MYR';
 
     /**
      * Get exchange rates with MYR as the base (how many MYR per 1 foreign unit).
      * Falls back to hardcoded approximates if API is unavailable.
      *
-     * @return array<string, float>  e.g. ['USD' => 4.47, 'EUR' => 4.85, ...]
+     * @return array<string, float> e.g. ['USD' => 4.47, 'EUR' => 4.85, ...]
      */
     public function getRates(): array
     {
@@ -41,8 +43,9 @@ class FxRateService
 
         $rates = $this->getRates();
 
-        if (!isset($rates[$currency])) {
+        if (! isset($rates[$currency])) {
             Log::warning("FxRateService: Unknown currency [{$currency}], returning original amount");
+
             return $amount;
         }
 
@@ -55,6 +58,7 @@ class FxRateService
     public function refresh(): array
     {
         Cache::forget(self::CACHE_KEY);
+
         return $this->getRates();
     }
 
@@ -63,8 +67,14 @@ class FxRateService
      */
     public function lastUpdated(): ?string
     {
-        // Laravel file cache stores metadata; we use a separate key for timestamp
-        return Cache::get(self::CACHE_KEY . '_updated_at');
+        $timestamp = Cache::get(self::CACHE_KEY.'_updated_at');
+
+        if ($timestamp === null) {
+            $this->getRates();
+            $timestamp = Cache::get(self::CACHE_KEY.'_updated_at');
+        }
+
+        return $timestamp;
     }
 
     // -------------------------------------------------------------------------
@@ -75,6 +85,7 @@ class FxRateService
 
         if (empty($apiKey)) {
             Log::info('FxRateService: No API key set, using fallback rates.');
+
             return $this->fallbackRates();
         }
 
@@ -101,7 +112,8 @@ class FxRateService
                         }
                     }
 
-                    Cache::put(self::CACHE_KEY . '_updated_at', now()->toDateTimeString(), self::CACHE_TTL_SECONDS);
+                    Cache::put(self::CACHE_KEY.'_updated_at', now()->toDateTimeString(), self::CACHE_TTL_SECONDS);
+
                     return $myrRates;
                 }
             }
