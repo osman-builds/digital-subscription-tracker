@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Subscription;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
@@ -14,10 +15,12 @@ class DatabaseSeeder extends Seeder
         $demo = User::firstOrCreate(
             ['email' => 'demo@subtracker.test'],
             [
-                'name'     => 'Demo User',
+                'name' => 'Demo User',
                 'password' => Hash::make('password'),
+                'email_verified_at' => now(),
             ]
         );
+        $demo->updateQuietly(['email_verified_at' => now()]);
 
         $this->call([
             CategorySeeder::class,
@@ -25,6 +28,6 @@ class DatabaseSeeder extends Seeder
         ]);
 
         // Assign all seeded subscriptions to the demo user
-        \App\Models\Subscription::whereNull('user_id')->update(['user_id' => $demo->id]);
+        Subscription::whereNull('user_id')->update(['user_id' => $demo->id]);
     }
 }
