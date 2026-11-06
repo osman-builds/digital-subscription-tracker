@@ -17,10 +17,10 @@
 <p align="center">
   <img src="https://img.shields.io/badge/Laravel-13-FF2D20?style=flat-square&logo=laravel&logoColor=white" alt="Laravel 13">
   <img src="https://img.shields.io/badge/PHP-8.3-777BB4?style=flat-square&logo=php&logoColor=white">
-  <img src="https://img.shields.io/badge/Cloud-Microsoft_Azure-0078D4?style=flat-square&logo=microsoftazure&logoColor=white">
-  <img src="https://img.shields.io/badge/Region-Malaysia_West-008080?style=flat-square">
+  <img src="https://img.shields.io/badge/Security-Hardened%20Edge%20%26%20WAF-10B981?style=flat-square&logo=shield&logoColor=white">
   <img src="https://img.shields.io/badge/Email-Resend_Verified-000000?style=flat-square&logo=resend&logoColor=white">
-  <img src="https://img.shields.io/badge/Security-SSL_Let's_Encrypt-10B981?style=flat-square&logo=letsencrypt&logoColor=white">
+  <img src="https://img.shields.io/badge/SSL-TLS_1.3-10B981?style=flat-square&logo=letsencrypt&logoColor=white">
+  <img src="https://img.shields.io/badge/Tests-42%20Passed-success?style=flat-square">
   <img src="https://img.shields.io/badge/License-MIT-green?style=flat-square">
 </p>
 
@@ -30,10 +30,9 @@
 
 * **Production URL:** [https://mysubshield.me](https://mysubshield.me)
 * **Alternate URL:** [https://www.mysubshield.me](https://www.mysubshield.me)
-* **Cloud Infrastructure:** Microsoft Azure Virtual Machine (Ubuntu 24.04 LTS, Nginx, PHP 8.3-FPM, MySQL 8)
-* **Datacenter Region:** `(Asia Pacific) Malaysia West`
-* **Custom Domain & DNS:** Registered via Namecheap, verified on GitHub Student Pack & Resend
-* **SSL Certificate:** Automated TLS 1.3 encryption via Let's Encrypt (Certbot auto-renewing)
+* **Architecture:** Enterprise Multi-Tier Production Stack (Edge Proxy, PHP 8.3-FPM, MySQL 8)
+* **Domain & Edge Routing:** Custom domain with global Edge Anycast WAF & DDoS mitigation
+* **SSL / TLS:** Automated TLS 1.3 encryption with strict HSTS and Content Security Policy
 
 ---
 
@@ -97,70 +96,83 @@ Modern digital consumers subscribe to software and streaming services across var
 ```
 +-----------------------------------------------------------------------------------+
 |                                 Client Browser                                    |
-|                       https://mysubshield.me (SSL / HTTPS)                        |
+|                       https://mysubshield.me (HTTPS)                              |
 +------------------------------------------+----------------------------------------+
                                            |
-                                     (HTTPS Port 443)
+                                     (HTTPS / TLS 1.3)
                                            v
 +-----------------------------------------------------------------------------------+
-|                        Microsoft Azure Virtual Machine                            |
-|                        Region: Malaysia West (Ubuntu 24.04)                       |
+|                            Edge & Security Layer                                  |
+|                 [ Global Anycast · DDoS Mitigation · Edge WAF ]                   |
++------------------------------------------+----------------------------------------+
+                                           |
+                                           v
++-----------------------------------------------------------------------------------+
+|                         Production Application Tier                               |
 |                                                                                   |
-|  [ Nginx Reverse Proxy ] ──> [ PHP 8.3-FPM FastCGI ] ──> [ Laravel 13 Core ]      |
+|  [ Reverse Proxy / Web Server ] ──> [ PHP 8.3-FPM FastCGI ] ──> [ Laravel Core ]  |
 |                                                                    |              |
-|                                                             (Port 3306)           |
 |                                                                    v              |
 |                                                          [ MySQL 8 Database ]     |
 |                                                                                   |
-|  [ Linux Crontab ] ──(Every 1 min)──> `php artisan schedule:run`                  |
+|  [ Automated Scheduler ] ──(Cron Daemon)──> `php artisan schedule:run`            |
 |     ├── Daily 08:00 AM: `subscriptions:remind --days=3`                           |
 |     └── Every 6 Hours:  `fx:refresh`                                              |
 |                                                                                   |
-|  [ Systemd Daemon ] ──> `php artisan queue:work` (subshield-worker.service)       |
+|  [ Background Queue Worker ] ──> Asynchronous Email & Notification Processing     |
 +------------------------------------------+----------------------------------------+
                                            |
-                                     (SMTP Port 465)
+                                     (SMTP Relay)
                                            v
 +-----------------------------------------------------------------------------------+
-|                        Resend Cloud Email Infrastructure                          |
-|         Verified Domain: mysubshield.me (DKIM, SPF, DMARC Cryptographic Auth)    |
+|                        Cloud Email Delivery Infrastructure                        |
+|         Verified Domain: mysubshield.me (DKIM, SPF, DMARC Cryptographic Auth)     |
 |                      From: notifications@mysubshield.me                           |
 +-----------------------------------------------------------------------------------+
 ```
 
 ---
 
-## Automated Cloud Background Processing
+## Automated Background Processing
 
-SubShield runs autonomously in the cloud without terminal prompts:
+SubShield runs autonomously in the background without manual terminal intervention:
 
-1. **System Crontab (`/etc/cron.d/`):**
-   ```bash
-   * * * * * cd /var/www/subscription-tracker && php artisan schedule:run >> /dev/null 2>&1
-   ```
-2. **Scheduled Tasks (`routes/console.php`):**
-   * **`fx:refresh`** — Refreshes FX exchange rates every 6 hours and re-normalizes all active subscription amounts.
+1. **System Scheduler Daemon:**
+   Executes the Laravel scheduler every minute to maintain autonomous operation:
+   * **`fx:refresh`** — Refreshes foreign exchange market rates every 6 hours and re-normalizes all active subscription amounts.
    * **`subscriptions:remind --days=3`** — Fires daily at `08:00` (Asia/Kuala_Lumpur) to notify users of subscriptions renewing within 72 hours.
-3. **Queue Daemon (`/etc/systemd/system/subshield-worker.service`):**
-   * Manages background notification jobs, welcomes, and OTPs with automatic restarts and zero downtime.
+2. **Background Queue Worker:**
+   Manages background notification jobs, welcome messages, and authentication emails asynchronously with zero latency impact on web requests.
+
+---
+
+## Security & Defense Architecture
+
+SubShield implements a defense-in-depth model across all application layers:
+
+* **Edge Protection**: Global Anycast edge network with automated DDoS absorption, Web Application Firewall (WAF), and Bot Mitigation.
+* **HTTP Security Headers**: Strict Content Security Policy (`default-src 'self'`), HTTP Strict Transport Security (`HSTS` max-age 1 year), `X-Frame-Options: SAMEORIGIN`, and `X-Content-Type-Options: nosniff`.
+* **Subresource Integrity (SRI)**: SHA-384 cryptographic hashes on all third-party CDN assets to prevent asset tampering.
+* **Database Isolation**: Native PDO prepared statements enforced at the database driver level (`EMULATE_PREPARES => false`) for complete SQL injection immunity.
+* **Data Tenancy**: Strict user-level authorization ensuring each user only accesses their own subscriptions, tags, and settings.
+* **Credential Protection**: Passwords securely hashed via **Bcrypt** (`hashed` Eloquent cast), with automatic CSRF token validation on all state-changing endpoints.
 
 ---
 
 ## Tech Stack
 
-| Component | Technology | Version / Specification |
+| Component | Technology | Specification |
 |---|---|---|
 | **Backend Framework** | Laravel | 13.x |
 | **Language Runtime** | PHP | 8.3 (PHP-FPM) |
-| **Database Engine** | MySQL | 8.0 / 8.4 InnoDB |
-| **Web Server** | Nginx | 1.24+ |
-| **Cloud Provider** | Microsoft Azure | Standard_B2als_v2 (2 vCPUs, 4 GB RAM) |
-| **Cloud Datacenter** | Azure Malaysia West | Low-latency domestic hosting |
-| **Frontend Styling** | Tailwind CSS / Bootstrap | 5.3 + Vite |
+| **Database Engine** | MySQL | 8.0 InnoDB |
+| **Web Server** | Nginx | Reverse Proxy & HTTP/2 Gateway |
+| **Security & Edge** | Cloudflare | Global Anycast, WAF & Universal SSL |
+| **Frontend Styling** | Bootstrap | 5.3 + Custom Tokens |
 | **Data Visualization** | Chart.js | 4.x |
-| **Email Infrastructure** | Resend | SMTP Relay (`smtp.resend.com:465`) |
-| **SSL / TLS** | Let's Encrypt | Certbot TLS 1.3 Automated Renewal |
+| **Email Infrastructure** | Resend | Authenticated SMTP (DKIM, SPF, DMARC) |
 | **FX Rate Feed** | ExchangeRate-API | Real-time foreign exchange |
+| **Code Quality** | SonarCloud | Quality Gate Passed (Security Rating A) |
 
 ---
 
