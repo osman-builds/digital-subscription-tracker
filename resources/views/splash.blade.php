@@ -3,298 +3,500 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SubShield — Take Control of Your Subscriptions</title>
-    <meta name="description" content="A privacy-first subscription tracker that normalises foreign currencies to MYR and alerts you before renewal deadlines.">
+    <title>SubShield — Privacy-First Digital Subscription Tracker</title>
+    <meta name="description" content="A modern, privacy-first subscription tracker that automatically normalises foreign currencies and alerts you before renewal deadlines. Zero bank credentials required.">
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" integrity="sha384-tViUnnbYAV00FLIhhi3v/dWt3Jxw4gZQcNoSCxCIFNJVCx7/D55/wXsrNIRANwdD" crossorigin="anonymous">
     <style>
         :root {
+            --bg-base: #090d16;
+            --bg-surface: #0f172a;
+            --bg-card: rgba(18, 24, 38, 0.7);
+            --border-subtle: rgba(255, 255, 255, 0.08);
+            --border-hover: rgba(99, 102, 241, 0.4);
             --indigo: #6366f1;
-            --indigo-dark: #4f46e5;
-            --slate-900: #0f172a;
-            --slate-800: #1e293b;
-            --slate-700: #334155;
+            --indigo-light: #818cf8;
+            --emerald: #10b981;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
         }
 
-        /* ── General ── */
-        body { font-family: system-ui, -apple-system, sans-serif; overflow-x: hidden; }
-        .btn-indigo {
-            background: var(--indigo);
-            border-color: var(--indigo);
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            overflow-x: hidden;
+            letter-spacing: -0.01em;
+        }
+
+        /* ── Sticky Navbar ── */
+        .saas-nav {
+            background: rgba(9, 13, 22, 0.85);
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--border-subtle);
+            padding: 0.85rem 0;
+            transition: all 0.2s ease;
+        }
+        .saas-nav .navbar-brand {
+            font-weight: 700;
+            font-size: 1.15rem;
             color: #fff;
-        }
-        .btn-indigo:hover { background: var(--indigo-dark); border-color: var(--indigo-dark); color: #fff; }
-
-        /* ── Navbar ── */
-        .splash-nav {
-            background: rgba(15,23,42,.95);
-            backdrop-filter: blur(10px);
-            padding: .9rem 0;
-        }
-        .splash-nav .navbar-brand { font-weight: 700; font-size: 1.15rem; color: #fff; }
-        .splash-nav .nav-link     { color: rgba(255,255,255,.7); font-size: .9rem; }
-        .splash-nav .nav-link:hover { color: #fff; }
-
-        /* ── Hero ── */
-        .hero {
-            background: linear-gradient(135deg, var(--slate-900) 0%, var(--slate-800) 60%, #1e1b4b 100%);
-            min-height: 100vh;
-            position: relative;
-            overflow: hidden;
             display: flex;
             align-items: center;
+            gap: 0.6rem;
         }
-        /* Subtle grid lines decorative bg */
-        .hero::before {
-            content: '';
-            position: absolute; inset: 0;
-            background-image:
-                linear-gradient(rgba(99,102,241,.08) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(99,102,241,.08) 1px, transparent 1px);
-            background-size: 60px 60px;
+        .saas-nav .nav-link {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: color 0.15s ease;
         }
-        /* Glow blob */
-        .hero::after {
-            content: '';
+        .saas-nav .nav-link:hover {
+            color: #fff;
+        }
+
+        /* ── Modern Hero ── */
+        .hero {
+            position: relative;
+            padding-top: 130px;
+            padding-bottom: 90px;
+            overflow: hidden;
+        }
+        /* Subtle architectural grid */
+        .hero-grid {
             position: absolute;
-            top: -120px; right: -120px;
-            width: 600px; height: 600px;
-            border-radius: 50%;
-            background: radial-gradient(circle, rgba(99,102,241,.25) 0%, transparent 70%);
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+            background-size: 48px 48px;
+            mask-image: radial-gradient(ellipse 70% 60% at 50% 30%, #000 60%, transparent 100%);
+            -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 30%, #000 60%, transparent 100%);
+            pointer-events: none;
         }
-        .hero-badge {
-            display: inline-flex; align-items: center; gap: .5rem;
-            background: rgba(99,102,241,.15);
-            border: 1px solid rgba(99,102,241,.35);
-            border-radius: 100px;
-            padding: .4rem 1rem;
-            color: #a5b4fc;
-            font-size: .85rem;
+        /* Ambient glow */
+        .hero-glow {
+            position: absolute;
+            top: 5%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 700px;
+            height: 450px;
+            background: radial-gradient(circle, rgba(99, 102, 241, 0.18) 0%, rgba(16, 185, 129, 0.06) 40%, transparent 70%);
+            filter: blur(70px);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .badge-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(99, 102, 241, 0.1);
+            border: 1px solid rgba(99, 102, 241, 0.25);
+            border-radius: 9999px;
+            padding: 0.35rem 0.95rem;
+            color: #c7d2fe;
+            font-size: 0.82rem;
             font-weight: 500;
         }
-        .hero h1 {
-            font-size: clamp(2.2rem, 5vw, 3.5rem);
-            font-weight: 800;
-            color: #fff;
-            line-height: 1.15;
+        .badge-dot {
+            width: 7px;
+            height: 7px;
+            background: var(--emerald);
+            border-radius: 50%;
+            box-shadow: 0 0 8px var(--emerald);
         }
-        .hero h1 .highlight {
-            background: linear-gradient(135deg, #a5b4fc, #818cf8);
+
+        .hero h1 {
+            font-size: clamp(2.4rem, 5vw, 3.8rem);
+            font-weight: 800;
+            line-height: 1.12;
+            color: #ffffff;
+            letter-spacing: -0.03em;
+        }
+        .text-gradient {
+            background: linear-gradient(135deg, #ffffff 40%, #a5b4fc 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
         }
-        .hero .lead { color: rgba(255,255,255,.7); font-size: 1.15rem; max-width: 560px; }
 
-        /* ── Dashboard preview card ── */
-        .dashboard-preview {
-            background: rgba(255,255,255,.04);
-            border: 1px solid rgba(255,255,255,.1);
-            border-radius: 16px;
+        .hero p.lead {
+            color: var(--text-muted);
+            font-size: 1.15rem;
+            line-height: 1.6;
+            max-width: 540px;
+        }
+
+        /* ── Modern Buttons ── */
+        .btn-primary-saas {
+            background: linear-gradient(180deg, #6366f1 0%, #4f46e5 100%);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2), inset 0 1px 1px rgba(255, 255, 255, 0.2);
+            color: #fff;
+            font-weight: 600;
+            transition: all 0.15s ease;
+        }
+        .btn-primary-saas:hover {
+            background: linear-gradient(180deg, #4f46e5 0%, #4338ca 100%);
+            color: #fff;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 14px rgba(79, 70, 229, 0.35);
+        }
+        .btn-secondary-saas {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-subtle);
+            color: #f1f5f9;
+            font-weight: 600;
+            transition: all 0.15s ease;
+        }
+        .btn-secondary-saas:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.2);
+            color: #fff;
+            transform: translateY(-1px);
+        }
+
+        /* ── Product Window Mockup ── */
+        .mockup-window {
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 18px;
+            box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.05);
             overflow: hidden;
-            position: relative;
-            z-index: 1;
+            transition: transform 0.3s ease, border-color 0.3s ease;
         }
-        .preview-bar { background: rgba(255,255,255,.06); padding: .6rem 1rem; display: flex; align-items: center; gap: .5rem; }
-        .preview-dot { width: 10px; height: 10px; border-radius: 50%; }
-        .stat-mini {
-            background: rgba(255,255,255,.06);
-            border: 1px solid rgba(255,255,255,.08);
-            border-radius: 10px;
-            padding: 1rem;
-            text-align: center;
+        .mockup-window:hover {
+            border-color: rgba(99, 102, 241, 0.35);
         }
-        .stat-mini .label { color: rgba(255,255,255,.5); font-size: .7rem; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; }
-        .stat-mini .value { color: #fff; font-size: 1.5rem; font-weight: 700; }
-        .stat-mini .sub   { color: rgba(255,255,255,.4); font-size: .75rem; }
+        .window-header {
+            background: rgba(255, 255, 255, 0.04);
+            border-bottom: 1px solid var(--border-subtle);
+            padding: 0.75rem 1.1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .window-dots {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .window-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
 
-        .renewal-item {
-            display: flex; align-items: center; gap: .75rem;
-            padding: .6rem 0;
-            border-bottom: 1px solid rgba(255,255,255,.06);
+        /* Mini Currency Switcher inside mockup */
+        .currency-pill-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            color: var(--text-muted);
+            border-radius: 6px;
+            padding: 0.2rem 0.55rem;
+            font-size: 0.72rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s ease;
         }
-        .renewal-item:last-child { border: none; }
-        .renewal-logo {
-            width: 30px; height: 30px;
+        .currency-pill-btn.active, .currency-pill-btn:hover {
+            background: var(--indigo);
+            border-color: var(--indigo);
+            color: #fff;
+        }
+
+        .stat-card-saas {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-subtle);
+            border-radius: 12px;
+            padding: 1rem;
+            transition: all 0.2s ease;
+        }
+        .stat-card-saas .stat-label {
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-muted);
+        }
+        .stat-card-saas .stat-val {
+            font-size: 1.45rem;
+            font-weight: 700;
+            color: #fff;
+            margin: 0.2rem 0;
+        }
+
+        .subscription-row {
+            display: flex;
+            align-items: center;
+            gap: 0.85rem;
+            padding: 0.65rem 0.8rem;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            margin-bottom: 0.45rem;
+            transition: background 0.15s ease;
+        }
+        .subscription-row:hover {
+            background: rgba(255, 255, 255, 0.04);
+        }
+        .brand-avatar {
+            width: 32px;
+            height: 32px;
             border-radius: 8px;
-            display: flex; align-items: center; justify-content: center;
-            font-weight: 700; font-size: .8rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.8rem;
             flex-shrink: 0;
         }
 
-        /* ── Feature cards ── */
-        .features { background: #f8fafc; }
-        .feature-card {
-            border: none;
-            border-radius: 16px;
+        /* ── Bento Grid Section ── */
+        .section-wrap {
+            padding: 90px 0;
+            position: relative;
+        }
+        .bento-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: 18px;
             padding: 2rem;
             height: 100%;
-            transition: transform .2s, box-shadow .2s;
+            position: relative;
+            overflow: hidden;
+            transition: border-color 0.2s ease, transform 0.2s ease;
         }
-        .feature-card:hover { transform: translateY(-4px); box-shadow: 0 12px 30px rgba(0,0,0,.1); }
-        .feature-icon {
-            width: 56px; height: 56px;
-            border-radius: 14px;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 1.6rem;
+        .bento-card:hover {
+            border-color: var(--border-hover);
+            transform: translateY(-2px);
+        }
+        .bento-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.35rem;
             margin-bottom: 1.25rem;
         }
 
-        /* ── CTA section ── */
-        .cta-section {
-            background: linear-gradient(135deg, var(--slate-900) 0%, #1e1b4b 100%);
-            position: relative; overflow: hidden;
-        }
-        .cta-section::before {
-            content: '';
-            position: absolute; inset: 0;
-            background-image:
-                linear-gradient(rgba(99,102,241,.06) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(99,102,241,.06) 1px, transparent 1px);
-            background-size: 50px 50px;
+        /* ── How it works steps ── */
+        .step-pill {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            background: rgba(99, 102, 241, 0.15);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            color: var(--indigo-light);
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1rem;
         }
 
-        /* ── Footer ── */
-        .splash-footer {
-            background: #090d16;
-            border-top: 1px solid rgba(255,255,255,.1);
+        /* ── Final CTA Card ── */
+        .cta-banner {
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 27, 75, 0.75) 100%);
+            border: 1px solid rgba(99, 102, 241, 0.25);
+            border-radius: 22px;
+            padding: 4rem 2rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 20px 50px -15px rgba(0, 0, 0, 0.7);
         }
-        .splash-footer a {
-            transition: color .2s ease;
+        .cta-banner::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 500px;
+            height: 250px;
+            background: radial-gradient(circle, rgba(99, 102, 241, 0.3) 0%, transparent 70%);
+            filter: blur(40px);
+            pointer-events: none;
         }
-        .splash-footer a:hover {
-            color: #fff !important;
+
+        /* ── Professional Clean Footer ── */
+        .saas-footer {
+            border-top: 1px solid var(--border-subtle);
+            padding: 2.5rem 0 2rem;
+            background: #060911;
         }
     </style>
 </head>
 <body>
 
-{{-- ── Sticky Navbar ──────────────────────────────────────────────────── --}}
-<nav class="navbar navbar-expand-lg splash-nav fixed-top">
+{{-- ── Navbar ──────────────────────────────────────────────────────────── --}}
+<nav class="navbar navbar-expand-lg saas-nav fixed-top">
     <div class="container">
-        <a class="navbar-brand d-flex align-items-center gap-2" href="{{ route('splash') }}">
+        <a class="navbar-brand" href="{{ route('splash') }}">
             <img src="/favicon.svg" width="28" height="28" alt="SubShield">
-            SubShield
+            <span>SubShield</span>
         </a>
-        <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#splashNav">
-            <span class="navbar-toggler-icon"></span>
+        <button class="navbar-toggler border-0 text-white" type="button" data-bs-toggle="collapse" data-bs-target="#splashNav">
+            <i class="bi bi-list fs-3"></i>
         </button>
         <div class="collapse navbar-collapse" id="splashNav">
-            <ul class="navbar-nav ms-auto me-3 gap-1">
+            <ul class="navbar-nav mx-auto gap-3">
                 <li class="nav-item"><a class="nav-link" href="#features">Features</a></li>
-                <li class="nav-item"><a class="nav-link" href="#about">About</a></li>
+                <li class="nav-item"><a class="nav-link" href="#currencies">Currencies</a></li>
+                <li class="nav-item"><a class="nav-link" href="#how-it-works">How It Works</a></li>
+                <li class="nav-item"><a class="nav-link" href="#security">Security</a></li>
             </ul>
-            <div class="d-flex gap-2">
-                <a href="{{ route('login') }}" class="btn btn-outline-light btn-sm px-3">Sign In</a>
-                <a href="{{ route('register') }}" class="btn btn-indigo btn-sm px-3">Get Started</a>
+            <div class="d-flex align-items-center gap-2">
+                <a href="{{ route('login') }}" class="btn btn-secondary-saas btn-sm px-3 py-2">Sign In</a>
+                <a href="{{ route('register') }}" class="btn btn-primary-saas btn-sm px-3 py-2">Get Started Free</a>
             </div>
         </div>
     </div>
 </nav>
 
 {{-- ── Hero Section ────────────────────────────────────────────────────── --}}
-<section class="hero" style="padding-top:80px;">
-    <div class="container position-relative" style="z-index:1;">
+<section class="hero">
+    <div class="hero-grid"></div>
+    <div class="hero-glow"></div>
+
+    <div class="container position-relative" style="z-index: 1;">
         <div class="row align-items-center g-5">
 
-            {{-- Left copy --}}
+            {{-- Left: Crisp Value Proposition --}}
             <div class="col-12 col-lg-6">
-                <div class="hero-badge mb-4">
-                    <i class="bi bi-shield-check"></i>
-                    Privacy-First · No Bank Login Required
+                <div class="badge-pill mb-4">
+                    <span class="badge-dot"></span>
+                    <span>Privacy-First · Zero Bank Scraping</span>
                 </div>
-                <h1 class="mb-4">
+
+                <h1 class="mb-3">
                     Take Control of<br>
-                    <span class="highlight">Recurring Subscriptions</span><br>
-                    — Before They Charge.
+                    <span class="text-gradient">Recurring Subscriptions</span><br>
+                    Before They Charge.
                 </h1>
+
                 <p class="lead mb-4">
-                    A zero-setup tracker that normalises USD, EUR, GBP and more
-                    to <strong class="text-white">Malaysian Ringgit (MYR)</strong>,
-                    and reminds you before renewal deadlines so you never get
-                    surprised by a charge.
+                    A zero-setup tracker that automatically normalises foreign currencies (USD, EUR, GBP, SGD, and 160+ more) into your home currency, alerting you before trial and billing deadlines.
                 </p>
-                <div class="d-flex flex-wrap gap-3">
-                    <a href="{{ route('register') }}" class="btn btn-indigo btn-lg px-4 py-3">
-                        <i class="bi bi-rocket-takeoff me-2"></i>Get Started Free
+
+                <div class="d-flex flex-wrap gap-3 mb-4">
+                    <a href="{{ route('register') }}" class="btn btn-primary-saas btn-lg px-4 py-3">
+                        <i class="bi bi-shield-check me-2"></i>Start Free — No Card Needed
                     </a>
-                    <a href="{{ route('login') }}" class="btn btn-outline-light btn-lg px-4 py-3">
-                        <i class="bi bi-box-arrow-in-right me-2"></i>Sign In
+                    <a href="{{ route('login') }}" class="btn btn-secondary-saas btn-lg px-4 py-3">
+                        <i class="bi bi-box-arrow-in-right me-2"></i>Live Demo Sign In
                     </a>
                 </div>
-                <p class="mt-3" style="color:rgba(255,255,255,.4); font-size:.85rem;">
-                    <i class="bi bi-lock me-1"></i>No credit card · No bank credentials · 100% private
-                </p>
+
+                <div class="d-flex flex-wrap align-items-center gap-4 text-muted small">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="bi bi-check2 text-success fs-5"></i>
+                        <span>No bank logins required</span>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="bi bi-check2 text-success fs-5"></i>
+                        <span>160+ live FX rates</span>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="bi bi-check2 text-success fs-5"></i>
+                        <span>100% private & exportable</span>
+                    </div>
+                </div>
             </div>
 
-            {{-- Right: Dashboard preview ── --}}
+            {{-- Right: Interactive Product Preview Window --}}
             <div class="col-12 col-lg-6">
-                <div class="dashboard-preview shadow-lg">
-                    {{-- Fake window chrome --}}
-                    <div class="preview-bar">
-                        <div class="preview-dot" style="background:#ef4444;"></div>
-                        <div class="preview-dot" style="background:#eab308;"></div>
-                        <div class="preview-dot" style="background:#22c55e;"></div>
-                        <span class="ms-2" style="color:rgba(255,255,255,.3);font-size:.75rem;">SubShield — Dashboard</span>
+                <div class="mockup-window">
+                    {{-- Chrome Bar with Live Interactive Currency Toggle --}}
+                    <div class="window-header">
+                        <div class="window-dots">
+                            <span class="window-dot" style="background: #ff5f56;"></span>
+                            <span class="window-dot" style="background: #ffbd2e;"></span>
+                            <span class="window-dot" style="background: #27c93f;"></span>
+                            <span class="ms-2 text-muted small fw-semibold">SubShield · Dashboard</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-1">
+                            <span class="text-muted small me-1 d-none d-sm-inline" style="font-size:0.7rem;">Base Currency:</span>
+                            <button type="button" class="currency-pill-btn" data-curr="USD">$ USD</button>
+                            <button type="button" class="currency-pill-btn active" data-curr="MYR">RM MYR</button>
+                            <button type="button" class="currency-pill-btn" data-curr="EUR">€ EUR</button>
+                            <button type="button" class="currency-pill-btn" data-curr="GBP">£ GBP</button>
+                        </div>
                     </div>
-                    <div class="p-3">
-                        {{-- Stat cards --}}
-                        <div class="row g-2 mb-3">
+
+                    <div class="p-3 p-sm-4">
+                        {{-- Stat Cards --}}
+                        <div class="row g-2 g-sm-3 mb-3">
                             <div class="col-6">
-                                <div class="stat-mini">
-                                    <div class="label">Monthly</div>
-                                    <div class="value">RM 842</div>
-                                    <div class="sub">per month</div>
+                                <div class="stat-card-saas">
+                                    <div class="stat-label">Monthly Spend</div>
+                                    <div class="stat-val text-success" id="stat-monthly">RM 842.00</div>
+                                    <small class="text-muted" style="font-size:0.75rem;">normalised total</small>
                                 </div>
                             </div>
                             <div class="col-6">
-                                <div class="stat-mini">
-                                    <div class="label">Yearly</div>
-                                    <div class="value">RM 9,876</div>
-                                    <div class="sub">per year</div>
-                                </div>
-                            </div>
-                            <div class="col-6">
-                                <div class="stat-mini">
-                                    <div class="label">Active</div>
-                                    <div class="value">15</div>
-                                    <div class="sub">subscriptions</div>
-                                </div>
-                            </div>
-                            <div class="col-6">
-                                <div class="stat-mini" style="border-color:rgba(234,179,8,.3);">
-                                    <div class="label" style="color:rgba(234,179,8,.7);">⚠ Due Soon</div>
-                                    <div class="value" style="color:#fbbf24;">3</div>
-                                    <div class="sub">renewing in 7 days</div>
+                                <div class="stat-card-saas">
+                                    <div class="stat-label">Yearly Run Rate</div>
+                                    <div class="stat-val text-primary" id="stat-yearly">RM 10,104.00</div>
+                                    <small class="text-muted" style="font-size:0.75rem;">projected annual</small>
                                 </div>
                             </div>
                         </div>
-                        {{-- Upcoming renewals list --}}
-                        <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:.75rem 1rem;">
-                            <p style="color:rgba(255,255,255,.5);font-size:.7rem;font-weight:600;letter-spacing:.05em;text-transform:uppercase;margin-bottom:.5rem;">
-                                <i class="bi bi-alarm me-1" style="color:#fbbf24;"></i>Upcoming Renewals
-                            </p>
-                            @foreach([
-                                ['N','Netflix','USD 15.49','RM 69.24','Today!','#ef4444','#fef2f2'],
-                                ['S','Spotify','EUR 9.99','RM 48.45','2 days','#1db954','#f0fdf4'],
-                                ['G','GitHub Copilot','USD 10.00','RM 44.70','5 days','#6366f1','#eef2ff'],
-                            ] as $r)
-                            <div class="renewal-item">
-                                <div class="renewal-logo" style="background:{{ $r[5] }}22;color:{{ $r[5] }};">
-                                    {{ $r[0] }}
-                                </div>
+
+                        {{-- Upcoming Subscriptions with Live Converted Amounts --}}
+                        <div class="p-3 rounded-3" style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-subtle);">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="text-muted small fw-semibold text-uppercase" style="font-size:0.7rem; letter-spacing:0.05em;">
+                                    <i class="bi bi-alarm text-warning me-1"></i>Upcoming Renewals
+                                </span>
+                                <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25" style="font-size:0.7rem;">
+                                    ● Live FX Sync Active
+                                </span>
+                            </div>
+
+                            <div class="subscription-row">
+                                <div class="brand-avatar" style="background: rgba(239, 68, 68, 0.15); color: #ef4444;">N</div>
                                 <div class="flex-grow-1">
-                                    <div style="color:#fff;font-size:.85rem;font-weight:600;">{{ $r[1] }}</div>
-                                    <div style="color:rgba(255,255,255,.4);font-size:.75rem;">{{ $r[2] }}</div>
+                                    <div class="fw-semibold small text-white">Netflix Premium</div>
+                                    <small class="text-muted" style="font-size:0.75rem;">Billed: USD 15.49 · Monthly</small>
                                 </div>
                                 <div class="text-end">
-                                    <div style="color:#4ade80;font-size:.85rem;font-weight:600;">{{ $r[3] }}</div>
-                                    <div style="color:{{ $loop->first ? '#f87171' : 'rgba(255,255,255,.4)' }};font-size:.7rem;">{{ $r[4] }}</div>
+                                    <div class="fw-bold small text-success sub-amount" data-usd="15.49" data-myr="69.24" data-eur="14.28" data-gbp="12.24">RM 69.24</div>
+                                    <span class="badge bg-danger bg-opacity-15 text-danger small" style="font-size:0.65rem;">Renews Today</span>
                                 </div>
                             </div>
-                            @endforeach
+
+                            <div class="subscription-row">
+                                <div class="brand-avatar" style="background: rgba(16, 185, 129, 0.15); color: #10b981;">S</div>
+                                <div class="flex-grow-1">
+                                    <div class="fw-semibold small text-white">Spotify Duo</div>
+                                    <small class="text-muted" style="font-size:0.75rem;">Billed: EUR 9.99 · Monthly</small>
+                                </div>
+                                <div class="text-end">
+                                    <div class="fw-bold small text-success sub-amount" data-usd="10.84" data-myr="48.45" data-eur="9.99" data-gbp="8.57">RM 48.45</div>
+                                    <span class="text-muted small" style="font-size:0.7rem;">in 2 days</span>
+                                </div>
+                            </div>
+
+                            <div class="subscription-row mb-0">
+                                <div class="brand-avatar" style="background: rgba(99, 102, 241, 0.15); color: #818cf8;">G</div>
+                                <div class="flex-grow-1">
+                                    <div class="fw-semibold small text-white">GitHub Copilot Pro</div>
+                                    <small class="text-muted" style="font-size:0.75rem;">Billed: USD 10.00 · Monthly</small>
+                                </div>
+                                <div class="text-end">
+                                    <div class="fw-bold small text-success sub-amount" data-usd="10.00" data-myr="44.70" data-eur="9.22" data-gbp="7.90">RM 44.70</div>
+                                    <span class="text-muted small" style="font-size:0.7rem;">in 5 days</span>
+                                </div>
+                            </div>
                         </div>
+
                     </div>
                 </div>
             </div>
@@ -303,165 +505,225 @@
     </div>
 </section>
 
-{{-- ── Trusted-by strip ────────────────────────────────────────────────── --}}
-<div style="background:#f1f5f9;border-top:1px solid #e2e8f0;border-bottom:1px solid #e2e8f0;">
-    <div class="container py-3">
-        <div class="d-flex flex-wrap align-items-center justify-content-center gap-4 text-muted" style="font-size:.85rem;">
-            <span><i class="bi bi-check-circle-fill text-success me-1"></i>17+ currencies supported</span>
-            <span><i class="bi bi-check-circle-fill text-success me-1"></i>Bcrypt-secured accounts</span>
-            <span><i class="bi bi-check-circle-fill text-success me-1"></i>Live FX rates every 6 hours</span>
-            <span><i class="bi bi-check-circle-fill text-success me-1"></i>No data shared with third parties</span>
-        </div>
-    </div>
-</div>
-
-{{-- ── Features Section ────────────────────────────────────────────────── --}}
-<section class="features py-6" id="features" style="padding:80px 0;">
+{{-- ── Bento Grid Features Section ───────────────────────────────────────── --}}
+<section class="section-wrap" id="features">
     <div class="container">
         <div class="text-center mb-5">
-            <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 mb-3" style="border-radius:100px;">
-                Why SubShield?
+            <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 mb-3" style="border-radius: 100px;">
+                Platform Capabilities
             </span>
-            <h2 class="fw-bold fs-1">Everything you need, nothing you don't</h2>
-            <p class="text-muted lead mx-auto" style="max-width:540px;">
-                Built for Malaysians who subscribe to global services in mixed currencies and want
-                honest visibility into what they're actually spending.
+            <h2 class="fw-bold fs-1 text-white">Everything You Need. Pure Financial Privacy.</h2>
+            <p class="text-muted lead mx-auto" style="max-width: 580px;">
+                Designed specifically for users subscribed to international platforms in mixed currencies who want honest visibility without sacrificing privacy.
             </p>
         </div>
 
         <div class="row g-4">
-
-            {{-- Card 1 --}}
-            <div class="col-12 col-md-4">
-                <div class="feature-card bg-white shadow-sm">
-                    <div class="feature-icon" style="background:#fef9c3;">
-                        <i class="bi bi-bell-fill" style="color:#ca8a04;"></i>
+            {{-- Bento 1: Cross-Currency Engine --}}
+            <div class="col-12 col-md-7">
+                <div class="bento-card">
+                    <div class="bento-icon bg-primary bg-opacity-10 text-primary">
+                        <i class="bi bi-currency-exchange"></i>
                     </div>
-                    <h5 class="fw-bold mb-2">Proactive Alerts</h5>
+                    <h4 class="fw-bold text-white mb-2">Real-Time Multi-Currency Normalisation</h4>
+                    <p class="text-muted mb-4">
+                        Subscribed to Canva in SGD, Adobe in USD, and Spotify in EUR? SubShield automatically fetches live exchange rates and normalises all expenditures into your chosen home currency.
+                    </p>
+                    <div class="d-flex flex-wrap gap-2">
+                        @foreach(['USD ($)', 'EUR (€)', 'GBP (£)', 'MYR (RM)', 'SGD (S$)', 'AUD (A$)', 'CAD (C$)', 'JPY (¥)', 'IDR (Rp)', 'PHP (₱)', 'SAR', 'AED'] as $c)
+                            <span class="badge bg-secondary bg-opacity-10 text-light border border-white border-opacity-10 px-2 py-1 small">
+                                {{ $c }}
+                            </span>
+                        @endforeach
+                    </div>
+                </div>
+            </div>
+
+            {{-- Bento 2: Zero Bank Scraping --}}
+            <div class="col-12 col-md-5">
+                <div class="bento-card">
+                    <div class="bento-icon bg-success bg-opacity-10 text-success">
+                        <i class="bi bi-shield-lock-fill"></i>
+                    </div>
+                    <h4 class="fw-bold text-white mb-2">Zero Bank Exposure</h4>
+                    <p class="text-muted mb-3">
+                        Unlike traditional budget apps that demand your banking credentials or card logins, SubShield never touches your financial accounts.
+                    </p>
+                    <div class="p-3 rounded-3" style="background: rgba(16, 185, 129, 0.05); border: 1px solid rgba(16, 185, 129, 0.2);">
+                        <div class="d-flex align-items-center gap-2 text-success small fw-semibold">
+                            <i class="bi bi-check-circle-fill"></i>No Plaid · No OAuth · No Bank Logins
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Bento 3: Proactive Renewal Alerts --}}
+            <div class="col-12 col-md-5">
+                <div class="bento-card">
+                    <div class="bento-icon bg-warning bg-opacity-10 text-warning">
+                        <i class="bi bi-bell-fill"></i>
+                    </div>
+                    <h4 class="fw-bold text-white mb-2">Proactive Renewal Alerts</h4>
                     <p class="text-muted mb-0">
-                        7-day and 3-day renewal reminders surface automatically on your dashboard.
-                        Never again miss the cancellation window for a trial you forgot about.
+                        7-day early warnings and 3-day urgent notifications surface directly on your dashboard. Cancel trials before credit cards get billed.
                     </p>
                 </div>
             </div>
 
-            {{-- Card 2 --}}
-            <div class="col-12 col-md-4">
-                <div class="feature-card bg-white shadow-sm">
-                    <div class="feature-icon" style="background:#ede9fe;">
-                        <i class="bi bi-currency-exchange" style="color:#7c3aed;"></i>
+            {{-- Bento 4: Data Sovereignty --}}
+            <div class="col-12 col-md-7">
+                <div class="bento-card">
+                    <div class="bento-icon bg-danger bg-opacity-10 text-danger">
+                        <i class="bi bi-trash3-fill"></i>
                     </div>
-                    <h5 class="fw-bold mb-2">Currency Normalisation</h5>
+                    <h4 class="fw-bold text-white mb-2">Instant Data Sovereignty & Purge</h4>
                     <p class="text-muted mb-0">
-                        Automatically converts USD, EUR, GBP, SGD, AUD and 12 more currencies
-                        to <strong>Malaysian Ringgit</strong> using live FX rates refreshed every 6 hours.
+                        Your data belongs entirely to you. You can export records or permanently wipe your account, categories, and subscription records from the database in seconds with our built-in Danger Zone.
                     </p>
                 </div>
             </div>
-
-            {{-- Card 3 --}}
-            <div class="col-12 col-md-4">
-                <div class="feature-card bg-white shadow-sm">
-                    <div class="feature-icon" style="background:#dcfce7;">
-                        <i class="bi bi-shield-lock-fill" style="color:#16a34a;"></i>
-                    </div>
-                    <h5 class="fw-bold mb-2">Zero Bank Exposure</h5>
-                    <p class="text-muted mb-0">
-                        Complete financial privacy — you enter amounts manually. No bank logins,
-                        no credential scraping, no OAuth to payment providers.
-                    </p>
-                </div>
-            </div>
-
         </div>
     </div>
 </section>
 
-{{-- ── How it Works ────────────────────────────────────────────────────── --}}
-<section style="background:#f8fafc;padding:80px 0;" id="about">
+{{-- ── How It Works ────────────────────────────────────────────────────── --}}
+<section class="section-wrap" id="how-it-works" style="background: rgba(255, 255, 255, 0.01); border-top: 1px solid var(--border-subtle); border-bottom: 1px solid var(--border-subtle);">
     <div class="container">
         <div class="text-center mb-5">
-            <h2 class="fw-bold fs-1">Up and running in 60 seconds</h2>
-            <p class="text-muted lead">No bank connection. No complex setup.</p>
+            <span class="badge bg-secondary bg-opacity-10 text-white-50 px-3 py-2 mb-3" style="border-radius: 100px;">
+                Fast Onboarding
+            </span>
+            <h2 class="fw-bold fs-1 text-white">Up and Running in 60 Seconds</h2>
+            <p class="text-muted lead">No financial permissions or bank linking required.</p>
         </div>
-        <div class="row g-4 text-center">
-            @foreach([
-                ['1', 'bi-person-plus', '#6366f1', 'Create Account', 'Register with email and a secure password. Your data stays on your own server.'],
-                ['2', 'bi-plus-circle', '#10b981', 'Add Subscriptions', 'Enter the service name, amount, currency, and billing cycle. SubShield converts to MYR automatically.'],
-                ['3', 'bi-bell', '#f59e0b', 'Get Alerts', 'Upcoming renewals appear on your dashboard 7 and 3 days early — so you\'re always prepared.'],
-            ] as $step)
+
+        <div class="row g-4 text-start">
             <div class="col-12 col-md-4">
-                <div class="d-flex flex-column align-items-center gap-3">
-                    <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold fs-4 text-white"
-                         style="width:64px;height:64px;background:{{ $step[2] }};">
-                        {{ $step[0] }}
-                    </div>
-                    <h5 class="fw-bold mb-1">{{ $step[3] }}</h5>
-                    <p class="text-muted" style="max-width:280px;">{{ $step[4] }}</p>
+                <div class="p-4 rounded-4 h-100" style="background: var(--bg-card); border: 1px solid var(--border-subtle);">
+                    <div class="step-pill">1</div>
+                    <h5 class="fw-bold text-white mb-2">Create Account</h5>
+                    <p class="text-muted mb-0 small">
+                        Register with your email and password. Your personal data is stored securely with bcrypt hashing.
+                    </p>
                 </div>
             </div>
-            @endforeach
+            <div class="col-12 col-md-4">
+                <div class="p-4 rounded-4 h-100" style="background: var(--bg-card); border: 1px solid var(--border-subtle);">
+                    <div class="step-pill">2</div>
+                    <h5 class="fw-bold text-white mb-2">Add Subscriptions</h5>
+                    <p class="text-muted mb-0 small">
+                        Enter service name, original billing currency, and renewal cycle. SubShield normalises amounts instantly.
+                    </p>
+                </div>
+            </div>
+            <div class="col-12 col-md-4">
+                <div class="p-4 rounded-4 h-100" style="background: var(--bg-card); border: 1px solid var(--border-subtle);">
+                    <div class="step-pill">3</div>
+                    <h5 class="fw-bold text-white mb-2">Receive Proactive Alerts</h5>
+                    <p class="text-muted mb-0 small">
+                        Upcoming renewal notices show up on your dashboard 7 days and 3 days prior so you're never caught off guard.
+                    </p>
+                </div>
+            </div>
         </div>
     </div>
 </section>
 
 {{-- ── CTA Section ─────────────────────────────────────────────────────── --}}
-<section class="cta-section py-5" style="padding:80px 0 !important;">
-    <div class="container text-center position-relative" style="z-index:1;">
-        <img src="/favicon.svg" width="60" height="60" class="mb-4" alt="SubShield">
-        <h2 class="fw-bold text-white fs-1 mb-3">
-            Ready to take control?
-        </h2>
-        <p class="text-white-50 lead mb-5 mx-auto" style="max-width:480px;">
-            Join SubShield and get a clear picture of your recurring spend in MYR —
-            starting today.
-        </p>
-        <div class="d-flex flex-wrap gap-3 justify-content-center">
-            <a href="{{ route('register') }}" class="btn btn-indigo btn-lg px-5 py-3">
-                <i class="bi bi-rocket-takeoff me-2"></i>Create Free Account
-            </a>
-            <a href="{{ route('login') }}" class="btn btn-outline-light btn-lg px-5 py-3">
-                <i class="bi bi-box-arrow-in-right me-2"></i>Sign In
-            </a>
+<section class="section-wrap" id="security">
+    <div class="container">
+        <div class="cta-banner">
+            <img src="/favicon.svg" width="56" height="56" class="mb-3" alt="SubShield">
+            <h2 class="fw-bold text-white fs-1 mb-3">
+                Ready to take control of your recurring spend?
+            </h2>
+            <p class="text-muted lead mb-4 mx-auto" style="max-width: 520px;">
+                Join SubShield today and enjoy total financial visibility across all your international services.
+            </p>
+            <div class="d-flex flex-wrap gap-3 justify-content-center">
+                <a href="{{ route('register') }}" class="btn btn-primary-saas btn-lg px-5 py-3">
+                    <i class="bi bi-rocket-takeoff me-2"></i>Create Free Account
+                </a>
+                <a href="{{ route('login') }}" class="btn btn-secondary-saas btn-lg px-5 py-3">
+                    <i class="bi bi-box-arrow-in-right me-2"></i>Sign In
+                </a>
+            </div>
         </div>
     </div>
 </section>
 
-{{-- ── Footer ──────────────────────────────────────────────────────────── --}}
-<footer class="splash-footer py-4">
+{{-- ── Sanitized SaaS Footer (No PII / No Framework Fingerprinting) ─────── --}}
+<footer class="saas-footer">
     <div class="container">
         <div class="row align-items-center g-3">
             <div class="col-12 col-md-6">
                 <div class="d-flex align-items-center gap-2 mb-1">
                     <img src="/favicon.svg" width="22" height="22" alt="SubShield">
                     <span class="text-white fw-bold">SubShield</span>
-                    <span class="badge bg-primary ms-1">v1.0</span>
+                    <span class="badge bg-primary bg-opacity-75 ms-1" style="font-size:0.7rem;">v1.0 Production</span>
                 </div>
-                <p class="text-white-50 small mb-0">
-                    Digital Subscription Tracker — Final Year Project
+                <p class="text-muted small mb-0">
+                    A privacy-first digital subscription tracker built for individuals with global recurring services.
                 </p>
             </div>
             <div class="col-12 col-md-6 text-md-end">
-                <p class="text-white-50 small mb-0">
-                    Developed by <span class="text-white fw-semibold">Osman Abdullahi Ahmed</span><br>
-                    Bachelor of Software Engineering (Honours), <span class="text-white fw-semibold">UNITEN</span>
-                </p>
+                <div class="d-flex flex-column align-items-md-end gap-1">
+                    <span class="text-muted small">
+                        <i class="bi bi-shield-check text-success me-1"></i>Cloudflare Anycast SSL/TLS Enforced
+                    </span>
+                    <span class="text-muted small">
+                        Security Contact: <a href="mailto:security@mysubshield.me" class="text-light text-decoration-none">security@mysubshield.me</a>
+                    </span>
+                </div>
             </div>
         </div>
-        <hr style="border-color:rgba(255,255,255,.12);" class="my-3">
-        <div class="d-flex flex-wrap justify-content-between align-items-center small text-white-50 gap-2">
+        <hr style="border-color: var(--border-subtle);" class="my-4">
+        <div class="d-flex flex-wrap justify-content-between align-items-center small text-muted gap-2">
             <div>
-                &copy; {{ date('Y') }} <span class="text-white fw-semibold">SubShield</span>. All rights reserved. Developed by <span class="text-white fw-semibold">Osman Abdullahi Ahmed</span>.
+                &copy; {{ date('Y') }} SubShield. All rights reserved.
             </div>
             <div class="d-flex gap-3 align-items-center">
-                <a href="{{ route('login') }}" class="text-white-50 text-decoration-none">Sign In</a>
-                <span class="text-white-50 opacity-50">&bull;</span>
-                <a href="{{ route('register') }}" class="text-white-50 text-decoration-none">Register</a>
+                <a href="{{ route('login') }}" class="text-muted text-decoration-none">Sign In</a>
+                <span class="opacity-25">&bull;</span>
+                <a href="{{ route('register') }}" class="text-muted text-decoration-none">Create Account</a>
             </div>
         </div>
     </div>
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+<script>
+    // Interactive Currency Toggle for Product Preview Window
+    document.querySelectorAll('.currency-pill-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.currency-pill-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+
+            var curr = this.getAttribute('data-curr');
+            var monthly = document.getElementById('stat-monthly');
+            var yearly = document.getElementById('stat-yearly');
+
+            if (curr === 'USD') {
+                monthly.textContent = '$ 188.37';
+                yearly.textContent = '$ 2,260.40';
+            } else if (curr === 'EUR') {
+                monthly.textContent = '€ 173.61';
+                yearly.textContent = '€ 2,083.30';
+            } else if (curr === 'GBP') {
+                monthly.textContent = '£ 147.72';
+                yearly.textContent = '£ 1,772.63';
+            } else { // MYR
+                monthly.textContent = 'RM 842.00';
+                yearly.textContent = 'RM 10,104.00';
+            }
+
+            document.querySelectorAll('.sub-amount').forEach(function(row) {
+                var sym = curr === 'USD' ? '$' : (curr === 'EUR' ? '€' : (curr === 'GBP' ? '£' : 'RM'));
+                var val = row.getAttribute('data-' + curr.toLowerCase());
+                row.textContent = sym + ' ' + val;
+            });
+        });
+    });
+</script>
 </body>
 </html>
