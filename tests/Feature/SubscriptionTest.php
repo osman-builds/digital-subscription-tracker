@@ -119,4 +119,29 @@ class SubscriptionTest extends TestCase
         $this->assertStringContainsString('Entertainment', $content);
         $this->assertStringNotContainsString('Secret Other User Service', $content);
     }
+
+    public function test_csv_export_neutralizes_formula_injection_attempts(): void
+    {
+        $user = User::factory()->create();
+
+        Subscription::create([
+            'user_id' => $user->id,
+            'name' => '=cmd|calc!A0',
+            'amount' => '10.00',
+            'currency' => 'USD',
+            'amount_myr' => '45.00',
+            'billing_cycle' => 'monthly',
+            'status' => 'active',
+            'start_date' => now()->toDateString(),
+            'next_billing_date' => now()->addMonth()->toDateString(),
+            'notes' => '+formula_test',
+        ]);
+
+        $response = $this->actingAs($user)->get(route('subscriptions.export'));
+        $content = $response->streamedContent();
+
+        // Should be sanitized with leading single quote to neutralize formula execution in Excel
+        $this->assertStringContainsString("'=cmd|calc!A0", $content);
+        $this->assertStringContainsString("'+formula_test", $content);
+    }
 }

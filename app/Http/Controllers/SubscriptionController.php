@@ -54,9 +54,9 @@ class SubscriptionController extends Controller
 
             foreach ($subscriptions as $sub) {
                 fputcsv($handle, [
-                    $sub->name,
-                    $sub->website_url ?? '',
-                    $sub->category?->name ?? 'Uncategorized',
+                    $this->sanitizeCsv($sub->name),
+                    $this->sanitizeCsv($sub->website_url ?? ''),
+                    $this->sanitizeCsv($sub->category?->name ?? 'Uncategorized'),
                     ucfirst((string) $sub->status),
                     number_format((float) $sub->amount, 2, '.', ''),
                     $sub->currency,
@@ -65,12 +65,26 @@ class SubscriptionController extends Controller
                     number_format($sub->yearlyAmountIn($baseCurrency), 2, '.', ''),
                     $sub->start_date?->format('Y-m-d') ?? '',
                     $sub->next_billing_date?->format('Y-m-d') ?? '',
-                    $sub->notes ?? '',
+                    $this->sanitizeCsv($sub->notes ?? ''),
                 ]);
             }
 
             fclose($handle);
         }, 200, $headers);
+    }
+
+    /** Neutralize CSV formula injection (CWE-1236 / OWASP) */
+    private function sanitizeCsv(?string $value): string
+    {
+        if ($value === null || $value === '') {
+            return '';
+        }
+
+        if (in_array($value[0], ['=', '+', '-', '@', "\t", "\r"], true)) {
+            return "'".$value;
+        }
+
+        return $value;
     }
 
     public function index(Request $request)

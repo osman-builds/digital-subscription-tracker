@@ -54,6 +54,21 @@ class SendRenewalReminders extends Command
             $user = $userSubs->first()->user;
 
             if ($user && $user->email) {
+                $settings = $user->getSettings();
+
+                // Respect user notification preferences from Settings
+                if ($days <= 3 && ! $settings->alert_3_days) {
+                    $this->line("Skipping {$user->email}: 3-day renewal alerts are disabled in user preferences.");
+
+                    continue;
+                }
+
+                if ($days > 3 && ! $settings->alert_7_days) {
+                    $this->line("Skipping {$user->email}: 7-day renewal alerts are disabled in user preferences.");
+
+                    continue;
+                }
+
                 // Dispatch real email via Brevo relay
                 $user->notify(new RenewalReminderNotification($userSubs));
                 $this->line("Sent reminder email to: {$user->email} ({$userSubs->count()} subscription(s))");
