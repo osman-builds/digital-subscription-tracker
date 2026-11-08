@@ -47,6 +47,8 @@ class SubscriptionController extends Controller
 
     public function store(Request $request)
     {
+        $this->normalizeUrls($request);
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
@@ -96,6 +98,7 @@ class SubscriptionController extends Controller
     public function update(Request $request, Subscription $subscription)
     {
         $this->authorize($subscription);
+        $this->normalizeUrls($request);
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
@@ -133,6 +136,78 @@ class SubscriptionController extends Controller
 
         return redirect()->route('subscriptions.index')
             ->with('success', "Subscription \"{$name}\" deleted.");
+    }
+
+    // -------------------------------------------------------------------------
+
+    /** Normalize website URL and auto-fill logo URL if needed */
+    private function normalizeUrls(Request $request): void
+    {
+        if ($request->filled('website_url')) {
+            $url = trim((string) $request->input('website_url'));
+            if (! preg_match('~^(?:f|ht)tps?://~i', $url)) {
+                $url = 'https://'.$url;
+                $request->merge(['website_url' => $url]);
+            }
+
+            if (! $request->filled('logo_url')) {
+                $host = parse_url($url, PHP_URL_HOST) ?? '';
+                $cleanHost = preg_replace('/^www\./', '', (string) $host);
+                if ($cleanHost) {
+                    $request->merge([
+                        'logo_url' => "https://t2.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://{$cleanHost}&size=128",
+                    ]);
+                }
+            }
+        }
+
+        if ($request->filled('name') && ! $request->filled('website_url')) {
+            $nameLower = strtolower(trim((string) $request->input('name')));
+            $brandMap = [
+                'netflix' => 'netflix.com',
+                'spotify' => 'spotify.com',
+                'youtube' => 'youtube.com',
+                'github' => 'github.com',
+                'chatgpt' => 'openai.com',
+                'openai' => 'openai.com',
+                'claude' => 'anthropic.com',
+                'apple' => 'apple.com',
+                'icloud' => 'apple.com',
+                'adobe' => 'adobe.com',
+                'canva' => 'canva.com',
+                'figma' => 'figma.com',
+                'notion' => 'notion.so',
+                'disney' => 'disneyplus.com',
+                'amazon' => 'amazon.com',
+                'google' => 'google.com',
+                'microsoft' => 'microsoft.com',
+                'discord' => 'discord.com',
+                'duolingo' => 'duolingo.com',
+                'slack' => 'slack.com',
+                'zoom' => 'zoom.us',
+                'dropbox' => 'dropbox.com',
+                'linkedin' => 'linkedin.com',
+            ];
+
+            foreach ($brandMap as $brand => $domain) {
+                if (str_contains($nameLower, $brand)) {
+                    $url = "https://{$domain}";
+                    $request->merge([
+                        'website_url' => $url,
+                        'logo_url' => "https://t2.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://{$domain}&size=128",
+                    ]);
+                    break;
+                }
+            }
+        }
+
+        if (! $request->filled('name') && $request->filled('website_url')) {
+            $host = parse_url((string) $request->input('website_url'), PHP_URL_HOST) ?? '';
+            $cleanHost = preg_replace('/^www\./', '', (string) $host);
+            $parts = explode('.', $cleanHost);
+            $derivedName = ucfirst($parts[0] ?? 'Subscription');
+            $request->merge(['name' => $derivedName]);
+        }
     }
 
     // -------------------------------------------------------------------------
