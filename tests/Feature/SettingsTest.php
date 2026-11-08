@@ -24,8 +24,8 @@ class SettingsTest extends TestCase
         $response = $this->actingAs($user)->get(route('settings.index'));
 
         $response->assertOk();
-        $response->assertSee('Base Display Currency');
-        $response->assertSee('Dark Mode');
+        $response->assertSee('Base Tracking Currency');
+        $response->assertSee('Dark mode');
     }
 
     public function test_changing_email_requires_re_verification(): void

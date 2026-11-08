@@ -40,7 +40,7 @@
                 </option>
             @endforeach
         </select>
-        <div class="form-text"><i class="bi bi-info-circle me-1"></i>Will be auto-converted to MYR for tracking</div>
+        <div class="form-text"><i class="bi bi-info-circle me-1"></i>Auto-converted to your base tracking currency</div>
         @error('currency')<div class="invalid-feedback">{{ $message }}</div>@enderror
     </div>
 
