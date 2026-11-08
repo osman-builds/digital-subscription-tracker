@@ -9,7 +9,7 @@
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
     <div>
-        <h4 class="mb-0 fw-bold">Dashboard</h4>
+        <h1 class="h4 mb-0 fw-bold">Dashboard</h1>
         <small class="text-muted">{{ now()->format('l, F j, Y') }}</small>
     </div>
     <div class="d-flex align-items-center gap-2">
@@ -37,7 +37,7 @@
                     <span class="text-muted small fw-semibold">MONTHLY SPEND</span>
                     <span class="bg-primary bg-opacity-10 text-primary rounded-2 p-2"><i class="bi bi-calendar-month fs-5"></i></span>
                 </div>
-                <h3 class="fw-bold mb-0">{{ $currencySymbol ?? 'RM' }} {{ number_format($totalMonthly ?? $totalMonthlyMyr, 2) }}</h3>
+                <div class="fs-3 fw-bold mb-0">{{ $currencySymbol ?? 'RM' }} {{ number_format($totalMonthly ?? $totalMonthlyMyr, 2) }}</div>
                 <small class="text-muted">per month ({{ $baseCurrency ?? 'MYR' }})</small>
             </div>
         </div>
@@ -49,7 +49,7 @@
                     <span class="text-muted small fw-semibold">YEARLY SPEND</span>
                     <span class="bg-success bg-opacity-10 text-success rounded-2 p-2"><i class="bi bi-calendar-check fs-5"></i></span>
                 </div>
-                <h3 class="fw-bold mb-0">{{ $currencySymbol ?? 'RM' }} {{ number_format($totalYearly ?? $totalYearlyMyr, 2) }}</h3>
+                <div class="fs-3 fw-bold mb-0">{{ $currencySymbol ?? 'RM' }} {{ number_format($totalYearly ?? $totalYearlyMyr, 2) }}</div>
                 <small class="text-muted">per year ({{ $baseCurrency ?? 'MYR' }})</small>
             </div>
         </div>
@@ -61,7 +61,7 @@
                     <span class="text-muted small fw-semibold">ACTIVE SUBS</span>
                     <span class="bg-info bg-opacity-10 text-info rounded-2 p-2"><i class="bi bi-check2-circle fs-5"></i></span>
                 </div>
-                <h3 class="fw-bold mb-0">{{ $totalActive }}</h3>
+                <div class="fs-3 fw-bold mb-0">{{ $totalActive }}</div>
                 <small class="text-muted">subscriptions</small>
             </div>
         </div>
@@ -73,7 +73,7 @@
                     <span class="text-muted small fw-semibold">DUE THIS WEEK</span>
                     <span class="bg-warning bg-opacity-10 text-warning rounded-2 p-2"><i class="bi bi-bell fs-5"></i></span>
                 </div>
-                <h3 class="fw-bold mb-0">{{ $dueSoon->count() }}</h3>
+                <div class="fs-3 fw-bold mb-0">{{ $dueSoon->count() }}</div>
                 <small class="text-muted">renewals in 7 days</small>
             </div>
         </div>
@@ -85,7 +85,7 @@
     <div class="col-12 col-lg-4">
         <div class="card stat-card h-100">
             <div class="card-header bg-white border-0 pt-3 pb-0">
-                <h6 class="fw-bold mb-0"><i class="bi bi-pie-chart text-primary me-2"></i>Monthly by Category</h6>
+                <h2 class="h6 fw-bold mb-0"><i class="bi bi-pie-chart text-primary me-2"></i>Monthly by Category</h2>
             </div>
             <div class="card-body d-flex align-items-center justify-content-center">
                 @if($categoryBreakdown->isNotEmpty())
@@ -101,7 +101,7 @@
     <div class="col-12 col-lg-8">
         <div class="card stat-card h-100">
             <div class="card-header bg-white border-0 pt-3 pb-0">
-                <h6 class="fw-bold mb-0"><i class="bi bi-alarm text-warning me-2"></i>Upcoming Renewals (next 7 days)</h6>
+                <h2 class="h6 fw-bold mb-0"><i class="bi bi-alarm text-warning me-2"></i>Upcoming Renewals (next 7 days)</h2>
             </div>
             <div class="card-body p-0">
                 @forelse($dueSoon as $sub)
@@ -138,7 +138,7 @@
 <div class="card stat-card">
     <div class="card-header bg-white border-0 pt-3 pb-0 d-flex justify-content-between align-items-start">
         <div>
-            <h6 class="fw-bold mb-0"><i class="bi bi-list-check text-primary me-2"></i>Active Subscriptions</h6>
+            <h2 class="h6 fw-bold mb-0"><i class="bi bi-list-check text-primary me-2"></i>Active Subscriptions</h2>
             <small class="text-muted">All amounts normalised to {{ $baseCurrency ?? 'MYR' }}</small>
         </div>
         <a href="{{ route('subscriptions.index') }}" class="btn btn-sm btn-outline-primary">View All</a>
@@ -164,7 +164,7 @@
                             </td>
                             <td>
                                 @if($sub->category)
-                                    <span class="badge rounded-pill" style="background:{{ $sub->category->color }};">{{ $sub->category->name }}</span>
+                                    <span class="badge rounded-pill" style="background: {{ $sub->category->color }}25; color: #f8fafc; border: 1px solid {{ $sub->category->color }}55; font-weight: 600;">{{ $sub->category->name }}</span>
                                 @else
                                     <span class="text-muted">—</span>
                                 @endif

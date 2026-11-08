@@ -41,7 +41,7 @@
             </div>
             <div class="col-12 col-md-2 d-flex gap-2">
                 <button type="submit" class="btn btn-primary flex-grow-1"><i class="bi bi-search me-1"></i>Filter</button>
-                <a href="{{ route('subscriptions.index') }}" class="btn btn-outline-secondary"><i class="bi bi-x-lg"></i></a>
+                <a href="{{ route('subscriptions.index') }}" class="btn btn-outline-secondary" aria-label="Reset filters" title="Reset filters"><i class="bi bi-x-lg"></i></a>
             </div>
         </form>
     </div>
@@ -79,7 +79,7 @@
                             </td>
                             <td>
                                 @if($sub->category)
-                                    <span class="badge rounded-pill" style="background:{{ $sub->category->color }};">
+                                    <span class="badge rounded-pill" style="background: {{ $sub->category->color }}25; color: #f8fafc; border: 1px solid {{ $sub->category->color }}55; font-weight: 600;">
                                         {{ $sub->category->name }}
                                     </span>
                                 @else

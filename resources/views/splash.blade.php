@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SubShield — Digital Subscription Tracker</title>
     <meta name="description" content="A modern, privacy-first subscription tracker that automatically normalises foreign currencies and alerts you before renewal deadlines. Zero bank credentials required.">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link rel="preconnect" href="https://t2.gstatic.com" crossorigin>
+    <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
+    <link rel="dns-prefetch" href="https://t2.gstatic.com">
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" integrity="sha384-tViUnnbYAV00FLIhhi3v/dWt3Jxw4gZQcNoSCxCIFNJVCx7/D55/wXsrNIRANwdD" crossorigin="anonymous">
@@ -224,14 +228,18 @@
             transition: all 0.2s ease;
         }
         .currency-pill-btn.active {
-            background: var(--indigo);
-            border-color: var(--indigo);
+            background: #4f46e5;
+            border-color: #4f46e5;
             color: #ffffff;
-            box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4);
+            box-shadow: 0 2px 8px rgba(79, 70, 229, 0.4);
         }
         .currency-pill-btn:hover:not(.active) {
             background: rgba(255, 255, 255, 0.14);
             color: #fff;
+        }
+
+        .sub-amount {
+            color: #34d399 !important;
         }
 
         .stat-card-saas {
@@ -463,6 +471,7 @@
     </div>
 </nav>
 
+<main>
 {{-- ── Hero Section ────────────────────────────────────────────────────── --}}
 <section class="hero">
     <div class="hero-grid"></div>
@@ -573,7 +582,7 @@
                                 </div>
                                 <div class="text-end">
                                     <div class="fw-bold text-success sub-amount" data-usd="15.49" data-myr="69.24" data-eur="14.28" data-gbp="12.24">RM 69.24</div>
-                                    <span class="badge bg-danger bg-opacity-25 text-danger small fw-bold" style="font-size:0.7rem;">Renews Today</span>
+                                    <span class="badge small fw-bold" style="font-size:0.7rem; background: rgba(239, 68, 68, 0.25); color: #fca5a5;">Renews Today</span>
                                 </div>
                             </div>
 
@@ -671,7 +680,7 @@
                     <div class="bento-icon bg-primary bg-opacity-15 text-primary">
                         <i class="bi bi-currency-exchange"></i>
                     </div>
-                    <h4 class="fw-bold text-white mb-2">Live Cross-Currency Normalisation</h4>
+                    <h3 class="fw-bold text-white mb-2 fs-5">Live Cross-Currency Normalisation</h3>
                     <p class="bento-desc mb-4">
                         Subscribed to Canva in SGD, Adobe in USD, and Spotify in EUR? SubShield automatically fetches live exchange rates and normalises all expenditures into your chosen home currency.
                     </p>
@@ -691,12 +700,12 @@
                     <div class="bento-icon bg-success bg-opacity-15 text-success">
                         <i class="bi bi-shield-lock-fill"></i>
                     </div>
-                    <h4 class="fw-bold text-white mb-2">Zero Bank Scraping</h4>
+                    <h3 class="fw-bold text-white mb-2 fs-5">Zero Bank Scraping</h3>
                     <p class="bento-desc mb-3">
                         Unlike traditional budget apps that demand your banking credentials or card logins, SubShield never touches your financial accounts.
                     </p>
                     <div class="p-3 rounded-3" style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.25);">
-                        <div class="d-flex align-items-center gap-2 text-success fw-bold small">
+                        <div class="d-flex align-items-center gap-2 fw-bold small" style="color: #34d399;">
                             <i class="bi bi-check-circle-fill fs-5"></i>No Plaid · No OAuth · No Bank Logins
                         </div>
                     </div>
@@ -709,7 +718,7 @@
                     <div class="bento-icon bg-warning bg-opacity-15 text-warning">
                         <i class="bi bi-bell-fill"></i>
                     </div>
-                    <h4 class="fw-bold text-white mb-2">Proactive Renewal Countdown</h4>
+                    <h3 class="fw-bold text-white mb-2 fs-5">Proactive Renewal Countdown</h3>
                     <p class="bento-desc mb-0">
                         Customizable 7-day early warnings and 3-day urgent notifications surface directly on your dashboard. Cancel trials before credit cards get billed.
                     </p>
@@ -722,7 +731,7 @@
                     <div class="bento-icon bg-danger bg-opacity-15 text-danger">
                         <i class="bi bi-trash3-fill"></i>
                     </div>
-                    <h4 class="fw-bold text-white mb-2">Instant Data Sovereignty & Purge</h4>
+                    <h3 class="fw-bold text-white mb-2 fs-5">Instant Data Sovereignty & Purge</h3>
                     <p class="bento-desc mb-0">
                         You have total ownership over your data. Permanently wipe your account, custom categories, and all subscription records from the database in seconds with our built-in Danger Zone.
                     </p>
@@ -736,7 +745,7 @@
 <section class="section-wrap" id="how-it-works" style="background: #090d16; border-top: 1px solid var(--border-subtle); border-bottom: 1px solid var(--border-subtle);">
     <div class="container">
         <div class="text-center mb-5">
-            <span class="badge bg-secondary bg-opacity-20 text-light px-3 py-2 mb-3 fw-bold" style="border-radius: 100px;">
+            <span class="badge px-3 py-2 mb-3 fw-bold" style="border-radius: 100px; background: rgba(255, 255, 255, 0.12); color: #ffffff; border: 1px solid rgba(255, 255, 255, 0.2);">
                 Fast Onboarding
             </span>
             <h2 class="section-title">Up and Running in 60 Seconds</h2>
@@ -747,7 +756,7 @@
             <div class="col-12 col-md-4">
                 <div class="step-card">
                     <div class="step-pill">1</div>
-                    <h5 class="fw-bold text-white mb-2">Create Account</h5>
+                    <h3 class="fw-bold text-white mb-2 fs-5">Create Account</h3>
                     <p class="bento-desc mb-0">
                         Register with your email and password. Your personal data is stored securely with bcrypt hashing.
                     </p>
@@ -756,7 +765,7 @@
             <div class="col-12 col-md-4">
                 <div class="step-card">
                     <div class="step-pill">2</div>
-                    <h5 class="fw-bold text-white mb-2">Add Subscriptions</h5>
+                    <h3 class="fw-bold text-white mb-2 fs-5">Add Subscriptions</h3>
                     <p class="bento-desc mb-0">
                         Enter service name, original billing currency, and renewal cycle. SubShield normalises amounts instantly.
                     </p>
@@ -765,7 +774,7 @@
             <div class="col-12 col-md-4">
                 <div class="step-card">
                     <div class="step-pill">3</div>
-                    <h5 class="fw-bold text-white mb-2">Receive Proactive Alerts</h5>
+                    <h3 class="fw-bold text-white mb-2 fs-5">Receive Proactive Alerts</h3>
                     <p class="bento-desc mb-0">
                         Upcoming renewal notices show up on your dashboard 7 days and 3 days prior so you're never caught off guard.
                     </p>
@@ -797,6 +806,7 @@
         </div>
     </div>
 </section>
+</main>
 
 {{-- ── Clean Footer (No PII / No Framework Fingerprinting) ──────────────── --}}
 <footer class="saas-footer">

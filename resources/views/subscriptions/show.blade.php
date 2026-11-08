@@ -32,7 +32,7 @@
                     <div>
                         <h5 class="mb-0 fw-bold">{{ $subscription->name }}</h5>
                         @if($subscription->category)
-                            <span class="badge" style="background:{{ $subscription->category->color }};">
+                            <span class="badge rounded-pill" style="background: {{ $subscription->category->color }}25; color: #f8fafc; border: 1px solid {{ $subscription->category->color }}55; font-weight: 600;">
                                 {{ $subscription->category->name }}
                             </span>
                         @endif

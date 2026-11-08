@@ -138,7 +138,7 @@
                             <td class="fw-semibold">{{ $sub->name }}</td>
                             <td>
                                 @if($sub->category)
-                                    <span class="badge rounded-pill" style="background:{{ $sub->category->color }};">{{ $sub->category->name }}</span>
+                                    <span class="badge rounded-pill" style="background: {{ $sub->category->color }}25; color: #f8fafc; border: 1px solid {{ $sub->category->color }}55; font-weight: 600;">{{ $sub->category->name }}</span>
                                 @else
                                     <span class="text-muted">—</span>
                                 @endif

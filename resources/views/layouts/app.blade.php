@@ -3,7 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="SubShield — Privacy-first digital subscription tracker with real-time multi-currency normalisation and proactive renewal alerts.">
     <title>@yield('title', 'SubShield')</title>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link rel="preconnect" href="https://t2.gstatic.com" crossorigin>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
     <link rel="alternate icon" href="/favicon.ico">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
@@ -44,6 +47,20 @@
             --ss-table-head-bg:  #1c2128;
             --ss-muted:          #8b949e;
             --ss-border:         #30363d;
+        }
+
+        /* WCAG AA High Contrast Overrides for Dark Mode */
+        [data-bs-theme="dark"] .text-success { color: #34d399 !important; }
+        [data-bs-theme="dark"] .text-danger { color: #f87171 !important; }
+        [data-bs-theme="dark"] .text-warning { color: #fbbf24 !important; }
+        [data-bs-theme="dark"] .btn-outline-primary {
+            color: #818cf8 !important;
+            border-color: #818cf8 !important;
+        }
+        [data-bs-theme="dark"] .btn-outline-primary:hover {
+            background-color: #6366f1 !important;
+            border-color: #6366f1 !important;
+            color: #ffffff !important;
         }
 
         /* ──────────────────────────────────────────────────────────────
