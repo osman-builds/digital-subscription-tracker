@@ -9,16 +9,20 @@ class DashboardController extends Controller
 {
     public function index(FxRateService $fx)
     {
-        $userId = auth()->id();
+        $user = auth()->user();
+        $userId = $user->id;
+        $settings = $user->getSettings();
+        $baseCurrency = $settings->base_currency ?? 'MYR';
+        $currencySymbol = $fx->symbol($baseCurrency);
 
         $subscriptions = Subscription::with('category')
             ->forUser($userId)
             ->active()
             ->get();
 
-        $totalMonthlyMyr = $subscriptions->sum(fn ($s) => $s->monthlyAmountMyr());
-        $totalYearlyMyr  = $subscriptions->sum(fn ($s) => $s->yearlyAmountMyr());
-        $totalActive     = $subscriptions->count();
+        $totalMonthly = $subscriptions->sum(fn ($s) => $s->monthlyAmountIn($baseCurrency));
+        $totalYearly = $subscriptions->sum(fn ($s) => $s->yearlyAmountIn($baseCurrency));
+        $totalActive = $subscriptions->count();
 
         $dueSoon = Subscription::with('category')
             ->forUser($userId)
@@ -26,17 +30,21 @@ class DashboardController extends Controller
             ->orderBy('next_billing_date')
             ->get();
 
-        // Category breakdown for chart
+        // Category breakdown for chart in user's base currency
         $categoryBreakdown = $subscriptions
             ->groupBy(fn ($s) => $s->category->name ?? 'Uncategorised')
-            ->map(fn ($group) => round($group->sum(fn ($s) => $s->monthlyAmountMyr()), 2))
+            ->map(fn ($group) => round($group->sum(fn ($s) => $s->monthlyAmountIn($baseCurrency)), 2))
             ->sortDesc();
 
         $fxUpdatedAt = $fx->lastUpdated();
 
+        $totalMonthlyMyr = $subscriptions->sum(fn ($s) => $s->monthlyAmountMyr());
+        $totalYearlyMyr = $subscriptions->sum(fn ($s) => $s->yearlyAmountMyr());
+
         return view('dashboard', compact(
-            'totalMonthlyMyr', 'totalYearlyMyr', 'totalActive',
-            'dueSoon', 'subscriptions', 'categoryBreakdown', 'fxUpdatedAt'
+            'totalMonthly', 'totalYearly', 'totalActive', 'baseCurrency', 'currencySymbol',
+            'dueSoon', 'subscriptions', 'categoryBreakdown', 'fxUpdatedAt',
+            'totalMonthlyMyr', 'totalYearlyMyr'
         ));
     }
 }

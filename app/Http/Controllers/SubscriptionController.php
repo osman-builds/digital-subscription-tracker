@@ -14,7 +14,12 @@ class SubscriptionController extends Controller
 
     public function index(Request $request)
     {
-        $query = Subscription::with('category')->forUser(auth()->id());
+        $user = auth()->user();
+        $settings = $user->getSettings();
+        $baseCurrency = $settings->base_currency ?? 'MYR';
+        $currencySymbol = $this->fx->symbol($baseCurrency);
+
+        $query = Subscription::with('category')->forUser($user->id);
 
         if ($request->filled('status')) {
             $query->where('status', $request->status);
@@ -27,9 +32,9 @@ class SubscriptionController extends Controller
         }
 
         $subscriptions = $query->orderBy('next_billing_date')->paginate(12)->withQueryString();
-        $categories = Category::forUser(auth()->id())->orderBy('name')->get();
+        $categories = Category::forUser($user->id)->orderBy('name')->get();
 
-        return view('subscriptions.index', compact('subscriptions', 'categories'));
+        return view('subscriptions.index', compact('subscriptions', 'categories', 'baseCurrency', 'currencySymbol'));
     }
 
     public function create()

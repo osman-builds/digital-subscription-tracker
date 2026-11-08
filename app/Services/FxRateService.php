@@ -53,6 +53,57 @@ class FxRateService
     }
 
     /**
+     * Convert an amount between any two supported currencies.
+     */
+    public function convert(float $amount, string $from, string $to): float
+    {
+        $from = strtoupper(trim($from));
+        $to = strtoupper(trim($to));
+
+        if ($from === $to) {
+            return round($amount, 2);
+        }
+
+        $amountInMyr = $this->toMyr($amount, $from);
+
+        if ($to === self::TARGET) {
+            return round($amountInMyr, 2);
+        }
+
+        $rates = $this->getRates();
+        $rateTo = $rates[$to] ?? null;
+
+        if (! $rateTo || $rateTo <= 0) {
+            Log::warning("FxRateService: Unknown target currency [{$to}], returning MYR equivalent");
+
+            return round($amountInMyr, 2);
+        }
+
+        return round($amountInMyr / $rateTo, 2);
+    }
+
+    /**
+     * Get a human-readable currency symbol or code.
+     */
+    public function symbol(string $currency): string
+    {
+        return match (strtoupper(trim($currency))) {
+            'MYR' => 'RM',
+            'USD' => '$',
+            'EUR' => '€',
+            'GBP' => '£',
+            'SGD' => 'S$',
+            'AUD' => 'A$',
+            'CAD' => 'C$',
+            'JPY', 'CNY' => '¥',
+            'INR' => '₹',
+            'CHF' => 'CHF',
+            'NZD' => 'NZ$',
+            default => strtoupper(trim($currency)),
+        };
+    }
+
+    /**
      * Force refresh the cached rates.
      */
     public function refresh(): array

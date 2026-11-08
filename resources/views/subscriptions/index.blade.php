@@ -88,8 +88,8 @@
                             </td>
                             <td>
                                 <div class="fw-semibold">{{ $sub->currency }} {{ number_format($sub->amount, 2) }}</div>
-                                @if($sub->currency !== 'MYR')
-                                    <small class="text-success">≈ RM {{ number_format($sub->effectiveMyr(), 2) }}</small>
+                                @if($sub->currency !== ($baseCurrency ?? 'MYR'))
+                                    <small class="text-success">≈ {{ $currencySymbol ?? 'RM' }} {{ number_format($sub->effectiveAmountIn($baseCurrency ?? 'MYR'), 2) }}</small>
                                 @endif
                             </td>
                             <td><span class="badge bg-light text-dark border">{{ $sub->billingCycleLabel() }}</span></td>

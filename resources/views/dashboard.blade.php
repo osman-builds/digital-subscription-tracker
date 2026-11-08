@@ -37,8 +37,8 @@
                     <span class="text-muted small fw-semibold">MONTHLY SPEND</span>
                     <span class="bg-primary bg-opacity-10 text-primary rounded-2 p-2"><i class="bi bi-calendar-month fs-5"></i></span>
                 </div>
-                <h3 class="fw-bold mb-0">RM {{ number_format($totalMonthlyMyr, 2) }}</h3>
-                <small class="text-muted">per month</small>
+                <h3 class="fw-bold mb-0">{{ $currencySymbol ?? 'RM' }} {{ number_format($totalMonthly ?? $totalMonthlyMyr, 2) }}</h3>
+                <small class="text-muted">per month ({{ $baseCurrency ?? 'MYR' }})</small>
             </div>
         </div>
     </div>
@@ -49,8 +49,8 @@
                     <span class="text-muted small fw-semibold">YEARLY SPEND</span>
                     <span class="bg-success bg-opacity-10 text-success rounded-2 p-2"><i class="bi bi-calendar-check fs-5"></i></span>
                 </div>
-                <h3 class="fw-bold mb-0">RM {{ number_format($totalYearlyMyr, 2) }}</h3>
-                <small class="text-muted">per year</small>
+                <h3 class="fw-bold mb-0">{{ $currencySymbol ?? 'RM' }} {{ number_format($totalYearly ?? $totalYearlyMyr, 2) }}</h3>
+                <small class="text-muted">per year ({{ $baseCurrency ?? 'MYR' }})</small>
             </div>
         </div>
     </div>
@@ -114,8 +114,8 @@
                             <small class="text-muted">{{ $sub->next_billing_date->format('M d, Y') }}</small>
                         </div>
                         <div class="text-end">
-                            <div class="fw-semibold text-success">RM {{ number_format($sub->effectiveMyr(), 2) }}</div>
-                            @if($sub->currency !== 'MYR')
+                            <div class="fw-semibold text-success">{{ $currencySymbol ?? 'RM' }} {{ number_format($sub->effectiveAmountIn($baseCurrency ?? 'MYR'), 2) }}</div>
+                            @if($sub->currency !== ($baseCurrency ?? 'MYR'))
                                 <small class="text-muted">{{ $sub->currency }} {{ number_format($sub->amount, 2) }}</small>
                             @endif
                             @php $days = $sub->daysUntilRenewal(); @endphp
@@ -139,7 +139,7 @@
     <div class="card-header bg-white border-0 pt-3 pb-0 d-flex justify-content-between align-items-start">
         <div>
             <h6 class="fw-bold mb-0"><i class="bi bi-list-check text-primary me-2"></i>Active Subscriptions</h6>
-            <small class="text-muted">All amounts shown in MYR</small>
+            <small class="text-muted">All amounts normalised to {{ $baseCurrency ?? 'MYR' }}</small>
         </div>
         <a href="{{ route('subscriptions.index') }}" class="btn btn-sm btn-outline-primary">View All</a>
     </div>
@@ -150,7 +150,7 @@
                     <th class="ps-3">Name</th>
                     <th>Category</th>
                     <th>Original</th>
-                    <th>MYR</th>
+                    <th>{{ $baseCurrency ?? 'MYR' }}</th>
                     <th class="pe-3">Next Bill</th>
                 </tr></thead>
                 <tbody>
@@ -170,7 +170,7 @@
                                 @endif
                             </td>
                             <td>{{ $sub->currency }} {{ number_format($sub->amount, 2) }}</td>
-                            <td class="fw-semibold text-success">RM {{ number_format($sub->effectiveMyr(), 2) }}</td>
+                            <td class="fw-semibold text-success">{{ $currencySymbol ?? 'RM' }} {{ number_format($sub->effectiveAmountIn($baseCurrency ?? 'MYR'), 2) }}</td>
                             <td class="pe-3">{{ $sub->next_billing_date->format('M d') }}</td>
                         </tr>
                     @empty
@@ -231,7 +231,7 @@
                         labels: { font: { size: 11 }, color: c.text, boxWidth: 14 }
                     },
                     tooltip: {
-                        callbacks: { label: ctx => ' RM ' + ctx.parsed.toFixed(2) + '/mo' }
+                        callbacks: { label: ctx => ' {{ $currencySymbol ?? 'RM' }} ' + ctx.parsed.toFixed(2) + '/mo' }
                     }
                 }
             }

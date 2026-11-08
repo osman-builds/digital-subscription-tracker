@@ -10,7 +10,7 @@
 <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
     <div>
         <h4 class="mb-0 fw-bold">Expenditure Tracker</h4>
-        <small class="text-muted">All amounts in Malaysian Ringgit (MYR)</small>
+        <small class="text-muted">All amounts normalised to {{ $baseCurrency ?? 'MYR' }}</small>
     </div>
     <div class="d-flex align-items-center gap-2">
         @if($fxUpdatedAt)
@@ -39,8 +39,8 @@
                     <span class="text-muted small fw-semibold">YEARLY TOTAL</span>
                     <span class="bg-primary bg-opacity-10 text-primary rounded-2 p-2"><i class="bi bi-calendar2-range fs-5"></i></span>
                 </div>
-                <h3 class="fw-bold mb-0">RM {{ number_format($yearlyTotal, 2) }}</h3>
-                <small class="text-muted">{{ $year }}</small>
+                <h3 class="fw-bold mb-0">{{ $currencySymbol ?? 'RM' }} {{ number_format($yearlyTotal, 2) }}</h3>
+                <small class="text-muted">{{ $year }} ({{ $baseCurrency ?? 'MYR' }})</small>
             </div>
         </div>
     </div>
@@ -51,7 +51,7 @@
                     <span class="text-muted small fw-semibold">AVG / MONTH</span>
                     <span class="bg-success bg-opacity-10 text-success rounded-2 p-2"><i class="bi bi-calculator fs-5"></i></span>
                 </div>
-                <h3 class="fw-bold mb-0">RM {{ number_format($yearlyTotal / 12, 2) }}</h3>
+                <h3 class="fw-bold mb-0">{{ $currencySymbol ?? 'RM' }} {{ number_format($yearlyTotal / 12, 2) }}</h3>
                 <small class="text-muted">per month average</small>
             </div>
         </div>
@@ -63,7 +63,7 @@
                     <span class="text-muted small fw-semibold">AVG / WEEK</span>
                     <span class="bg-info bg-opacity-10 text-info rounded-2 p-2"><i class="bi bi-calendar-week fs-5"></i></span>
                 </div>
-                <h3 class="fw-bold mb-0">RM {{ number_format($yearlyTotal / 52, 2) }}</h3>
+                <h3 class="fw-bold mb-0">{{ $currencySymbol ?? 'RM' }} {{ number_format($yearlyTotal / 52, 2) }}</h3>
                 <small class="text-muted">per week average</small>
             </div>
         </div>
@@ -75,7 +75,7 @@
                     <span class="text-muted small fw-semibold">AVG / DAY</span>
                     <span class="bg-warning bg-opacity-10 text-warning rounded-2 p-2"><i class="bi bi-calendar-day fs-5"></i></span>
                 </div>
-                <h3 class="fw-bold mb-0">RM {{ number_format($yearlyTotal / 365, 2) }}</h3>
+                <h3 class="fw-bold mb-0">{{ $currencySymbol ?? 'RM' }} {{ number_format($yearlyTotal / 365, 2) }}</h3>
                 <small class="text-muted">per day average</small>
             </div>
         </div>
@@ -127,8 +127,8 @@
                         <th>Category</th>
                         <th>Cycle</th>
                         <th>Original Price</th>
-                        <th>MYR / Month</th>
-                        <th class="pe-4">MYR / Year</th>
+                        <th>{{ $baseCurrency ?? 'MYR' }} / Month</th>
+                        <th class="pe-4">{{ $baseCurrency ?? 'MYR' }} / Year</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -145,15 +145,15 @@
                             </td>
                             <td><span class="badge bg-light text-dark border">{{ $sub->billingCycleLabel() }}</span></td>
                             <td>{{ $sub->currency }} {{ number_format($sub->amount, 2) }}</td>
-                            <td class="text-success fw-semibold">RM {{ number_format($sub->monthlyAmountMyr(), 2) }}</td>
-                            <td class="pe-4 text-primary fw-bold">RM {{ number_format($sub->yearlyAmountMyr(), 2) }}</td>
+                            <td class="text-success fw-semibold">{{ $currencySymbol ?? 'RM' }} {{ number_format($sub->monthlyAmountIn($baseCurrency ?? 'MYR'), 2) }}</td>
+                            <td class="pe-4 text-primary fw-bold">{{ $currencySymbol ?? 'RM' }} {{ number_format($sub->yearlyAmountIn($baseCurrency ?? 'MYR'), 2) }}</td>
                         </tr>
                     @endforeach
                     @if($subscriptionYearly->isNotEmpty())
                         <tr class="table-light fw-bold">
                             <td colspan="5" class="ps-4 text-end">TOTAL</td>
-                            <td class="text-success">RM {{ number_format($subscriptionYearly->sum(fn($s) => $s->monthlyAmountMyr()), 2) }}</td>
-                            <td class="pe-4 text-primary">RM {{ number_format($yearlyTotal, 2) }}</td>
+                            <td class="text-success">{{ $currencySymbol ?? 'RM' }} {{ number_format($subscriptionYearly->sum(fn($s) => $s->monthlyAmountIn($baseCurrency ?? 'MYR')), 2) }}</td>
+                            <td class="pe-4 text-primary">{{ $currencySymbol ?? 'RM' }} {{ number_format($yearlyTotal, 2) }}</td>
                         </tr>
                     @endif
                 </tbody>
@@ -199,7 +199,7 @@
             data: {
                 labels: {!! json_encode($monthly->pluck('month')) !!},
                 datasets: [{
-                    label: 'Monthly Spend (RM)',
+                    label: 'Monthly Spend ({{ $currencySymbol ?? 'RM' }})',
                     data: {!! json_encode($monthly->pluck('total')) !!},
                     backgroundColor: 'rgba(99,102,241,0.8)',
                     borderColor: 'rgba(99,102,241,1)',
@@ -212,13 +212,13 @@
                 maintainAspectRatio: false,
                 plugins: {
                     legend: { display: false },
-                    tooltip: { callbacks: { label: ctx => ' RM ' + ctx.parsed.y.toFixed(2) } }
+                    tooltip: { callbacks: { label: ctx => ' {{ $currencySymbol ?? 'RM' }} ' + ctx.parsed.y.toFixed(2) } }
                 },
                 scales: {
                     x: { ticks: { color: c.text }, grid: { color: c.grid } },
                     y: {
                         beginAtZero: true,
-                        ticks: { color: c.text, callback: v => 'RM ' + v.toFixed(0) },
+                        ticks: { color: c.text, callback: v => '{{ $currencySymbol ?? 'RM' }} ' + v.toFixed(0) },
                         grid: { color: c.grid }
                     }
                 }
@@ -251,7 +251,7 @@
                         position: 'bottom',
                         labels: { font: { size: 11 }, color: c.text, boxWidth: 14 }
                     },
-                    tooltip: { callbacks: { label: ctx => ' RM ' + ctx.parsed.toFixed(2) + '/yr' } }
+                    tooltip: { callbacks: { label: ctx => ' {{ $currencySymbol ?? 'RM' }} ' + ctx.parsed.toFixed(2) + '/yr' } }
                 }
             }
         });

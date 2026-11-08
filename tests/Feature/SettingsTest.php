@@ -122,6 +122,44 @@ class SettingsTest extends TestCase
         $this->assertTrue($user->getSettings()->dark_mode);
     }
 
+    public function test_user_can_update_base_currency_preference_and_it_reflects_on_dashboard(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user)
+            ->patch(route('settings.preferences'), [
+                'base_currency' => 'USD',
+                'alert_7_days' => 1,
+                'alert_3_days' => 1,
+            ])
+            ->assertSessionHasNoErrors()
+            ->assertRedirect();
+
+        $user->refresh();
+        $this->assertSame('USD', $user->getSettings()->base_currency);
+
+        Subscription::create([
+            'user_id' => $user->id,
+            'name' => 'Netflix US',
+            'amount' => 15.00,
+            'currency' => 'USD',
+            'amount_myr' => 67.05,
+            'billing_cycle' => 'monthly',
+            'status' => 'active',
+            'start_date' => now()->toDateString(),
+            'next_billing_date' => now()->addMonth()->toDateString(),
+        ]);
+
+        $dashboardResponse = $this->actingAs($user)->get(route('dashboard'));
+        $dashboardResponse->assertOk();
+        $dashboardResponse->assertSee('$ 15.00');
+        $dashboardResponse->assertSee('USD');
+
+        $expenditureResponse = $this->actingAs($user)->get(route('expenditure.index'));
+        $expenditureResponse->assertOk();
+        $expenditureResponse->assertSee('$ 180.00');
+    }
+
     public function test_user_can_delete_account_with_correct_password_and_erases_all_data(): void
     {
         $user = User::factory()->create([

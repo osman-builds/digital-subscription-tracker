@@ -38,19 +38,25 @@
                             <label for="base_currency" class="form-label fw-semibold">Base Display Currency</label>
                             <select id="base_currency" name="base_currency" class="form-select">
                                 @foreach([
-                                    'MYR' => 'MYR – Malaysian Ringgit',
-                                    'USD' => 'USD – US Dollar',
-                                    'EUR' => 'EUR – Euro',
-                                    'GBP' => 'GBP – British Pound',
-                                    'SGD' => 'SGD – Singapore Dollar',
-                                    'AUD' => 'AUD – Australian Dollar',
+                                    'MYR' => 'MYR – Malaysian Ringgit (RM)',
+                                    'USD' => 'USD – US Dollar ($)',
+                                    'EUR' => 'EUR – Euro (€)',
+                                    'GBP' => 'GBP – British Pound (£)',
+                                    'SGD' => 'SGD – Singapore Dollar (S$)',
+                                    'AUD' => 'AUD – Australian Dollar (A$)',
+                                    'CAD' => 'CAD – Canadian Dollar (C$)',
+                                    'JPY' => 'JPY – Japanese Yen (¥)',
+                                    'CNY' => 'CNY – Chinese Yuan (¥)',
+                                    'INR' => 'INR – Indian Rupee (₹)',
+                                    'CHF' => 'CHF – Swiss Franc',
+                                    'NZD' => 'NZD – New Zealand Dollar (NZ$)',
                                 ] as $code => $label)
                                     <option value="{{ $code }}" {{ $settings->base_currency === $code ? 'selected' : '' }}>
                                         {{ $label }}
                                     </option>
                                 @endforeach
                             </select>
-                            <div class="form-text">SubShield always normalises to MYR internally; this affects display labels.</div>
+                            <div class="form-text">All expenditure totals, dashboard charts, and subscription summaries across the app will automatically convert and display in this currency.</div>
                         </div>
 
                         <div class="col-12 col-sm-6">

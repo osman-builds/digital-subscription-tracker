@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\FxRateService;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -47,8 +48,58 @@ class Subscription extends Model
     }
 
     // -------------------------------------------------------------------------
-    // Cost helpers (use amount_myr when available, else fallback to amount)
+    // Cost helpers: Dynamic base currency conversion with MYR fallbacks
     // -------------------------------------------------------------------------
+
+    /** Effective amount converted to target currency (defaults to MYR) */
+    public function effectiveAmountIn(?string $targetCurrency = null): float
+    {
+        $target = $targetCurrency ? strtoupper(trim($targetCurrency)) : 'MYR';
+
+        if ($target === 'MYR') {
+            return $this->effectiveMyr();
+        }
+
+        if ($this->currency === $target) {
+            return (float) $this->amount;
+        }
+
+        return app(FxRateService::class)->convert(
+            (float) $this->amount,
+            $this->currency ?? 'MYR',
+            $target
+        );
+    }
+
+    /** Monthly equivalent in target currency */
+    public function monthlyAmountIn(?string $targetCurrency = null): float
+    {
+        $effective = $this->effectiveAmountIn($targetCurrency);
+
+        return match ($this->billing_cycle) {
+            'weekly' => $effective * 52 / 12,
+            'monthly' => $effective,
+            'quarterly' => $effective / 3,
+            'semi_annual' => $effective / 6,
+            'annual' => $effective / 12,
+            default => $effective,
+        };
+    }
+
+    /** Yearly equivalent in target currency */
+    public function yearlyAmountIn(?string $targetCurrency = null): float
+    {
+        $effective = $this->effectiveAmountIn($targetCurrency);
+
+        return match ($this->billing_cycle) {
+            'weekly' => $effective * 52,
+            'monthly' => $effective * 12,
+            'quarterly' => $effective * 4,
+            'semi_annual' => $effective * 2,
+            'annual' => $effective,
+            default => $effective * 12,
+        };
+    }
 
     /** Effective MYR amount per billing period */
     public function effectiveMyr(): float
@@ -59,27 +110,13 @@ class Subscription extends Model
     /** Monthly equivalent in MYR */
     public function monthlyAmountMyr(): float
     {
-        return match ($this->billing_cycle) {
-            'weekly' => $this->effectiveMyr() * 52 / 12,
-            'monthly' => $this->effectiveMyr(),
-            'quarterly' => $this->effectiveMyr() / 3,
-            'semi_annual' => $this->effectiveMyr() / 6,
-            'annual' => $this->effectiveMyr() / 12,
-            default => $this->effectiveMyr(),
-        };
+        return $this->monthlyAmountIn('MYR');
     }
 
     /** Yearly equivalent in MYR */
     public function yearlyAmountMyr(): float
     {
-        return match ($this->billing_cycle) {
-            'weekly' => $this->effectiveMyr() * 52,
-            'monthly' => $this->effectiveMyr() * 12,
-            'quarterly' => $this->effectiveMyr() * 4,
-            'semi_annual' => $this->effectiveMyr() * 2,
-            'annual' => $this->effectiveMyr(),
-            default => $this->effectiveMyr() * 12,
-        };
+        return $this->yearlyAmountIn('MYR');
     }
 
     /** Legacy alias — monthly in original currency (for display) */
