@@ -50,6 +50,10 @@ class SettingsController extends Controller
     {
         $user = auth()->user();
 
+        if ($user->email === 'demo@subtracker.test' && $request->input('email') !== 'demo@subtracker.test') {
+            return back()->with('error', 'The demo evaluation account email cannot be modified.');
+        }
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email,'.$user->id,
@@ -78,6 +82,10 @@ class SettingsController extends Controller
     /** Change password */
     public function updatePassword(Request $request)
     {
+        if (auth()->user()->email === 'demo@subtracker.test') {
+            return back()->with('error', 'The demo evaluation account password is fixed for grading evaluation.');
+        }
+
         $request->validate([
             'current_password' => ['required', 'current_password'],
             'password' => ['required', 'confirmed', Password::min(8)->mixedCase()->numbers()],

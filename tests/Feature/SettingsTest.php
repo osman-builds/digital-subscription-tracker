@@ -240,4 +240,46 @@ class SettingsTest extends TestCase
         $this->assertAuthenticatedAs($demoUser);
         $this->assertDatabaseHas('users', ['id' => $demoUser->id]);
     }
+
+    public function test_demo_account_email_cannot_be_modified(): void
+    {
+        $demoUser = User::factory()->create([
+            'email' => 'demo@subtracker.test',
+        ]);
+
+        $response = $this->actingAs($demoUser)
+            ->from(route('settings.index'))
+            ->patch(route('settings.account'), [
+                'name' => 'Attempted Change',
+                'email' => 'hacked@example.com',
+            ]);
+
+        $response->assertRedirect(route('settings.index'))
+            ->assertSessionHas('error');
+
+        $demoUser->refresh();
+        $this->assertSame('demo@subtracker.test', $demoUser->email);
+    }
+
+    public function test_demo_account_password_cannot_be_modified(): void
+    {
+        $demoUser = User::factory()->create([
+            'email' => 'demo@subtracker.test',
+            'password' => Hash::make('password'),
+        ]);
+
+        $response = $this->actingAs($demoUser)
+            ->from(route('settings.index'))
+            ->patch(route('settings.password'), [
+                'current_password' => 'password',
+                'password' => 'NewSecretPassword123!',
+                'password_confirmation' => 'NewSecretPassword123!',
+            ]);
+
+        $response->assertRedirect(route('settings.index'))
+            ->assertSessionHas('error');
+
+        $demoUser->refresh();
+        $this->assertTrue(Hash::check('password', $demoUser->password));
+    }
 }

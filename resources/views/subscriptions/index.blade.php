@@ -3,11 +3,16 @@
 @section('title', 'Subscriptions – SubShield')
 
 @section('content')
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h4 class="mb-0 fw-bold">Subscriptions</h4>
-    <a href="{{ route('subscriptions.create') }}" class="btn btn-primary">
-        <i class="bi bi-plus-lg me-1"></i>Add Subscription
-    </a>
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <h1 class="h4 mb-0 fw-bold">Subscriptions</h1>
+    <div class="d-flex align-items-center gap-2">
+        <a href="{{ route('subscriptions.export') }}" class="btn btn-outline-secondary d-flex align-items-center gap-1 shadow-sm" title="Export subscriptions to CSV spreadsheet">
+            <i class="bi bi-download"></i>Export CSV
+        </a>
+        <a href="{{ route('subscriptions.create') }}" class="btn btn-primary d-flex align-items-center gap-1 shadow-sm">
+            <i class="bi bi-plus-lg"></i>Add Subscription
+        </a>
+    </div>
 </div>
 
 {{-- Filters --}}

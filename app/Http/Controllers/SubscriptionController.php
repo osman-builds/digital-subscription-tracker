@@ -7,10 +7,71 @@ use App\Models\Subscription;
 use App\Services\FxRateService;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class SubscriptionController extends Controller
 {
     public function __construct(private FxRateService $fx) {}
+
+    /** Stream subscriptions as a CSV export */
+    public function export(): StreamedResponse
+    {
+        $user = auth()->user();
+        $baseCurrency = $user->getSettings()->base_currency ?? 'MYR';
+        $subscriptions = Subscription::with('category')
+            ->where('user_id', $user->id)
+            ->orderBy('name')
+            ->get();
+
+        $filename = 'subshield-subscriptions-'.now()->format('Y-m-d').'.csv';
+
+        $headers = [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+            'Pragma' => 'no-cache',
+            'Cache-Control' => 'must-revalidate, post-check=0, pre-check=0',
+            'Expires' => '0',
+        ];
+
+        return response()->stream(function () use ($subscriptions, $baseCurrency): void {
+            $handle = fopen('php://output', 'w');
+            fwrite($handle, "\xEF\xBB\xBF");
+
+            fputcsv($handle, [
+                'Service Name',
+                'Website URL',
+                'Category',
+                'Status',
+                'Original Amount',
+                'Currency',
+                'Billing Cycle',
+                "Monthly Equivalent ({$baseCurrency})",
+                "Yearly Equivalent ({$baseCurrency})",
+                'Start Date',
+                'Next Billing Date',
+                'Notes',
+            ]);
+
+            foreach ($subscriptions as $sub) {
+                fputcsv($handle, [
+                    $sub->name,
+                    $sub->website_url ?? '',
+                    $sub->category?->name ?? 'Uncategorized',
+                    ucfirst((string) $sub->status),
+                    number_format((float) $sub->amount, 2, '.', ''),
+                    $sub->currency,
+                    $sub->billingCycleLabel(),
+                    number_format($sub->monthlyAmountIn($baseCurrency), 2, '.', ''),
+                    number_format($sub->yearlyAmountIn($baseCurrency), 2, '.', ''),
+                    $sub->start_date?->format('Y-m-d') ?? '',
+                    $sub->next_billing_date?->format('Y-m-d') ?? '',
+                    $sub->notes ?? '',
+                ]);
+            }
+
+            fclose($handle);
+        }, 200, $headers);
+    }
 
     public function index(Request $request)
     {

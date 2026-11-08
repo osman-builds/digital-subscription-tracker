@@ -72,4 +72,51 @@ class SubscriptionTest extends TestCase
         $this->assertEquals('https://spotify.com', $sub->website_url);
         $this->assertStringContainsString('spotify.com', (string) $sub->logo_url);
     }
+
+    public function test_user_can_export_subscriptions_to_csv(): void
+    {
+        $user = User::factory()->create();
+        $otherUser = User::factory()->create();
+
+        $category = Category::create(['name' => 'Entertainment', 'color' => '#ef4444', 'user_id' => null]);
+
+        Subscription::create([
+            'user_id' => $user->id,
+            'category_id' => $category->id,
+            'name' => 'Netflix Premium',
+            'website_url' => 'https://netflix.com',
+            'amount' => '15.99',
+            'currency' => 'USD',
+            'amount_myr' => '71.95',
+            'billing_cycle' => 'monthly',
+            'status' => 'active',
+            'start_date' => now()->toDateString(),
+            'next_billing_date' => now()->addMonth()->toDateString(),
+        ]);
+
+        Subscription::create([
+            'user_id' => $otherUser->id,
+            'name' => 'Secret Other User Service',
+            'amount' => '99.99',
+            'currency' => 'USD',
+            'amount_myr' => '450.00',
+            'billing_cycle' => 'monthly',
+            'status' => 'active',
+            'start_date' => now()->toDateString(),
+            'next_billing_date' => now()->addMonth()->toDateString(),
+        ]);
+
+        $response = $this->actingAs($user)->get(route('subscriptions.export'));
+
+        $response->assertOk();
+        $response->assertHeader('Content-Type', 'text/csv; charset=UTF-8');
+        $response->assertHeader('Content-Disposition');
+
+        $content = $response->streamedContent();
+        $this->assertStringContainsString('Netflix Premium', $content);
+        $this->assertStringContainsString('https://netflix.com', $content);
+        $this->assertStringContainsString('USD', $content);
+        $this->assertStringContainsString('Entertainment', $content);
+        $this->assertStringNotContainsString('Secret Other User Service', $content);
+    }
 }
