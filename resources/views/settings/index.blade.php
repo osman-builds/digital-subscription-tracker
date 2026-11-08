@@ -293,7 +293,7 @@
                         <img src="/favicon.svg" width="46" height="46" alt="SubShield icon">
                         <div>
                             <h5 class="mb-0 fw-bold text-white">SubShield</h5>
-                            <span class="badge bg-primary bg-opacity-75">v1.0 Production</span>
+                            <span class="text-white-50 small">Subscription Manager</span>
                         </div>
                     </div>
                     <span class="badge bg-success bg-opacity-25 text-white border border-white border-opacity-25 px-2 py-1">
