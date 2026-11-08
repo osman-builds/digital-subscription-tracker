@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules\Password;
 
@@ -86,5 +88,33 @@ class SettingsController extends Controller
         ]);
 
         return back()->with('success', 'Password changed successfully.');
+    }
+
+    /** Permanently delete user account and erase all associated data */
+    public function deleteAccount(Request $request)
+    {
+        $user = $request->user();
+
+        if ($user->email === 'demo@subtracker.test') {
+            return back()->with('error', 'The demo evaluation account cannot be deleted.');
+        }
+
+        $request->validateWithBag('userDeletion', [
+            'password' => ['required', 'current_password'],
+        ]);
+
+        Auth::logout();
+
+        DB::transaction(function () use ($user) {
+            $user->subscriptions()->delete();
+            $user->categories()->delete();
+            $user->settings()->delete();
+            $user->delete();
+        });
+
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return redirect('/login')->with('status', 'Your account and all associated data have been permanently deleted.');
     }
 }

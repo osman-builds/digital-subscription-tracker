@@ -13,6 +13,7 @@ Route::get('/', function () {
     if (auth()->check()) {
         return redirect()->route('dashboard');
     }
+
     return view('splash');
 })->name('splash');
 
@@ -28,12 +29,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/expenditure', [ExpenditureController::class, 'index'])->name('expenditure.index');
 
     // Settings
-    Route::get('/settings',                    [SettingsController::class, 'index'])->name('settings.index');
-    Route::patch('/settings/preferences',      [SettingsController::class, 'updatePreferences'])->name('settings.preferences');
-    Route::patch('/settings/account',          [SettingsController::class, 'updateAccount'])->name('settings.account');
-    Route::patch('/settings/password',         [SettingsController::class, 'updatePassword'])->name('settings.password');
-    Route::post('/settings/dark-mode',         [SettingsController::class, 'updateDarkMode'])->name('settings.dark_mode');
+    Route::get('/settings', [SettingsController::class, 'index'])->name('settings.index');
+    Route::patch('/settings/preferences', [SettingsController::class, 'updatePreferences'])->name('settings.preferences');
+    Route::patch('/settings/account', [SettingsController::class, 'updateAccount'])->name('settings.account');
+    Route::patch('/settings/password', [SettingsController::class, 'updatePassword'])->name('settings.password');
+    Route::delete('/settings/account', [SettingsController::class, 'deleteAccount'])->name('settings.delete_account');
+    Route::post('/settings/dark-mode', [SettingsController::class, 'updateDarkMode'])->name('settings.dark_mode');
 });
 
 // ── Breeze auth routes ────────────────────────────────────────────────────
-require __DIR__ . '/auth.php';
+require __DIR__.'/auth.php';

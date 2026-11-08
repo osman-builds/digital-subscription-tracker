@@ -182,6 +182,35 @@
             </div>
         </div>
 
+        {{-- 4. DANGER ZONE: DELETE ACCOUNT ---------------------------- --}}
+        <div class="card border border-danger border-opacity-25 shadow-sm">
+            <div class="card-header bg-danger bg-opacity-10 border-0 pt-3 pb-2">
+                <h6 class="fw-bold text-danger mb-0">
+                    <i class="bi bi-exclamation-octagon-fill me-2"></i>Danger Zone
+                </h6>
+                <small class="text-danger-emphasis">Irreversible and destructive actions</small>
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                    <div>
+                        <h6 class="fw-semibold mb-1">Delete Account</h6>
+                        <p class="text-muted small mb-0">
+                            Permanently delete your account, active subscriptions, custom categories, and all associated personal data from the database.
+                        </p>
+                    </div>
+                    @if(auth()->user()->email === 'demo@subtracker.test')
+                        <button type="button" class="btn btn-outline-danger" disabled title="The demo account cannot be deleted">
+                            <i class="bi bi-lock me-1"></i>Protected Demo Account
+                        </button>
+                    @else
+                        <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteAccountModal">
+                            <i class="bi bi-trash3 me-1"></i>Delete Account
+                        </button>
+                    @endif
+                </div>
+            </div>
+        </div>
+
     </div>{{-- /left column --}}
 
     {{-- ─── RIGHT COLUMN ──────────────────────────────────────────── --}}
@@ -293,8 +322,62 @@
     </div>{{-- /right column --}}
 
 </div>{{-- /row --}}
+
+{{-- Delete Account Confirmation Modal --}}
+<div class="modal fade" id="deleteAccountModal" tabindex="-1" aria-labelledby="deleteAccountModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header border-0 pb-0">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="rounded-circle bg-danger bg-opacity-10 text-danger p-2 d-flex align-items-center justify-content-center" style="width:40px;height:40px;">
+                        <i class="bi bi-exclamation-triangle-fill fs-5"></i>
+                    </span>
+                    <h5 class="modal-title fw-bold text-danger" id="deleteAccountModalLabel">Delete Account</h5>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{{ route('settings.delete_account') }}" method="POST">
+                @csrf
+                @method('DELETE')
+                <div class="modal-body py-3">
+                    <p class="text-muted mb-3">
+                        Are you sure you want to delete your account? This will <strong>immediately and permanently erase all your data</strong>, including your subscriptions, expenditure history, custom categories, and settings from our database.
+                    </p>
+                    <div class="alert alert-warning py-2 mb-3 small">
+                        <i class="bi bi-info-circle me-1"></i><strong>This action cannot be undone.</strong> Please enter your password to confirm.
+                    </div>
+                    <div class="mb-2">
+                        <label for="delete_account_password" class="form-label fw-semibold">Confirm Password <span class="text-danger">*</span></label>
+                        <input type="password"
+                               id="delete_account_password"
+                               name="password"
+                               class="form-control @error('password', 'userDeletion') is-invalid @enderror"
+                               placeholder="Enter your current password"
+                               required>
+                        @error('password', 'userDeletion')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-trash3 me-1"></i>Permanently Delete Account
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('scripts')
-{{-- Dark mode toggle is wired globally in the layout --}}
+@if($errors->userDeletion->isNotEmpty())
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var modal = new bootstrap.Modal(document.getElementById('deleteAccountModal'));
+        modal.show();
+    });
+</script>
+@endif
 @endpush

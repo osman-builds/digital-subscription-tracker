@@ -2,6 +2,8 @@
 
 namespace Tests\Feature;
 
+use App\Models\Category;
+use App\Models\Subscription;
 use App\Models\User;
 use App\Notifications\EmailVerificationOtpNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -118,5 +120,86 @@ class SettingsTest extends TestCase
             ->assertJson(['dark_mode' => true]);
 
         $this->assertTrue($user->getSettings()->dark_mode);
+    }
+
+    public function test_user_can_delete_account_with_correct_password_and_erases_all_data(): void
+    {
+        $user = User::factory()->create([
+            'password' => Hash::make('SecretPassword123!'),
+        ]);
+
+        $category = Category::create([
+            'user_id' => $user->id,
+            'name' => 'Custom Personal Tag',
+            'color' => '#6366f1',
+        ]);
+
+        $subscription = Subscription::create([
+            'user_id' => $user->id,
+            'category_id' => $category->id,
+            'name' => 'Test Subscription',
+            'amount' => 25.00,
+            'currency' => 'USD',
+            'amount_myr' => 110.00,
+            'billing_cycle' => 'monthly',
+            'status' => 'active',
+            'start_date' => now()->toDateString(),
+            'next_billing_date' => now()->addMonth()->toDateString(),
+        ]);
+
+        $user->getSettings()->update(['base_currency' => 'EUR']);
+
+        $response = $this->actingAs($user)
+            ->delete(route('settings.delete_account'), [
+                'password' => 'SecretPassword123!',
+            ]);
+
+        $response->assertRedirect('/login')
+            ->assertSessionHas('status');
+
+        $this->assertGuest();
+        $this->assertDatabaseMissing('users', ['id' => $user->id]);
+        $this->assertDatabaseMissing('subscriptions', ['id' => $subscription->id]);
+        $this->assertDatabaseMissing('categories', ['id' => $category->id]);
+        $this->assertDatabaseMissing('user_settings', ['user_id' => $user->id]);
+    }
+
+    public function test_user_cannot_delete_account_with_incorrect_password(): void
+    {
+        $user = User::factory()->create([
+            'password' => Hash::make('SecretPassword123!'),
+        ]);
+
+        $response = $this->actingAs($user)
+            ->from(route('settings.index'))
+            ->delete(route('settings.delete_account'), [
+                'password' => 'WrongPassword!',
+            ]);
+
+        $response->assertRedirect(route('settings.index'))
+            ->assertSessionHasErrorsIn('userDeletion', ['password']);
+
+        $this->assertAuthenticatedAs($user);
+        $this->assertDatabaseHas('users', ['id' => $user->id]);
+    }
+
+    public function test_demo_evaluation_account_cannot_be_deleted(): void
+    {
+        $demoUser = User::factory()->create([
+            'email' => 'demo@subtracker.test',
+            'password' => Hash::make('password'),
+        ]);
+
+        $response = $this->actingAs($demoUser)
+            ->from(route('settings.index'))
+            ->delete(route('settings.delete_account'), [
+                'password' => 'password',
+            ]);
+
+        $response->assertRedirect(route('settings.index'))
+            ->assertSessionHas('error');
+
+        $this->assertAuthenticatedAs($demoUser);
+        $this->assertDatabaseHas('users', ['id' => $demoUser->id]);
     }
 }
