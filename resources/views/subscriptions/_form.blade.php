@@ -79,8 +79,7 @@
                      src="{{ old('logo_url', $subscription->logo_url ?? '') ?: 'data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'24\' height=\'24\' fill=\'%2394a3b8\' viewBox=\'0 0 16 16\'><path d=\'M8 0a8 8 0 1 0 0 16A8 8 0 0 0 8 0zm0 14A6 6 0 1 1 8 2a6 6 0 0 1 0 12z\'/></svg>' }}"
                      width="26" height="26"
                      class="rounded-1"
-                     alt="Icon"
-                     onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'24\' height=\'24\' fill=\'%2394a3b8\' viewBox=\'0 0 16 16\'><path d=\'M8 0a8 8 0 1 0 0 16A8 8 0 0 0 8 0zm0 14A6 6 0 1 1 8 2a6 6 0 0 1 0 12z\'/></svg>';">
+                     alt="Icon">
             </span>
             <input type="text" id="sub_name" name="name"
                    class="form-control border-start-0 @error('name') is-invalid @enderror"
@@ -613,6 +612,13 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
     });
+
+    // Live logo preview error fallback
+    if (liveLogoPreview) {
+        liveLogoPreview.addEventListener('error', function() {
+            this.src = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' fill='%2394a3b8' viewBox='0 0 16 16'><path d='M8 0a8 8 0 1 0 0 16A8 8 0 0 0 8 0zm0 14A6 6 0 1 1 8 2a6 6 0 0 1 0 12z'/></svg>";
+        });
+    }
 
     // Quick +1 Month helper
     if (btnPlusMonth && startDateInput && nextDateInput) {

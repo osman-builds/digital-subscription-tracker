@@ -10,6 +10,8 @@ use Illuminate\Validation\Rules\Password;
 
 class SettingsController extends Controller
 {
+    private const DEMO_EMAIL = 'demo@subtracker.test';
+
     public function index()
     {
         $settings = auth()->user()->getSettings();
@@ -50,7 +52,7 @@ class SettingsController extends Controller
     {
         $user = auth()->user();
 
-        if ($user->email === 'demo@subtracker.test' && $request->input('email') !== 'demo@subtracker.test') {
+        if ($user->email === self::DEMO_EMAIL && $request->input('email') !== self::DEMO_EMAIL) {
             return back()->with('error', 'The demo evaluation account email cannot be modified.');
         }
 
@@ -82,7 +84,7 @@ class SettingsController extends Controller
     /** Change password */
     public function updatePassword(Request $request)
     {
-        if (auth()->user()->email === 'demo@subtracker.test') {
+        if (auth()->user()->email === self::DEMO_EMAIL) {
             return back()->with('error', 'The demo evaluation account password is fixed for grading evaluation.');
         }
 
@@ -103,7 +105,7 @@ class SettingsController extends Controller
     {
         $user = $request->user();
 
-        if ($user->email === 'demo@subtracker.test') {
+        if ($user->email === self::DEMO_EMAIL) {
             return back()->with('error', 'The demo evaluation account cannot be deleted.');
         }
 

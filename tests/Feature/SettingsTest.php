@@ -15,6 +15,10 @@ class SettingsTest extends TestCase
 {
     use RefreshDatabase;
 
+    private const TEST_PASSWORD = 'SecretPassword123!';
+
+    private const DEMO_EMAIL = 'demo@subtracker.test';
+
     private const NEW_NAME = 'New Name';
 
     public function test_settings_page_can_be_rendered(): void
@@ -163,7 +167,7 @@ class SettingsTest extends TestCase
     public function test_user_can_delete_account_with_correct_password_and_erases_all_data(): void
     {
         $user = User::factory()->create([
-            'password' => Hash::make('SecretPassword123!'),
+            'password' => Hash::make(self::TEST_PASSWORD),
         ]);
 
         $category = Category::create([
@@ -189,7 +193,7 @@ class SettingsTest extends TestCase
 
         $response = $this->actingAs($user)
             ->delete(route('settings.delete_account'), [
-                'password' => 'SecretPassword123!',
+                'password' => self::TEST_PASSWORD,
             ]);
 
         $response->assertRedirect('/login')
@@ -205,7 +209,7 @@ class SettingsTest extends TestCase
     public function test_user_cannot_delete_account_with_incorrect_password(): void
     {
         $user = User::factory()->create([
-            'password' => Hash::make('SecretPassword123!'),
+            'password' => Hash::make(self::TEST_PASSWORD),
         ]);
 
         $response = $this->actingAs($user)
@@ -224,7 +228,7 @@ class SettingsTest extends TestCase
     public function test_demo_evaluation_account_cannot_be_deleted(): void
     {
         $demoUser = User::factory()->create([
-            'email' => 'demo@subtracker.test',
+            'email' => self::DEMO_EMAIL,
             'password' => Hash::make('password'),
         ]);
 
@@ -244,7 +248,7 @@ class SettingsTest extends TestCase
     public function test_demo_account_email_cannot_be_modified(): void
     {
         $demoUser = User::factory()->create([
-            'email' => 'demo@subtracker.test',
+            'email' => self::DEMO_EMAIL,
         ]);
 
         $response = $this->actingAs($demoUser)
@@ -258,13 +262,13 @@ class SettingsTest extends TestCase
             ->assertSessionHas('error');
 
         $demoUser->refresh();
-        $this->assertSame('demo@subtracker.test', $demoUser->email);
+        $this->assertSame(self::DEMO_EMAIL, $demoUser->email);
     }
 
     public function test_demo_account_password_cannot_be_modified(): void
     {
         $demoUser = User::factory()->create([
-            'email' => 'demo@subtracker.test',
+            'email' => self::DEMO_EMAIL,
             'password' => Hash::make('password'),
         ]);
 

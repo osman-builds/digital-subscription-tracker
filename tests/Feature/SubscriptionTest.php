@@ -12,6 +12,10 @@ class SubscriptionTest extends TestCase
 {
     use RefreshDatabase;
 
+    private const NETFLIX_PREMIUM = 'Netflix Premium';
+
+    private const NETFLIX_URL = 'https://netflix.com';
+
     public function test_create_subscription_screen_renders_successfully(): void
     {
         $user = User::factory()->create();
@@ -31,7 +35,7 @@ class SubscriptionTest extends TestCase
         $category = Category::create(['name' => 'Entertainment', 'color' => '#ef4444', 'user_id' => null]);
 
         $response = $this->actingAs($user)->post(route('subscriptions.store'), [
-            'name' => 'Netflix Premium',
+            'name' => self::NETFLIX_PREMIUM,
             'website_url' => 'netflix.com',
             'amount' => '15.99',
             'currency' => 'USD',
@@ -44,9 +48,9 @@ class SubscriptionTest extends TestCase
 
         $response->assertRedirect(route('subscriptions.index'));
 
-        $sub = Subscription::where('name', 'Netflix Premium')->first();
+        $sub = Subscription::where('name', self::NETFLIX_PREMIUM)->first();
         $this->assertNotNull($sub);
-        $this->assertEquals('https://netflix.com', $sub->website_url);
+        $this->assertEquals(self::NETFLIX_URL, $sub->website_url);
         $this->assertStringContainsString('faviconV2', (string) $sub->logo_url);
         $this->assertStringContainsString('netflix.com', (string) $sub->logo_url);
     }
@@ -83,8 +87,8 @@ class SubscriptionTest extends TestCase
         Subscription::create([
             'user_id' => $user->id,
             'category_id' => $category->id,
-            'name' => 'Netflix Premium',
-            'website_url' => 'https://netflix.com',
+            'name' => self::NETFLIX_PREMIUM,
+            'website_url' => self::NETFLIX_URL,
             'amount' => '15.99',
             'currency' => 'USD',
             'amount_myr' => '71.95',
@@ -113,8 +117,8 @@ class SubscriptionTest extends TestCase
         $response->assertHeader('Content-Disposition');
 
         $content = $response->streamedContent();
-        $this->assertStringContainsString('Netflix Premium', $content);
-        $this->assertStringContainsString('https://netflix.com', $content);
+        $this->assertStringContainsString(self::NETFLIX_PREMIUM, $content);
+        $this->assertStringContainsString(self::NETFLIX_URL, $content);
         $this->assertStringContainsString('USD', $content);
         $this->assertStringContainsString('Entertainment', $content);
         $this->assertStringNotContainsString('Secret Other User Service', $content);

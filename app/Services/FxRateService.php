@@ -65,21 +65,17 @@ class FxRateService
         }
 
         $amountInMyr = $this->toMyr($amount, $from);
+        $rateTo = $this->getRates()[$to] ?? null;
 
-        if ($to === self::TARGET) {
-            return round($amountInMyr, 2);
+        if ($to !== self::TARGET && $rateTo > 0) {
+            return round($amountInMyr / $rateTo, 2);
         }
 
-        $rates = $this->getRates();
-        $rateTo = $rates[$to] ?? null;
-
-        if (! $rateTo || $rateTo <= 0) {
+        if ($to !== self::TARGET) {
             Log::warning("FxRateService: Unknown target currency [{$to}], returning MYR equivalent");
-
-            return round($amountInMyr, 2);
         }
 
-        return round($amountInMyr / $rateTo, 2);
+        return round($amountInMyr, 2);
     }
 
     /**
