@@ -13,8 +13,8 @@ $width = match ($width) {
 };
 @endphp
 
-<div class="relative" x-data="{ open: false }" @click.outside="open = false" @close.stop="open = false">
-    <div @click="open = ! open">
+<div class="relative" x-data="{ open: false }" @click.outside="open = false" @close.stop="open = false" @keydown.escape.window="open = false" onkeydown="">
+    <div @click="open = ! open" @keydown.enter="open = ! open" @keydown.space.prevent="open = ! open" role="button" tabindex="0" onkeydown="">
         {{ $trigger }}
     </div>
 
@@ -27,7 +27,9 @@ $width = match ($width) {
             x-transition:leave-end="opacity-0 scale-95"
             class="absolute z-50 mt-2 {{ $width }} rounded-md shadow-lg {{ $alignmentClasses }}"
             style="display: none;"
-            @click="open = false">
+            @click="open = false"
+            @keydown.escape="open = false"
+            onkeydown="">
         <div class="rounded-md ring-1 ring-black ring-opacity-5 {{ $contentClasses }}">
             {{ $content }}
         </div>

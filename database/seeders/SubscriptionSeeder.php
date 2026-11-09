@@ -10,19 +10,49 @@ class SubscriptionSeeder extends Seeder
 {
     public function run(): void
     {
-        $entertainment = Category::where('name', 'Entertainment')->first();
-        $productivity = Category::where('name', 'Productivity')->first();
-        $music = Category::where('name', 'Music')->first();
-        $cloud = Category::where('name', 'Cloud Storage')->first();
-        $gaming = Category::where('name', 'Gaming')->first();
-        $news = Category::where('name', 'News & Reading')->first();
-        $health = Category::where('name', 'Health & Fitness')->first();
-        $dev = Category::where('name', 'Software & Dev')->first();
+        $categories = $this->loadCategories();
+        $subscriptions = array_merge(
+            $this->getCoreSubscriptions($categories),
+            $this->getInternationalSubscriptions($categories)
+        );
 
-        $subscriptions = [
+        foreach ($subscriptions as $sub) {
+            $existing = Subscription::where('name', $sub['name'])->first();
+            if ($existing) {
+                $existing->update([
+                    'currency' => $sub['currency'],
+                    'amount' => $sub['amount'],
+                ]);
+            } else {
+                Subscription::create($sub);
+            }
+        }
+    }
 
-            // ── Existing 12 – now with explicit currency ─────────────────────
+    /**
+     * @return array<string, ?int>
+     */
+    private function loadCategories(): array
+    {
+        return [
+            'entertainment' => Category::where('name', 'Entertainment')->value('id'),
+            'productivity' => Category::where('name', 'Productivity')->value('id'),
+            'music' => Category::where('name', 'Music')->value('id'),
+            'cloud' => Category::where('name', 'Cloud Storage')->value('id'),
+            'gaming' => Category::where('name', 'Gaming')->value('id'),
+            'news' => Category::where('name', 'News & Reading')->value('id'),
+            'health' => Category::where('name', 'Health & Fitness')->value('id'),
+            'dev' => Category::where('name', 'Software & Dev')->value('id'),
+        ];
+    }
 
+    /**
+     * @param  array<string, ?int>  $categories
+     * @return array<int, array<string, mixed>>
+     */
+    private function getCoreSubscriptions(array $categories): array
+    {
+        return [
             [
                 'name' => 'Netflix',
                 'description' => 'Streaming movies and TV shows',
@@ -32,7 +62,7 @@ class SubscriptionSeeder extends Seeder
                 'start_date' => '2024-01-15',
                 'next_billing_date' => now()->day(15)->format('Y-m-d'),
                 'status' => 'active',
-                'category_id' => $entertainment?->id,
+                'category_id' => $categories['entertainment'],
                 'website_url' => 'https://netflix.com',
             ],
             [
@@ -44,7 +74,7 @@ class SubscriptionSeeder extends Seeder
                 'start_date' => '2023-06-01',
                 'next_billing_date' => now()->addDays(3)->format('Y-m-d'),
                 'status' => 'active',
-                'category_id' => $music?->id,
+                'category_id' => $categories['music'],
                 'website_url' => 'https://spotify.com',
             ],
             [
@@ -56,7 +86,7 @@ class SubscriptionSeeder extends Seeder
                 'start_date' => '2023-09-01',
                 'next_billing_date' => now()->addDays(12)->format('Y-m-d'),
                 'status' => 'active',
-                'category_id' => $dev?->id,
+                'category_id' => $categories['dev'],
                 'website_url' => 'https://adobe.com',
             ],
             [
@@ -68,7 +98,7 @@ class SubscriptionSeeder extends Seeder
                 'start_date' => '2024-03-01',
                 'next_billing_date' => now()->addMonths(5)->format('Y-m-d'),
                 'status' => 'active',
-                'category_id' => $productivity?->id,
+                'category_id' => $categories['productivity'],
                 'website_url' => 'https://microsoft.com/microsoft-365',
             ],
             [
@@ -80,7 +110,7 @@ class SubscriptionSeeder extends Seeder
                 'start_date' => '2023-11-01',
                 'next_billing_date' => now()->addDays(6)->format('Y-m-d'),
                 'status' => 'active',
-                'category_id' => $cloud?->id,
+                'category_id' => $categories['cloud'],
                 'website_url' => 'https://one.google.com',
             ],
             [
@@ -92,7 +122,7 @@ class SubscriptionSeeder extends Seeder
                 'start_date' => '2024-02-01',
                 'next_billing_date' => now()->addDays(1)->format('Y-m-d'),
                 'status' => 'active',
-                'category_id' => $gaming?->id,
+                'category_id' => $categories['gaming'],
                 'website_url' => 'https://xbox.com/play',
             ],
             [
@@ -104,7 +134,7 @@ class SubscriptionSeeder extends Seeder
                 'start_date' => '2024-04-01',
                 'next_billing_date' => now()->addDays(20)->format('Y-m-d'),
                 'status' => 'active',
-                'category_id' => $entertainment?->id,
+                'category_id' => $categories['entertainment'],
                 'website_url' => 'https://youtube.com/premium',
             ],
             [
@@ -116,7 +146,7 @@ class SubscriptionSeeder extends Seeder
                 'start_date' => '2023-12-01',
                 'next_billing_date' => now()->addDays(14)->format('Y-m-d'),
                 'status' => 'active',
-                'category_id' => $productivity?->id,
+                'category_id' => $categories['productivity'],
                 'website_url' => 'https://notion.so',
             ],
             [
@@ -128,7 +158,7 @@ class SubscriptionSeeder extends Seeder
                 'start_date' => '2023-08-01',
                 'next_billing_date' => now()->toDateString(),
                 'status' => 'active',
-                'category_id' => $news?->id,
+                'category_id' => $categories['news'],
                 'website_url' => 'https://nytimes.com',
                 'notes' => 'Includes games & cooking access',
             ],
@@ -141,7 +171,7 @@ class SubscriptionSeeder extends Seeder
                 'start_date' => '2024-01-01',
                 'next_billing_date' => now()->addMonths(2)->format('Y-m-d'),
                 'status' => 'inactive',
-                'category_id' => $health?->id,
+                'category_id' => $categories['health'],
                 'website_url' => 'https://calm.com',
             ],
             [
@@ -153,7 +183,7 @@ class SubscriptionSeeder extends Seeder
                 'start_date' => '2024-05-01',
                 'next_billing_date' => now()->addDays(9)->format('Y-m-d'),
                 'status' => 'active',
-                'category_id' => $dev?->id,
+                'category_id' => $categories['dev'],
                 'website_url' => 'https://github.com/features/copilot',
             ],
             [
@@ -165,13 +195,20 @@ class SubscriptionSeeder extends Seeder
                 'start_date' => '2022-12-01',
                 'next_billing_date' => now()->addDays(25)->format('Y-m-d'),
                 'status' => 'cancelled',
-                'category_id' => $entertainment?->id,
+                'category_id' => $categories['entertainment'],
                 'website_url' => 'https://disneyplus.com',
                 'notes' => 'Cancelled — rarely used',
             ],
+        ];
+    }
 
-            // ── New entries: varied currencies & billing cycles ───────────────
-
+    /**
+     * @param  array<string, ?int>  $categories
+     * @return array<int, array<string, mixed>>
+     */
+    private function getInternationalSubscriptions(array $categories): array
+    {
+        return [
             [
                 'name' => 'iCloud+',
                 'description' => '50 GB iCloud storage — local MYR plan',
@@ -181,7 +218,7 @@ class SubscriptionSeeder extends Seeder
                 'start_date' => '2024-06-01',
                 'next_billing_date' => now()->addDays(5)->format('Y-m-d'),
                 'status' => 'active',
-                'category_id' => $cloud?->id,
+                'category_id' => $categories['cloud'],
                 'website_url' => 'https://icloud.com',
                 'notes' => 'Apple iCloud 50 GB tier — MYR billing',
             ],
@@ -194,7 +231,7 @@ class SubscriptionSeeder extends Seeder
                 'start_date' => '2024-02-10',
                 'next_billing_date' => now()->addMonths(4)->format('Y-m-d'),
                 'status' => 'active',
-                'category_id' => $dev?->id,
+                'category_id' => $categories['dev'],
                 'website_url' => 'https://canva.com',
                 'notes' => 'Singapore dollar annual billing',
             ],
@@ -207,7 +244,7 @@ class SubscriptionSeeder extends Seeder
                 'start_date' => '2024-07-01',
                 'next_billing_date' => now()->addDays(11)->format('Y-m-d'),
                 'status' => 'active',
-                'category_id' => $entertainment?->id,
+                'category_id' => $categories['entertainment'],
                 'website_url' => 'https://tv.apple.com',
                 'notes' => 'UK billing in GBP',
             ],
@@ -220,7 +257,7 @@ class SubscriptionSeeder extends Seeder
                 'start_date' => '2024-04-01',
                 'next_billing_date' => now()->addDays(18)->format('Y-m-d'),
                 'status' => 'active',
-                'category_id' => $health?->id,
+                'category_id' => $categories['health'],
                 'website_url' => 'https://duolingo.com',
                 'notes' => 'AUD quarterly billing',
             ],
@@ -233,23 +270,10 @@ class SubscriptionSeeder extends Seeder
                 'start_date' => '2024-01-01',
                 'next_billing_date' => now()->addMonths(3)->format('Y-m-d'),
                 'status' => 'active',
-                'category_id' => $dev?->id,
+                'category_id' => $categories['dev'],
                 'website_url' => 'https://figma.com',
                 'notes' => 'EUR semi-annual plan for design team',
             ],
         ];
-
-        foreach ($subscriptions as $sub) {
-            // Update existing rows to also set currency if missing
-            $existing = Subscription::where('name', $sub['name'])->first();
-            if ($existing) {
-                $existing->update([
-                    'currency' => $sub['currency'],
-                    'amount' => $sub['amount'],
-                ]);
-            } else {
-                Subscription::create($sub);
-            }
-        }
     }
 }

@@ -249,7 +249,7 @@
 
 <div class="d-flex">
     {{-- ── Desktop Sidebar (always dark-themed) ─────────────────────── --}}
-    <nav class="sidebar d-none d-md-flex flex-column">
+    <nav class="sidebar d-none d-md-flex flex-column" aria-label="Sidebar navigation">
         <div class="brand d-flex align-items-center gap-2">
             <img src="/favicon.svg" width="26" height="26" alt="SubShield">
             <span>SubShield</span>
@@ -310,7 +310,7 @@
     </nav>
 
     {{-- ── Mobile top bar ────────────────────────────────────────────── --}}
-    <nav class="navbar navbar-dark bg-dark d-md-none w-100 position-fixed top-0" style="z-index:200;">
+    <nav class="navbar navbar-dark bg-dark d-md-none w-100 position-fixed top-0" style="z-index:200;" aria-label="Mobile navigation">
         <div class="container-fluid">
             <span class="navbar-brand fw-bold d-flex align-items-center gap-2">
                 <img src="/favicon.svg" width="22" height="22" alt="SubShield">
@@ -443,6 +443,17 @@
             persistToServer(next);
         });
     }
+
+    // Fallback handler for brand logo images that fail to load
+    document.addEventListener('error', function (event) {
+        if (event.target && event.target.classList && event.target.classList.contains('brand-fallback-img')) {
+            event.target.style.display = 'none';
+            if (event.target.nextElementSibling) {
+                event.target.nextElementSibling.classList.remove('d-none');
+                event.target.nextElementSibling.classList.add('d-flex');
+            }
+        }
+    }, true);
 })();
 </script>
 @stack('scripts')

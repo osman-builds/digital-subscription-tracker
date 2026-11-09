@@ -50,9 +50,8 @@
              alt="{{ $name }} logo"
              width="{{ $size }}"
              height="{{ $size }}"
-             class="{{ $rounded }}"
-             style="object-fit:contain;width:{{ $size }}px;height:{{ $size }}px;"
-             onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+             class="brand-fallback-img {{ $rounded }}"
+             style="object-fit:contain;width:{{ $size }}px;height:{{ $size }}px;">
         <span class="d-none align-items-center justify-content-center w-100 h-100 fw-bold"
               style="color:{{ $color }};font-size:{{ round($size * 0.45) }}px;">{{ $initial }}</span>
 
@@ -63,7 +62,8 @@
              width="{{ round($size * 0.7) }}"
              height="{{ round($size * 0.7) }}"
              loading="lazy"
-             onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+             class="brand-fallback-img"
+             style="object-fit:contain;">
         <span class="d-none align-items-center justify-content-center w-100 h-100 fw-bold"
               style="color:{{ $color }};font-size:{{ round($size * 0.45) }}px;">{{ $initial }}</span>
 

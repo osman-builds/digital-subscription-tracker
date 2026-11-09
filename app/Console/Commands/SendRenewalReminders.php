@@ -58,13 +58,18 @@ class SendRenewalReminders extends Command
             ['User', 'Subscription', 'Amount (MYR)', 'Next Billing', 'Days Left'],
             $subscriptions->map(function (Subscription $sub) {
                 $days = $sub->daysUntilRenewal();
+                $daysLeftText = match ($days) {
+                    0 => 'TODAY',
+                    1 => '1 day',
+                    default => "{$days} days",
+                };
 
                 return [
                     $sub->user?->email ?? '(no user)',
                     $sub->name,
                     'RM '.number_format($sub->effectiveMyr(), 2),
                     $sub->next_billing_date->format('Y-m-d'),
-                    $days === 0 ? 'TODAY' : ($days === 1 ? '1 day' : "{$days} days"),
+                    $daysLeftText,
                 ];
             })->toArray()
         );
@@ -76,27 +81,34 @@ class SendRenewalReminders extends Command
             return false;
         }
 
+        if ($this->isDeliverabilitySuppressed($user)) {
+            return false;
+        }
+
+        return $this->isAlertEnabledForDays($user, $days);
+    }
+
+    private function isDeliverabilitySuppressed(User $user): bool
+    {
         if ($user->email === self::DEMO_EMAIL || str_ends_with(strtolower($user->email), '.test') || ! $user->hasVerifiedEmail()) {
             $this->line("Skipping unverified/demo user {$user->email} to preserve mail deliverability.");
 
-            return false;
+            return true;
         }
 
+        return false;
+    }
+
+    private function isAlertEnabledForDays(User $user, int $days): bool
+    {
         $settings = $user->getSettings();
+        $enabled = $days <= 3 ? (bool) $settings->alert_3_days : (bool) $settings->alert_7_days;
 
-        if ($days <= 3 && ! $settings->alert_3_days) {
-            $this->line("Skipping {$user->email}: 3-day renewal alerts are disabled in user preferences.");
-
-            return false;
+        if (! $enabled) {
+            $this->line("Skipping {$user->email}: renewal alerts for {$days} day(s) are disabled in user preferences.");
         }
 
-        if ($days > 3 && ! $settings->alert_7_days) {
-            $this->line("Skipping {$user->email}: 7-day renewal alerts are disabled in user preferences.");
-
-            return false;
-        }
-
-        return true;
+        return $enabled;
     }
 
     private function dispatchUserReminder(User $user, Collection $userSubs): void
