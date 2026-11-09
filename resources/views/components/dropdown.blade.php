@@ -13,10 +13,10 @@ $width = match ($width) {
 };
 @endphp
 
-<div class="relative" x-data="{ open: false }" @click.outside="open = false" @close.stop="open = false" @keydown.escape.window="open = false" onkeydown="">
-    <div @click="open = ! open" @keydown.enter="open = ! open" @keydown.space.prevent="open = ! open" role="button" tabindex="0" onkeydown="">
+<div class="relative" x-data="{ open: false }" @click.outside="open = false" @close.stop="open = false" @keydown.escape.window="open = false">
+    <button type="button" @click="open = ! open" class="w-full text-start bg-transparent border-0 p-0 m-0 cursor-pointer">
         {{ $trigger }}
-    </div>
+    </button>
 
     <div x-show="open"
             x-transition:enter="transition ease-out duration-200"

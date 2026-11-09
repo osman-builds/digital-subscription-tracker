@@ -12,7 +12,8 @@ class SubscriptionSeeder extends Seeder
     {
         $categories = $this->loadCategories();
         $subscriptions = array_merge(
-            $this->getCoreSubscriptions($categories),
+            $this->getEntertainmentSubscriptions($categories),
+            $this->getWorkAndDevSubscriptions($categories),
             $this->getInternationalSubscriptions($categories)
         );
 
@@ -50,7 +51,7 @@ class SubscriptionSeeder extends Seeder
      * @param  array<string, ?int>  $categories
      * @return array<int, array<string, mixed>>
      */
-    private function getCoreSubscriptions(array $categories): array
+    private function getEntertainmentSubscriptions(array $categories): array
     {
         return [
             [
@@ -77,6 +78,65 @@ class SubscriptionSeeder extends Seeder
                 'category_id' => $categories['music'],
                 'website_url' => 'https://spotify.com',
             ],
+            [
+                'name' => 'Xbox Game Pass Ultimate',
+                'description' => 'Games library + Xbox Live Gold',
+                'amount' => 14.99,
+                'currency' => 'USD',
+                'billing_cycle' => 'monthly',
+                'start_date' => '2024-02-01',
+                'next_billing_date' => now()->addDays(1)->format('Y-m-d'),
+                'status' => 'active',
+                'category_id' => $categories['gaming'],
+                'website_url' => 'https://xbox.com/play',
+            ],
+            [
+                'name' => 'YouTube Premium',
+                'description' => 'Ad-free YouTube + YouTube Music',
+                'amount' => 13.99,
+                'currency' => 'USD',
+                'billing_cycle' => 'monthly',
+                'start_date' => '2024-04-01',
+                'next_billing_date' => now()->addDays(20)->format('Y-m-d'),
+                'status' => 'active',
+                'category_id' => $categories['entertainment'],
+                'website_url' => 'https://youtube.com/premium',
+            ],
+            [
+                'name' => 'Calm',
+                'description' => 'Meditation and sleep app',
+                'amount' => 69.99,
+                'currency' => 'USD',
+                'billing_cycle' => 'annual',
+                'start_date' => '2024-01-01',
+                'next_billing_date' => now()->addMonths(2)->format('Y-m-d'),
+                'status' => 'inactive',
+                'category_id' => $categories['health'],
+                'website_url' => 'https://calm.com',
+            ],
+            [
+                'name' => 'Disney+',
+                'description' => 'Disney, Marvel, Star Wars streaming',
+                'amount' => 13.99,
+                'currency' => 'USD',
+                'billing_cycle' => 'monthly',
+                'start_date' => '2022-12-01',
+                'next_billing_date' => now()->addDays(25)->format('Y-m-d'),
+                'status' => 'cancelled',
+                'category_id' => $categories['entertainment'],
+                'website_url' => 'https://disneyplus.com',
+                'notes' => 'Cancelled — rarely used',
+            ],
+        ];
+    }
+
+    /**
+     * @param  array<string, ?int>  $categories
+     * @return array<int, array<string, mixed>>
+     */
+    private function getWorkAndDevSubscriptions(array $categories): array
+    {
+        return [
             [
                 'name' => 'Adobe Creative Cloud',
                 'description' => 'Design and creative apps suite',
@@ -114,30 +174,6 @@ class SubscriptionSeeder extends Seeder
                 'website_url' => 'https://one.google.com',
             ],
             [
-                'name' => 'Xbox Game Pass Ultimate',
-                'description' => 'Games library + Xbox Live Gold',
-                'amount' => 14.99,
-                'currency' => 'USD',
-                'billing_cycle' => 'monthly',
-                'start_date' => '2024-02-01',
-                'next_billing_date' => now()->addDays(1)->format('Y-m-d'),
-                'status' => 'active',
-                'category_id' => $categories['gaming'],
-                'website_url' => 'https://xbox.com/play',
-            ],
-            [
-                'name' => 'YouTube Premium',
-                'description' => 'Ad-free YouTube + YouTube Music',
-                'amount' => 13.99,
-                'currency' => 'USD',
-                'billing_cycle' => 'monthly',
-                'start_date' => '2024-04-01',
-                'next_billing_date' => now()->addDays(20)->format('Y-m-d'),
-                'status' => 'active',
-                'category_id' => $categories['entertainment'],
-                'website_url' => 'https://youtube.com/premium',
-            ],
-            [
                 'name' => 'Notion',
                 'description' => 'All-in-one workspace — USD plan',
                 'amount' => 16.00,
@@ -163,18 +199,6 @@ class SubscriptionSeeder extends Seeder
                 'notes' => 'Includes games & cooking access',
             ],
             [
-                'name' => 'Calm',
-                'description' => 'Meditation and sleep app',
-                'amount' => 69.99,
-                'currency' => 'USD',
-                'billing_cycle' => 'annual',
-                'start_date' => '2024-01-01',
-                'next_billing_date' => now()->addMonths(2)->format('Y-m-d'),
-                'status' => 'inactive',
-                'category_id' => $categories['health'],
-                'website_url' => 'https://calm.com',
-            ],
-            [
                 'name' => 'GitHub Copilot',
                 'description' => 'AI code completion tool',
                 'amount' => 10.00,
@@ -185,19 +209,6 @@ class SubscriptionSeeder extends Seeder
                 'status' => 'active',
                 'category_id' => $categories['dev'],
                 'website_url' => 'https://github.com/features/copilot',
-            ],
-            [
-                'name' => 'Disney+',
-                'description' => 'Disney, Marvel, Star Wars streaming',
-                'amount' => 13.99,
-                'currency' => 'USD',
-                'billing_cycle' => 'monthly',
-                'start_date' => '2022-12-01',
-                'next_billing_date' => now()->addDays(25)->format('Y-m-d'),
-                'status' => 'cancelled',
-                'category_id' => $categories['entertainment'],
-                'website_url' => 'https://disneyplus.com',
-                'notes' => 'Cancelled — rarely used',
             ],
         ];
     }
