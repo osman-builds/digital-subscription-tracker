@@ -16,7 +16,7 @@ class CategorySeeder extends Seeder
             ['name' => 'Cloud Storage',  'color' => '#06b6d4'],
             ['name' => 'Gaming',         'color' => '#f97316'],
             ['name' => 'News & Reading', 'color' => '#10b981'],
-            ['name' => 'Health & Fitness','color' => '#ec4899'],
+            ['name' => 'Health & Fitness', 'color' => '#ec4899'],
             ['name' => 'Software & Dev', 'color' => '#6366f1'],
         ];
 

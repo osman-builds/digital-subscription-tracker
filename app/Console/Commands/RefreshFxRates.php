@@ -8,7 +8,8 @@ use Illuminate\Console\Command;
 
 class RefreshFxRates extends Command
 {
-    protected $signature   = 'fx:refresh {--force : Bypass cache and force API call}';
+    protected $signature = 'fx:refresh {--force : Bypass cache and force API call}';
+
     protected $description = 'Refresh FX rates from ExchangeRate-API and update amount_myr on all subscriptions';
 
     public function handle(FxRateService $fx): int
@@ -20,7 +21,7 @@ class RefreshFxRates extends Command
         $this->line('Rates loaded (MYR per 1 unit):');
         foreach (['USD', 'EUR', 'GBP', 'SGD', 'AUD', 'JPY', 'CNY', 'MYR'] as $code) {
             if (isset($rates[$code])) {
-                $this->line("  {$code} → RM " . number_format($rates[$code], 4));
+                $this->line("  {$code} → RM ".number_format($rates[$code], 4));
             }
         }
 
@@ -36,6 +37,7 @@ class RefreshFxRates extends Command
         }
 
         $this->info("Updated {$updated} subscription(s).");
+
         return self::SUCCESS;
     }
 }

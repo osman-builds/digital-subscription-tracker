@@ -29,5 +29,14 @@ class DatabaseSeeder extends Seeder
 
         // Assign all seeded subscriptions to the demo user
         Subscription::whereNull('user_id')->update(['user_id' => $demo->id]);
+
+        // Disable automated email alerts for the demo account to protect sender deliverability
+        $demo->settings()->updateOrCreate(
+            ['user_id' => $demo->id],
+            [
+                'alert_3_days' => false,
+                'alert_7_days' => false,
+            ]
+        );
     }
 }

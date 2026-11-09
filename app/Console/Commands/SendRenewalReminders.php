@@ -54,6 +54,13 @@ class SendRenewalReminders extends Command
             $user = $userSubs->first()->user;
 
             if ($user && $user->email) {
+                // Safeguard sender reputation: never send emails to demo, .test, or unverified mailboxes
+                if ($user->email === 'demo@subtracker.test' || str_ends_with(strtolower($user->email), '.test') || ! $user->hasVerifiedEmail()) {
+                    $this->line("Skipping unverified/demo user {$user->email} to preserve mail deliverability.");
+
+                    continue;
+                }
+
                 $settings = $user->getSettings();
 
                 // Respect user notification preferences from Settings
@@ -69,21 +76,23 @@ class SendRenewalReminders extends Command
                     continue;
                 }
 
-                // Dispatch real email via Brevo relay
+                // Dispatch real email
                 $user->notify(new RenewalReminderNotification($userSubs));
                 $this->line("Sent reminder email to: {$user->email} ({$userSubs->count()} subscription(s))");
                 $sentCount++;
-            }
 
-            // Audit log
-            foreach ($userSubs as $sub) {
-                Log::info('Renewal reminder sent', [
-                    'subscription' => $sub->name,
-                    'user_id' => $sub->user_id,
-                    'amount_myr' => $sub->effectiveMyr(),
-                    'due_date' => $sub->next_billing_date->toDateString(),
-                    'days_left' => $sub->daysUntilRenewal(),
-                ]);
+                // Audit log for sent reminders
+                foreach ($userSubs as $sub) {
+                    Log::info('Renewal reminder sent', [
+                        'subscription' => $sub->name,
+                        'user_id' => $sub->user_id,
+                        'amount' => $sub->amount,
+                        'currency' => $sub->currency,
+                        'amount_myr' => $sub->effectiveMyr(),
+                        'due_date' => $sub->next_billing_date->toDateString(),
+                        'days_left' => $sub->daysUntilRenewal(),
+                    ]);
+                }
             }
         }
 

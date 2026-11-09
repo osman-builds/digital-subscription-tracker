@@ -176,21 +176,18 @@ SubShield implements a defense-in-depth model across all application layers:
 
 ---
 
-## Demo Credentials
+## Evaluation & Live Access
 
 You can test the live system directly at **[https://mysubshield.me](https://mysubshield.me)**:
 
-### 1. Pre-Populated Evaluation Account
-* **Login URL:** [https://mysubshield.me/login](https://mysubshield.me/login)
-* **Email:** `demo@subtracker.test`
-* **Password:** `password`
-* *Contains 26 pre-loaded subscriptions across diverse international currencies (USD, EUR, SGD, GBP, JPY).*
-
-### 2. Live Registration Walkthrough
+### 1. Live Registration Walkthrough
 1. Navigate to **[https://mysubshield.me/register](https://mysubshield.me/register)**.
-2. Enter your real email address.
+2. Enter your email address.
 3. Receive the live **6-digit verification code** sent from `notifications@mysubshield.me`.
 4. Enter the code on `/verify-email` to unlock the dashboard and receive your **Welcome Email**.
+
+> [!NOTE]
+> Evaluation credentials for academic examiners and supervisors are provided privately in the project presentation brief and viva documentation to comply with OWASP credential hygiene and prevent automated scraping bots.
 
 ---
 

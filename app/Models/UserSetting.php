@@ -18,7 +18,7 @@ class UserSetting extends Model
     protected $casts = [
         'alert_7_days' => 'boolean',
         'alert_3_days' => 'boolean',
-        'dark_mode'    => 'boolean',
+        'dark_mode' => 'boolean',
     ];
 
     public function user(): BelongsTo
@@ -35,9 +35,9 @@ class UserSetting extends Model
             ['user_id' => $userId],
             [
                 'base_currency' => 'MYR',
-                'alert_7_days'  => true,
-                'alert_3_days'  => true,
-                'dark_mode'     => false,
+                'alert_7_days' => true,
+                'alert_3_days' => true,
+                'dark_mode' => false,
             ]
         );
     }

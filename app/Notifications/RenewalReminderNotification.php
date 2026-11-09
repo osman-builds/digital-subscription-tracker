@@ -2,6 +2,7 @@
 
 namespace App\Notifications;
 
+use App\Services\FxRateService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
@@ -25,6 +26,11 @@ class RenewalReminderNotification extends Notification
 
     public function toMail(object $notifiable): MailMessage
     {
+        $settings = method_exists($notifiable, 'getSettings') ? $notifiable->getSettings() : null;
+        $baseCurrency = $settings?->base_currency ?? 'MYR';
+        $fx = app(FxRateService::class);
+        $symbol = $fx->symbol($baseCurrency);
+
         $mail = (new MailMessage)
             ->subject('SubShield Alert: Upcoming Subscription Renewals')
             ->greeting("Hello {$notifiable->name},")
@@ -37,7 +43,16 @@ class RenewalReminderNotification extends Notification
                 1 => 'tomorrow',
                 default => "in {$days} days",
             };
-            $mail->line("• **{$sub->name}** — RM ".number_format($sub->effectiveMyr(), 2)." (Due {$dueText} on {$sub->next_billing_date->format('M d, Y')})");
+
+            $amountInBase = number_format($sub->effectiveAmountIn($baseCurrency), 2);
+
+            $originalContext = '';
+            if ($sub->currency && strtoupper($sub->currency) !== strtoupper($baseCurrency)) {
+                $subSymbol = $fx->symbol($sub->currency);
+                $originalContext = " ({$subSymbol} ".number_format((float) $sub->amount, 2)." {$sub->currency})";
+            }
+
+            $mail->line("• **{$sub->name}** — {$symbol} {$amountInBase}{$originalContext} (Due {$dueText} on {$sub->next_billing_date->format('M d, Y')})");
         }
 
         return $mail

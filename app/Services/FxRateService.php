@@ -97,6 +97,7 @@ class FxRateService
             'CAD' => 'C$',
             'JPY', 'CNY' => '¥',
             'INR' => '₹',
+            'KES' => 'KSh',
             'CHF' => 'CHF',
             'NZD' => 'NZ$',
             default => strtoupper(trim($currency)),
@@ -201,6 +202,7 @@ class FxRateService
             'THB' => 0.13,
             'IDR' => 0.00028,
             'PHP' => 0.077,
+            'KES' => 0.035,
             'MYR' => 1.00,
         ];
     }
