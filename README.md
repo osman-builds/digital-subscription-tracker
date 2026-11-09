@@ -18,6 +18,7 @@
   <img src="https://img.shields.io/badge/Laravel-13-FF2D20?style=flat-square&logo=laravel&logoColor=white" alt="Laravel 13">
   <img src="https://img.shields.io/badge/MySQL-8.0-4479A1?style=flat-square&logo=mysql&logoColor=white" alt="MySQL 8.0">
   <img src="https://img.shields.io/badge/Security-OWASP_Top_10_Hardened-10B981?style=flat-square&logo=shield&logoColor=white" alt="Security Hardened">
+  <img src="https://img.shields.io/badge/CI%2FCD-GitHub_Actions-2088FF?style=flat-square&logo=githubactions&logoColor=white" alt="CI/CD">
   <img src="https://img.shields.io/badge/Tests-57%20Passed%20(227%20assertions)-success?style=flat-square" alt="Test Suite">
   <img src="https://img.shields.io/badge/Lighthouse-100%2F100-success?style=flat-square&logo=googlechrome&logoColor=white" alt="Lighthouse 100/100">
   <img src="https://img.shields.io/badge/License-MIT-blue?style=flat-square" alt="License MIT">
