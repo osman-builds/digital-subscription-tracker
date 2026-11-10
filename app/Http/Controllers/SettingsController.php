@@ -16,7 +16,32 @@ class SettingsController extends Controller
     {
         $settings = auth()->user()->getSettings();
 
-        return view('settings.index', compact('settings'));
+        return view('settings.preferences', compact('settings'));
+    }
+
+    /** Profile & identity management view */
+    public function profile()
+    {
+        $user = auth()->user();
+
+        return view('settings.profile', compact('user'));
+    }
+
+    /** Security & authentication credential view */
+    public function security()
+    {
+        $user = auth()->user();
+
+        return view('settings.security', compact('user'));
+    }
+
+    /** About & privacy architecture view */
+    public function about()
+    {
+        $user = auth()->user();
+        $settings = $user->getSettings();
+
+        return view('settings.about', compact('user', 'settings'));
     }
 
     /** Save preferences: base currency + alert toggles */

@@ -31,6 +31,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Settings
     Route::get('/settings', [SettingsController::class, 'index'])->name('settings.index');
+    Route::get('/settings/profile', [SettingsController::class, 'profile'])->name('settings.profile');
+    Route::get('/settings/security', [SettingsController::class, 'security'])->name('settings.security');
+    Route::get('/settings/about', [SettingsController::class, 'about'])->name('settings.about');
+
     Route::patch('/settings/preferences', [SettingsController::class, 'updatePreferences'])->name('settings.preferences');
     Route::patch('/settings/account', [SettingsController::class, 'updateAccount'])->name('settings.account');
     Route::patch('/settings/password', [SettingsController::class, 'updatePassword'])->name('settings.password');

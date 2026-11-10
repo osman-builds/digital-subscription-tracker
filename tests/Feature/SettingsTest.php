@@ -286,4 +286,53 @@ class SettingsTest extends TestCase
         $demoUser->refresh();
         $this->assertTrue(Hash::check('password', $demoUser->password));
     }
+
+    public function test_settings_profile_page_can_be_rendered(): void
+    {
+        $user = User::factory()->create([
+            'name' => 'Alice Test',
+            'email' => 'alice@example.com',
+        ]);
+
+        $response = $this->actingAs($user)->get(route('settings.profile'));
+
+        $response->assertOk();
+        $response->assertSee('Profile & Identity');
+        $response->assertSee('Alice Test');
+        $response->assertSee('alice@example.com');
+        $response->assertSee('Danger Zone');
+    }
+
+    public function test_settings_security_page_can_be_rendered(): void
+    {
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user)->get(route('settings.security'));
+
+        $response->assertOk();
+        $response->assertSee('Change Password');
+        $response->assertSee('Active Security Controls');
+        $response->assertSee('Two-Factor Authentication');
+    }
+
+    public function test_settings_about_page_can_be_rendered(): void
+    {
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user)->get(route('settings.about'));
+
+        $response->assertOk();
+        $response->assertSee('SubShield');
+        $response->assertSee('Zero Credential Scraping');
+        $response->assertSee('End-to-End Edge Encryption');
+        $response->assertSee('support@mysubshield.me');
+    }
+
+    public function test_guests_cannot_access_settings_subpages(): void
+    {
+        $this->get(route('settings.index'))->assertRedirect(route('login'));
+        $this->get(route('settings.profile'))->assertRedirect(route('login'));
+        $this->get(route('settings.security'))->assertRedirect(route('login'));
+        $this->get(route('settings.about'))->assertRedirect(route('login'));
+    }
 }
