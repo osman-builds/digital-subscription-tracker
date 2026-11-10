@@ -81,9 +81,11 @@ jobs:
             git reset --hard origin/main
             composer install --no-interaction --prefer-dist --optimize-autoloader --no-dev
             php artisan migrate --force
+            php artisan fx:refresh --force
             php artisan config:cache
             php artisan route:cache
             php artisan view:cache
+            (crontab -l 2>/dev/null | grep -F "schedule:run") || (crontab -l 2>/dev/null; echo "* * * * * cd /var/www/subscription-tracker && php artisan schedule:run >> /dev/null 2>&1") | crontab -
             chown -R www-data:www-data /var/www/subscription-tracker
             chmod -R 775 storage bootstrap/cache
             echo "Deployment to mysubshield.me completed successfully."

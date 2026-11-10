@@ -125,55 +125,101 @@ class FxRateService
         return $timestamp;
     }
 
+    /**
+     * Determine whether the service is currently operating on fallback rates.
+     */
+    public function isFallback(): bool
+    {
+        if (! Cache::has(self::CACHE_KEY)) {
+            $this->getRates();
+        }
+
+        return (bool) Cache::get(self::CACHE_KEY.'_is_fallback', false);
+    }
+
     // -------------------------------------------------------------------------
 
     private function fetchFromApi(): array
     {
         $apiKey = config('services.exchangerate.key');
+        $baseUrl = config('services.exchangerate.base_url');
 
-        if (empty($apiKey)) {
-            Log::info('FxRateService: No API key set, using fallback rates.');
+        // 1. Try keyed ExchangeRate-API endpoint if an API key is configured
+        if (! empty($apiKey)) {
+            try {
+                $response = Http::timeout(10)->get("{$baseUrl}/{$apiKey}/latest/USD");
+
+                if ($response->successful()) {
+                    $data = $response->json();
+
+                    if (($data['result'] ?? '') === 'success') {
+                        return $this->processApiRates($data['conversion_rates'] ?? $data['rates'] ?? []);
+                    }
+                }
+
+                Log::warning('FxRateService: Keyed API returned unexpected response, attempting open fallback endpoint.', [
+                    'status' => $response->status(),
+                ]);
+            } catch (\Throwable $e) {
+                Log::warning('FxRateService: Keyed HTTP request failed, trying open public endpoint.', ['error' => $e->getMessage()]);
+            }
+        }
+
+        // 2. Fallback to ExchangeRate-API open public endpoint (requires zero API keys)
+        try {
+            $openResponse = Http::timeout(10)->get('https://open.er-api.com/v6/latest/USD');
+
+            if ($openResponse->successful()) {
+                $data = $openResponse->json();
+
+                if (($data['result'] ?? '') === 'success') {
+                    return $this->processApiRates($data['rates'] ?? $data['conversion_rates'] ?? []);
+                }
+            }
+
+            Log::warning('FxRateService: Open public API returned unexpected response.', [
+                'status' => $openResponse->status(),
+            ]);
+        } catch (\Throwable $e) {
+            Log::warning('FxRateService: Open public FX API call failed, dropping to offline fallbacks.', ['error' => $e->getMessage()]);
+        }
+
+        // 3. If completely offline/unreachable, drop to hardcoded baseline approximations
+        Cache::put(self::CACHE_KEY.'_is_fallback', true, self::CACHE_TTL_SECONDS);
+        Cache::put(self::CACHE_KEY.'_updated_at', now()->toDateTimeString(), self::CACHE_TTL_SECONDS);
+
+        return $this->fallbackRates();
+    }
+
+    /**
+     * Parse raw USD-based conversion rates, invert to MYR base, and store cache timestamps.
+     *
+     * @param  array<string, float|int>  $usdRates
+     * @return array<string, float>
+     */
+    private function processApiRates(array $usdRates): array
+    {
+        if (empty($usdRates)) {
+            Cache::put(self::CACHE_KEY.'_is_fallback', true, self::CACHE_TTL_SECONDS);
+            Cache::put(self::CACHE_KEY.'_updated_at', now()->toDateTimeString(), self::CACHE_TTL_SECONDS);
 
             return $this->fallbackRates();
         }
 
-        try {
-            $baseUrl = config('services.exchangerate.base_url');
-            // We fetch USD base, then invert to get "how many MYR per 1 foreign unit"
-            $response = Http::timeout(10)->get("{$baseUrl}/{$apiKey}/latest/USD");
+        $usdToMyr = (float) ($usdRates[self::TARGET] ?? $this->fallbackRates()['USD']);
+        $myrRates = [];
 
-            if ($response->successful()) {
-                $data = $response->json();
-
-                if (($data['result'] ?? '') === 'success') {
-                    $usdRates = $data['conversion_rates']; // rates from 1 USD
-
-                    // MYR per 1 USD
-                    $usdToMyr = $usdRates[self::TARGET] ?? $this->fallbackRates()['USD'];
-
-                    // Build "MYR per 1 foreign currency" map
-                    $myrRates = [];
-                    foreach ($usdRates as $code => $rateFromUsd) {
-                        if ($rateFromUsd > 0) {
-                            // 1 foreign = (1/rateFromUsd) USD * usdToMyr MYR
-                            $myrRates[$code] = round($usdToMyr / $rateFromUsd, 6);
-                        }
-                    }
-
-                    Cache::put(self::CACHE_KEY.'_updated_at', now()->toDateTimeString(), self::CACHE_TTL_SECONDS);
-
-                    return $myrRates;
-                }
+        foreach ($usdRates as $code => $rateFromUsd) {
+            $rateFloat = (float) $rateFromUsd;
+            if ($rateFloat > 0) {
+                $myrRates[(string) $code] = round($usdToMyr / $rateFloat, 6);
             }
-
-            Log::warning('FxRateService: API returned unexpected response, using fallback.', [
-                'status' => $response->status(),
-            ]);
-        } catch (\Throwable $e) {
-            Log::error('FxRateService: HTTP request failed.', ['error' => $e->getMessage()]);
         }
 
-        return $this->fallbackRates();
+        Cache::put(self::CACHE_KEY.'_is_fallback', false, self::CACHE_TTL_SECONDS);
+        Cache::put(self::CACHE_KEY.'_updated_at', now()->toDateTimeString(), self::CACHE_TTL_SECONDS);
+
+        return $myrRates;
     }
 
     /**

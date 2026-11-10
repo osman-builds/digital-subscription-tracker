@@ -108,9 +108,14 @@
                 <div class="col-12 col-md-4">
                     <div class="p-3 rounded-3 bg-body-tertiary">
                         <small class="text-muted d-block mb-1">FX Rates Engine Status</small>
-                        @php $fxTs = cache('fx_rates_myr_updated_at'); @endphp
-                        <div class="fw-bold fs-6 text-success">
-                            <i class="bi bi-check2-circle me-1"></i>{{ $fxTs ? \Carbon\Carbon::parse($fxTs)->diffForHumans() : 'Live Synced' }}
+                        @php
+                            $fxService = app(\App\Services\FxRateService::class);
+                            $fxTs = $fxService->lastUpdated();
+                            $isFallback = $fxService->isFallback();
+                        @endphp
+                        <div class="fw-bold fs-6 {{ $isFallback ? 'text-warning' : 'text-success' }}">
+                            <i class="bi {{ $isFallback ? 'bi-exclamation-triangle-fill' : 'bi-check2-circle' }} me-1"></i>
+                            {{ $isFallback ? 'Offline Fallback' : ($fxTs ? 'Synced ' . \Carbon\Carbon::parse($fxTs)->diffForHumans() : 'Live Synced') }}
                         </div>
                     </div>
                 </div>
