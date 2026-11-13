@@ -14,6 +14,32 @@ class BrandIconService
 
     private const ICON_HORSE_BASE = 'https://icon.horse/icon';
 
+    private const CATEGORY_ENTERTAINMENT = 'Entertainment';
+
+    private const CATEGORY_HEALTH = 'Health & Fitness';
+
+    private const CATEGORY_SOFTWARE = 'Software & Dev';
+
+    private const CATEGORY_PRODUCTIVITY = 'Productivity';
+
+    private const CATEGORY_CLOUD = 'Cloud Storage';
+
+    private const CATEGORY_NEWS = 'News & Reading';
+
+    private const CATEGORY_GAMING = 'Gaming';
+
+    private const CATEGORY_EDUCATION = 'Education';
+
+    private const CATEGORY_FINANCE = 'Finance';
+
+    private const CATEGORY_MUSIC = 'Music';
+
+    private const CATEGORY_TRANSPORT = 'Transport';
+
+    private const CYCLE_MONTHLY = 'monthly';
+
+    private const CYCLE_ANNUAL = 'annual';
+
     /**
      * Multi-part country/public suffixes so subdomains collapse to the true registrable root.
      *
@@ -35,88 +61,88 @@ class BrandIconService
     {
         return [
             // Entertainment & Streaming
-            ['name' => 'Netflix', 'domain' => 'netflix.com', 'category' => 'Entertainment', 'cycle' => 'monthly', 'aliases' => ['netfix', 'netflx', 'neflix', 'netfilx', 'netflixx']],
-            ['name' => 'Spotify', 'domain' => 'spotify.com', 'category' => 'Music', 'cycle' => 'monthly', 'aliases' => ['spotfy', 'spotifi', 'spotifay', 'spotfiy']],
-            ['name' => 'YouTube Premium', 'domain' => 'youtube.com', 'category' => 'Entertainment', 'cycle' => 'monthly', 'aliases' => ['yutube', 'youtub', 'youtubepremium', 'ytpremium', 'youtbe']],
-            ['name' => 'Disney+', 'domain' => 'disneyplus.com', 'category' => 'Entertainment', 'cycle' => 'monthly', 'aliases' => ['disny', 'disney', 'disneyplus', 'disnep']],
-            ['name' => 'Amazon Prime', 'domain' => 'amazon.com', 'category' => 'Entertainment', 'cycle' => 'annual', 'aliases' => ['amzon', 'primevideo', 'amazonprime', 'amazn']],
-            ['name' => 'HBO Max', 'domain' => 'max.com', 'category' => 'Entertainment', 'cycle' => 'monthly', 'aliases' => ['hbomax', 'hbo']],
-            ['name' => 'Hulu', 'domain' => 'hulu.com', 'category' => 'Entertainment', 'cycle' => 'monthly', 'aliases' => ['hullu']],
-            ['name' => 'Crunchyroll', 'domain' => 'crunchyroll.com', 'category' => 'Entertainment', 'cycle' => 'monthly', 'aliases' => ['crunchy', 'crunchroll', 'crunchyrool']],
-            ['name' => 'Twitch Sub', 'domain' => 'twitch.tv', 'category' => 'Gaming', 'cycle' => 'monthly', 'aliases' => ['twich', 'twitch']],
-            ['name' => 'Audible', 'domain' => 'audible.com', 'category' => 'Entertainment', 'cycle' => 'monthly', 'aliases' => ['audibl', 'audibleplus']],
-            ['name' => 'Discord Nitro', 'domain' => 'discord.com', 'category' => 'Gaming', 'cycle' => 'monthly', 'aliases' => ['discrod', 'dicord', 'discordnitro']],
-            ['name' => 'PlayStation Plus', 'domain' => 'playstation.com', 'category' => 'Gaming', 'cycle' => 'annual', 'aliases' => ['psplus', 'psn', 'playstation']],
-            ['name' => 'Xbox Game Pass', 'domain' => 'xbox.com', 'category' => 'Gaming', 'cycle' => 'monthly', 'aliases' => ['gamepass', 'xbox']],
-            ['name' => 'Nintendo Switch Online', 'domain' => 'nintendo.com', 'category' => 'Gaming', 'cycle' => 'annual', 'aliases' => ['nintendo']],
+            ['name' => 'Netflix', 'domain' => 'netflix.com', 'category' => self::CATEGORY_ENTERTAINMENT, 'cycle' => self::CYCLE_MONTHLY, 'aliases' => ['netfix', 'netflx', 'neflix', 'netfilx', 'netflixx']],
+            ['name' => 'Spotify', 'domain' => 'spotify.com', 'category' => self::CATEGORY_MUSIC, 'cycle' => self::CYCLE_MONTHLY, 'aliases' => ['spotfy', 'spotifi', 'spotifay', 'spotfiy']],
+            ['name' => 'YouTube Premium', 'domain' => 'youtube.com', 'category' => self::CATEGORY_ENTERTAINMENT, 'cycle' => self::CYCLE_MONTHLY, 'aliases' => ['yutube', 'youtub', 'youtubepremium', 'ytpremium', 'youtbe']],
+            ['name' => 'Disney+', 'domain' => 'disneyplus.com', 'category' => self::CATEGORY_ENTERTAINMENT, 'cycle' => self::CYCLE_MONTHLY, 'aliases' => ['disny', 'disney', 'disneyplus', 'disnep']],
+            ['name' => 'Amazon Prime', 'domain' => 'amazon.com', 'category' => self::CATEGORY_ENTERTAINMENT, 'cycle' => self::CYCLE_ANNUAL, 'aliases' => ['amzon', 'primevideo', 'amazonprime', 'amazn']],
+            ['name' => 'HBO Max', 'domain' => 'max.com', 'category' => self::CATEGORY_ENTERTAINMENT, 'cycle' => self::CYCLE_MONTHLY, 'aliases' => ['hbomax', 'hbo']],
+            ['name' => 'Hulu', 'domain' => 'hulu.com', 'category' => self::CATEGORY_ENTERTAINMENT, 'cycle' => self::CYCLE_MONTHLY, 'aliases' => ['hullu']],
+            ['name' => 'Crunchyroll', 'domain' => 'crunchyroll.com', 'category' => self::CATEGORY_ENTERTAINMENT, 'cycle' => self::CYCLE_MONTHLY, 'aliases' => ['crunchy', 'crunchroll', 'crunchyrool']],
+            ['name' => 'Twitch Sub', 'domain' => 'twitch.tv', 'category' => self::CATEGORY_GAMING, 'cycle' => self::CYCLE_MONTHLY, 'aliases' => ['twich', 'twitch']],
+            ['name' => 'Audible', 'domain' => 'audible.com', 'category' => self::CATEGORY_ENTERTAINMENT, 'cycle' => self::CYCLE_MONTHLY, 'aliases' => ['audibl', 'audibleplus']],
+            ['name' => 'Discord Nitro', 'domain' => 'discord.com', 'category' => self::CATEGORY_GAMING, 'cycle' => self::CYCLE_MONTHLY, 'aliases' => ['discrod', 'dicord', 'discordnitro']],
+            ['name' => 'PlayStation Plus', 'domain' => 'playstation.com', 'category' => self::CATEGORY_GAMING, 'cycle' => self::CYCLE_ANNUAL, 'aliases' => ['psplus', 'psn', 'playstation']],
+            ['name' => 'Xbox Game Pass', 'domain' => 'xbox.com', 'category' => self::CATEGORY_GAMING, 'cycle' => self::CYCLE_MONTHLY, 'aliases' => ['gamepass', 'xbox']],
+            ['name' => 'Nintendo Switch Online', 'domain' => 'nintendo.com', 'category' => self::CATEGORY_GAMING, 'cycle' => self::CYCLE_ANNUAL, 'aliases' => ['nintendo']],
 
             // Health, Fitness & Wellness
-            ['name' => 'Calm', 'domain' => 'calm.com', 'category' => 'Health & Fitness', 'cycle' => 'annual', 'aliases' => ['calmapp', 'calmsleep']],
-            ['name' => 'Headspace', 'domain' => 'headspace.com', 'category' => 'Health & Fitness', 'cycle' => 'monthly', 'aliases' => ['headspce', 'head space']],
-            ['name' => 'Strava', 'domain' => 'strava.com', 'category' => 'Health & Fitness', 'cycle' => 'annual', 'aliases' => ['strav', 'stravaapp']],
-            ['name' => 'MyFitnessPal', 'domain' => 'myfitnesspal.com', 'category' => 'Health & Fitness', 'cycle' => 'monthly', 'aliases' => ['myfitness', 'fitnesspal', 'mfp']],
-            ['name' => 'WHOOP', 'domain' => 'whoop.com', 'category' => 'Health & Fitness', 'cycle' => 'annual', 'aliases' => ['whoopband', 'whop']],
-            ['name' => 'Oura Membership', 'domain' => 'ouraring.com', 'category' => 'Health & Fitness', 'cycle' => 'monthly', 'aliases' => ['oura', 'ouraring']],
-            ['name' => 'Peloton', 'domain' => 'onepeloton.com', 'category' => 'Health & Fitness', 'cycle' => 'monthly', 'aliases' => ['peloton', 'peleton']],
-            ['name' => 'Fitbit Premium', 'domain' => 'fitbit.com', 'category' => 'Health & Fitness', 'cycle' => 'monthly', 'aliases' => ['fitbit']],
-            ['name' => 'Garmin Connect+', 'domain' => 'garmin.com', 'category' => 'Health & Fitness', 'cycle' => 'monthly', 'aliases' => ['garmin']],
-            ['name' => 'Noom', 'domain' => 'noom.com', 'category' => 'Health & Fitness', 'cycle' => 'monthly', 'aliases' => ['noomweight']],
-            ['name' => 'BetterHelp', 'domain' => 'betterhelp.com', 'category' => 'Health & Fitness', 'cycle' => 'monthly', 'aliases' => ['better help']],
-            ['name' => 'ClassPass', 'domain' => 'classpass.com', 'category' => 'Health & Fitness', 'cycle' => 'monthly', 'aliases' => ['class pass']],
-            ['name' => 'Anytime Fitness', 'domain' => 'anytimefitness.com', 'category' => 'Health & Fitness', 'cycle' => 'monthly', 'aliases' => ['anytimefitness', 'anytime']],
-            ['name' => 'Fitness First', 'domain' => 'fitnessfirst.com.my', 'category' => 'Health & Fitness', 'cycle' => 'monthly', 'aliases' => ['fitnessfirst']],
-            ['name' => 'Flo Health', 'domain' => 'flo.health', 'category' => 'Health & Fitness', 'cycle' => 'annual', 'aliases' => ['flohealth']],
-            ['name' => 'AllTrails+', 'domain' => 'alltrails.com', 'category' => 'Health & Fitness', 'cycle' => 'annual', 'aliases' => ['alltrails']],
-            ['name' => 'Sleep Cycle', 'domain' => 'sleepcycle.com', 'category' => 'Health & Fitness', 'cycle' => 'annual', 'aliases' => ['sleepcycle']],
+            ['name' => 'Calm', 'domain' => 'calm.com', 'category' => self::CATEGORY_HEALTH, 'cycle' => self::CYCLE_ANNUAL, 'aliases' => ['calmapp', 'calmsleep']],
+            ['name' => 'Headspace', 'domain' => 'headspace.com', 'category' => self::CATEGORY_HEALTH, 'cycle' => self::CYCLE_MONTHLY, 'aliases' => ['headspce', 'head space']],
+            ['name' => 'Strava', 'domain' => 'strava.com', 'category' => self::CATEGORY_HEALTH, 'cycle' => self::CYCLE_ANNUAL, 'aliases' => ['strav', 'stravaapp']],
+            ['name' => 'MyFitnessPal', 'domain' => 'myfitnesspal.com', 'category' => self::CATEGORY_HEALTH, 'cycle' => self::CYCLE_MONTHLY, 'aliases' => ['myfitness', 'fitnesspal', 'mfp']],
+            ['name' => 'WHOOP', 'domain' => 'whoop.com', 'category' => self::CATEGORY_HEALTH, 'cycle' => self::CYCLE_ANNUAL, 'aliases' => ['whoopband', 'whop']],
+            ['name' => 'Oura Membership', 'domain' => 'ouraring.com', 'category' => self::CATEGORY_HEALTH, 'cycle' => self::CYCLE_MONTHLY, 'aliases' => ['oura', 'ouraring']],
+            ['name' => 'Peloton', 'domain' => 'onepeloton.com', 'category' => self::CATEGORY_HEALTH, 'cycle' => self::CYCLE_MONTHLY, 'aliases' => ['peloton', 'peleton']],
+            ['name' => 'Fitbit Premium', 'domain' => 'fitbit.com', 'category' => self::CATEGORY_HEALTH, 'cycle' => self::CYCLE_MONTHLY, 'aliases' => ['fitbit']],
+            ['name' => 'Garmin Connect+', 'domain' => 'garmin.com', 'category' => self::CATEGORY_HEALTH, 'cycle' => self::CYCLE_MONTHLY, 'aliases' => ['garmin']],
+            ['name' => 'Noom', 'domain' => 'noom.com', 'category' => self::CATEGORY_HEALTH, 'cycle' => self::CYCLE_MONTHLY, 'aliases' => ['noomweight']],
+            ['name' => 'BetterHelp', 'domain' => 'betterhelp.com', 'category' => self::CATEGORY_HEALTH, 'cycle' => self::CYCLE_MONTHLY, 'aliases' => ['better help']],
+            ['name' => 'ClassPass', 'domain' => 'classpass.com', 'category' => self::CATEGORY_HEALTH, 'cycle' => self::CYCLE_MONTHLY, 'aliases' => ['class pass']],
+            ['name' => 'Anytime Fitness', 'domain' => 'anytimefitness.com', 'category' => self::CATEGORY_HEALTH, 'cycle' => self::CYCLE_MONTHLY, 'aliases' => ['anytimefitness', 'anytime']],
+            ['name' => 'Fitness First', 'domain' => 'fitnessfirst.com.my', 'category' => self::CATEGORY_HEALTH, 'cycle' => self::CYCLE_MONTHLY, 'aliases' => ['fitnessfirst']],
+            ['name' => 'Flo Health', 'domain' => 'flo.health', 'category' => self::CATEGORY_HEALTH, 'cycle' => self::CYCLE_ANNUAL, 'aliases' => ['flohealth']],
+            ['name' => 'AllTrails+', 'domain' => 'alltrails.com', 'category' => self::CATEGORY_HEALTH, 'cycle' => self::CYCLE_ANNUAL, 'aliases' => ['alltrails']],
+            ['name' => 'Sleep Cycle', 'domain' => 'sleepcycle.com', 'category' => self::CATEGORY_HEALTH, 'cycle' => self::CYCLE_ANNUAL, 'aliases' => ['sleepcycle']],
 
             // AI, Software & Cloud
-            ['name' => 'GitHub Copilot', 'domain' => 'github.com', 'category' => 'Software & Dev', 'cycle' => 'monthly', 'aliases' => ['githb', 'gitub', 'githubcopilot', 'copilot', 'ghcopilot']],
-            ['name' => 'ChatGPT Plus', 'domain' => 'openai.com', 'category' => 'Productivity', 'cycle' => 'monthly', 'aliases' => ['chatgtp', 'chagpt', 'chatgbt', 'chatgpt', 'openai', 'open-ai']],
-            ['name' => 'Claude Pro', 'domain' => 'anthropic.com', 'category' => 'Productivity', 'cycle' => 'monthly', 'aliases' => ['claude', 'claud', 'anthropic', 'claudeai', 'claudepro']],
-            ['name' => 'Perplexity Pro', 'domain' => 'perplexity.ai', 'category' => 'Productivity', 'cycle' => 'monthly', 'aliases' => ['perplexity']],
-            ['name' => 'Cursor Pro', 'domain' => 'cursor.com', 'category' => 'Software & Dev', 'cycle' => 'monthly', 'aliases' => ['cursorai']],
-            ['name' => 'Apple iCloud+', 'domain' => 'apple.com', 'category' => 'Cloud Storage', 'cycle' => 'monthly', 'aliases' => ['icloud', 'icloude', 'aple', 'appletv', 'applemusic', 'appleone']],
-            ['name' => 'Adobe Creative Cloud', 'domain' => 'adobe.com', 'category' => 'Software & Dev', 'cycle' => 'monthly', 'aliases' => ['adob', 'photoshop', 'illustrator', 'creativecloud', 'lightroom']],
-            ['name' => 'Canva Pro', 'domain' => 'canva.com', 'category' => 'Software & Dev', 'cycle' => 'annual', 'aliases' => ['canav', 'canvapro', 'camva']],
-            ['name' => 'Figma Professional', 'domain' => 'figma.com', 'category' => 'Software & Dev', 'cycle' => 'monthly', 'aliases' => ['figm', 'figmaa', 'figmapro']],
-            ['name' => 'Notion Plus', 'domain' => 'notion.so', 'category' => 'Productivity', 'cycle' => 'monthly', 'aliases' => ['noton', 'notionapp', 'notionai']],
-            ['name' => 'Google One', 'domain' => 'google.com', 'category' => 'Cloud Storage', 'cycle' => 'monthly', 'aliases' => ['googl', 'googleone', 'gsuite', 'googleworkspace', 'gdrive']],
-            ['name' => 'Microsoft 365', 'domain' => 'microsoft.com', 'category' => 'Productivity', 'cycle' => 'annual', 'aliases' => ['microsft', 'office365', 'm365', 'msft', 'office']],
-            ['name' => 'Midjourney', 'domain' => 'midjourney.com', 'category' => 'Software & Dev', 'cycle' => 'monthly', 'aliases' => ['midjourny', 'mid-journey']],
-            ['name' => 'Slack Pro', 'domain' => 'slack.com', 'category' => 'Productivity', 'cycle' => 'monthly', 'aliases' => ['slak', 'slackpro']],
-            ['name' => 'Zoom One', 'domain' => 'zoom.us', 'category' => 'Productivity', 'cycle' => 'monthly', 'aliases' => ['zoomone', 'zoompro']],
-            ['name' => 'Dropbox Plus', 'domain' => 'dropbox.com', 'category' => 'Cloud Storage', 'cycle' => 'monthly', 'aliases' => ['dropbx', 'dropox']],
-            ['name' => 'LinkedIn Premium', 'domain' => 'linkedin.com', 'category' => 'Productivity', 'cycle' => 'monthly', 'aliases' => ['linkdin', 'linkind', 'linkedinpremium']],
-            ['name' => 'X Premium', 'domain' => 'x.com', 'category' => 'Entertainment', 'cycle' => 'monthly', 'aliases' => ['twitter', 'twiter', 'xpremium', 'twitterblue']],
-            ['name' => '1Password', 'domain' => '1password.com', 'category' => 'Software & Dev', 'cycle' => 'annual', 'aliases' => ['onepassword', '1pass', 'onepass']],
-            ['name' => 'Bitwarden', 'domain' => 'bitwarden.com', 'category' => 'Software & Dev', 'cycle' => 'annual', 'aliases' => ['bitwardn', 'bitwarder']],
-            ['name' => 'NordVPN', 'domain' => 'nordvpn.com', 'category' => 'Software & Dev', 'cycle' => 'annual', 'aliases' => ['nordvpn', 'nord-vpn']],
-            ['name' => 'ExpressVPN', 'domain' => 'expressvpn.com', 'category' => 'Software & Dev', 'cycle' => 'annual', 'aliases' => ['expressvpn', 'express-vpn']],
-            ['name' => 'Surfshark', 'domain' => 'surfshark.com', 'category' => 'Software & Dev', 'cycle' => 'annual', 'aliases' => ['surfshark']],
-            ['name' => 'Proton Mail', 'domain' => 'proton.me', 'category' => 'Productivity', 'cycle' => 'annual', 'aliases' => ['proton', 'protonmail', 'protonvpn']],
-            ['name' => 'Vercel Pro', 'domain' => 'vercel.com', 'category' => 'Software & Dev', 'cycle' => 'monthly', 'aliases' => ['versel', 'vercel']],
-            ['name' => 'Supabase Pro', 'domain' => 'supabase.com', 'category' => 'Software & Dev', 'cycle' => 'monthly', 'aliases' => ['superbase']],
-            ['name' => 'DigitalOcean', 'domain' => 'digitalocean.com', 'category' => 'Software & Dev', 'cycle' => 'monthly', 'aliases' => ['docean', 'digitalocean']],
-            ['name' => 'AWS', 'domain' => 'aws.amazon.com', 'category' => 'Software & Dev', 'cycle' => 'monthly', 'aliases' => ['amazonwebservices']],
-            ['name' => 'Linear', 'domain' => 'linear.app', 'category' => 'Productivity', 'cycle' => 'monthly', 'aliases' => ['linar', 'linearapp']],
-            ['name' => 'Grammarly Premium', 'domain' => 'grammarly.com', 'category' => 'Productivity', 'cycle' => 'annual', 'aliases' => ['grammerly', 'gramarly', 'gramerly']],
-            ['name' => 'JetBrains', 'domain' => 'jetbrains.com', 'category' => 'Software & Dev', 'cycle' => 'annual', 'aliases' => ['phpstorm', 'intellij', 'webstorm']],
+            ['name' => 'GitHub Copilot', 'domain' => 'github.com', 'category' => self::CATEGORY_SOFTWARE, 'cycle' => self::CYCLE_MONTHLY, 'aliases' => ['githb', 'gitub', 'githubcopilot', 'copilot', 'ghcopilot']],
+            ['name' => 'ChatGPT Plus', 'domain' => 'openai.com', 'category' => self::CATEGORY_PRODUCTIVITY, 'cycle' => self::CYCLE_MONTHLY, 'aliases' => ['chatgtp', 'chagpt', 'chatgbt', 'chatgpt', 'openai', 'open-ai']],
+            ['name' => 'Claude Pro', 'domain' => 'anthropic.com', 'category' => self::CATEGORY_PRODUCTIVITY, 'cycle' => self::CYCLE_MONTHLY, 'aliases' => ['claude', 'claud', 'anthropic', 'claudeai', 'claudepro']],
+            ['name' => 'Perplexity Pro', 'domain' => 'perplexity.ai', 'category' => self::CATEGORY_PRODUCTIVITY, 'cycle' => self::CYCLE_MONTHLY, 'aliases' => ['perplexity']],
+            ['name' => 'Cursor Pro', 'domain' => 'cursor.com', 'category' => self::CATEGORY_SOFTWARE, 'cycle' => self::CYCLE_MONTHLY, 'aliases' => ['cursorai']],
+            ['name' => 'Apple iCloud+', 'domain' => 'apple.com', 'category' => self::CATEGORY_CLOUD, 'cycle' => self::CYCLE_MONTHLY, 'aliases' => ['icloud', 'icloude', 'aple', 'appletv', 'applemusic', 'appleone']],
+            ['name' => 'Adobe Creative Cloud', 'domain' => 'adobe.com', 'category' => self::CATEGORY_SOFTWARE, 'cycle' => self::CYCLE_MONTHLY, 'aliases' => ['adob', 'photoshop', 'illustrator', 'creativecloud', 'lightroom']],
+            ['name' => 'Canva Pro', 'domain' => 'canva.com', 'category' => self::CATEGORY_SOFTWARE, 'cycle' => self::CYCLE_ANNUAL, 'aliases' => ['canav', 'canvapro', 'camva']],
+            ['name' => 'Figma Professional', 'domain' => 'figma.com', 'category' => self::CATEGORY_SOFTWARE, 'cycle' => self::CYCLE_MONTHLY, 'aliases' => ['figm', 'figmaa', 'figmapro']],
+            ['name' => 'Notion Plus', 'domain' => 'notion.so', 'category' => self::CATEGORY_PRODUCTIVITY, 'cycle' => self::CYCLE_MONTHLY, 'aliases' => ['noton', 'notionapp', 'notionai']],
+            ['name' => 'Google One', 'domain' => 'google.com', 'category' => self::CATEGORY_CLOUD, 'cycle' => self::CYCLE_MONTHLY, 'aliases' => ['googl', 'googleone', 'gsuite', 'googleworkspace', 'gdrive']],
+            ['name' => 'Microsoft 365', 'domain' => 'microsoft.com', 'category' => self::CATEGORY_PRODUCTIVITY, 'cycle' => self::CYCLE_ANNUAL, 'aliases' => ['microsft', 'office365', 'm365', 'msft', 'office']],
+            ['name' => 'Midjourney', 'domain' => 'midjourney.com', 'category' => self::CATEGORY_SOFTWARE, 'cycle' => self::CYCLE_MONTHLY, 'aliases' => ['midjourny', 'mid-journey']],
+            ['name' => 'Slack Pro', 'domain' => 'slack.com', 'category' => self::CATEGORY_PRODUCTIVITY, 'cycle' => self::CYCLE_MONTHLY, 'aliases' => ['slak', 'slackpro']],
+            ['name' => 'Zoom One', 'domain' => 'zoom.us', 'category' => self::CATEGORY_PRODUCTIVITY, 'cycle' => self::CYCLE_MONTHLY, 'aliases' => ['zoomone', 'zoompro']],
+            ['name' => 'Dropbox Plus', 'domain' => 'dropbox.com', 'category' => self::CATEGORY_CLOUD, 'cycle' => self::CYCLE_MONTHLY, 'aliases' => ['dropbx', 'dropox']],
+            ['name' => 'LinkedIn Premium', 'domain' => 'linkedin.com', 'category' => self::CATEGORY_PRODUCTIVITY, 'cycle' => self::CYCLE_MONTHLY, 'aliases' => ['linkdin', 'linkind', 'linkedinpremium']],
+            ['name' => 'X Premium', 'domain' => 'x.com', 'category' => self::CATEGORY_ENTERTAINMENT, 'cycle' => self::CYCLE_MONTHLY, 'aliases' => ['twitter', 'twiter', 'xpremium', 'twitterblue']],
+            ['name' => '1Password', 'domain' => '1password.com', 'category' => self::CATEGORY_SOFTWARE, 'cycle' => self::CYCLE_ANNUAL, 'aliases' => ['onepassword', '1pass', 'onepass']],
+            ['name' => 'Bitwarden', 'domain' => 'bitwarden.com', 'category' => self::CATEGORY_SOFTWARE, 'cycle' => self::CYCLE_ANNUAL, 'aliases' => ['bitwardn', 'bitwarder']],
+            ['name' => 'NordVPN', 'domain' => 'nordvpn.com', 'category' => self::CATEGORY_SOFTWARE, 'cycle' => self::CYCLE_ANNUAL, 'aliases' => ['nordvpn', 'nord-vpn']],
+            ['name' => 'ExpressVPN', 'domain' => 'expressvpn.com', 'category' => self::CATEGORY_SOFTWARE, 'cycle' => self::CYCLE_ANNUAL, 'aliases' => ['expressvpn', 'express-vpn']],
+            ['name' => 'Surfshark', 'domain' => 'surfshark.com', 'category' => self::CATEGORY_SOFTWARE, 'cycle' => self::CYCLE_ANNUAL, 'aliases' => ['surfshark']],
+            ['name' => 'Proton Mail', 'domain' => 'proton.me', 'category' => self::CATEGORY_PRODUCTIVITY, 'cycle' => self::CYCLE_ANNUAL, 'aliases' => ['proton', 'protonmail', 'protonvpn']],
+            ['name' => 'Vercel Pro', 'domain' => 'vercel.com', 'category' => self::CATEGORY_SOFTWARE, 'cycle' => self::CYCLE_MONTHLY, 'aliases' => ['versel', 'vercel']],
+            ['name' => 'Supabase Pro', 'domain' => 'supabase.com', 'category' => self::CATEGORY_SOFTWARE, 'cycle' => self::CYCLE_MONTHLY, 'aliases' => ['superbase']],
+            ['name' => 'DigitalOcean', 'domain' => 'digitalocean.com', 'category' => self::CATEGORY_SOFTWARE, 'cycle' => self::CYCLE_MONTHLY, 'aliases' => ['docean', 'digitalocean']],
+            ['name' => 'AWS', 'domain' => 'aws.amazon.com', 'category' => self::CATEGORY_SOFTWARE, 'cycle' => self::CYCLE_MONTHLY, 'aliases' => ['amazonwebservices']],
+            ['name' => 'Linear', 'domain' => 'linear.app', 'category' => self::CATEGORY_PRODUCTIVITY, 'cycle' => self::CYCLE_MONTHLY, 'aliases' => ['linar', 'linearapp']],
+            ['name' => 'Grammarly Premium', 'domain' => 'grammarly.com', 'category' => self::CATEGORY_PRODUCTIVITY, 'cycle' => self::CYCLE_ANNUAL, 'aliases' => ['grammerly', 'gramarly', 'gramerly']],
+            ['name' => 'JetBrains', 'domain' => 'jetbrains.com', 'category' => self::CATEGORY_SOFTWARE, 'cycle' => self::CYCLE_ANNUAL, 'aliases' => ['phpstorm', 'intellij', 'webstorm']],
 
             // Education, Reading, Finance & Everyday Services
-            ['name' => 'Duolingo Super', 'domain' => 'duolingo.com', 'category' => 'Education', 'cycle' => 'annual', 'aliases' => ['doulingo', 'duolingosuper']],
-            ['name' => 'Coursera Plus', 'domain' => 'coursera.org', 'category' => 'News & Reading', 'cycle' => 'annual', 'aliases' => ['corsera', 'coursera']],
-            ['name' => 'Udemy', 'domain' => 'udemy.com', 'category' => 'Education', 'cycle' => 'monthly', 'aliases' => ['udemypro']],
-            ['name' => 'Skillshare', 'domain' => 'skillshare.com', 'category' => 'Education', 'cycle' => 'annual', 'aliases' => ['skillshare']],
-            ['name' => 'MasterClass', 'domain' => 'masterclass.com', 'category' => 'Education', 'cycle' => 'annual', 'aliases' => ['masterclass']],
-            ['name' => 'Brilliant', 'domain' => 'brilliant.org', 'category' => 'Education', 'cycle' => 'annual', 'aliases' => ['brilliant']],
-            ['name' => 'Medium Membership', 'domain' => 'medium.com', 'category' => 'News & Reading', 'cycle' => 'monthly', 'aliases' => ['medum', 'medium']],
-            ['name' => 'Substack', 'domain' => 'substack.com', 'category' => 'News & Reading', 'cycle' => 'monthly', 'aliases' => ['substak', 'substack']],
-            ['name' => 'GrabUnlimited', 'domain' => 'grab.com', 'category' => 'Transport', 'cycle' => 'monthly', 'aliases' => ['grabunlimited', 'grabfood']],
-            ['name' => 'Wise', 'domain' => 'wise.com', 'category' => 'Finance', 'cycle' => 'monthly', 'aliases' => ['transferwise']],
-            ['name' => 'Revolut', 'domain' => 'revolut.com', 'category' => 'Finance', 'cycle' => 'monthly', 'aliases' => ['revolutmetal']],
-            ['name' => 'YNAB', 'domain' => 'ynab.com', 'category' => 'Finance', 'cycle' => 'annual', 'aliases' => ['youneedabudget']],
-            ['name' => 'AIA Health', 'domain' => 'aia.com.my', 'category' => 'Health & Fitness', 'cycle' => 'monthly', 'aliases' => ['aiamalaysia', 'aiainsurance']],
-            ['name' => 'Prudential', 'domain' => 'prudential.com.my', 'category' => 'Health & Fitness', 'cycle' => 'monthly', 'aliases' => ['prudential']],
+            ['name' => 'Duolingo Super', 'domain' => 'duolingo.com', 'category' => self::CATEGORY_EDUCATION, 'cycle' => self::CYCLE_ANNUAL, 'aliases' => ['doulingo', 'duolingosuper']],
+            ['name' => 'Coursera Plus', 'domain' => 'coursera.org', 'category' => self::CATEGORY_NEWS, 'cycle' => self::CYCLE_ANNUAL, 'aliases' => ['corsera', 'coursera']],
+            ['name' => 'Udemy', 'domain' => 'udemy.com', 'category' => self::CATEGORY_EDUCATION, 'cycle' => self::CYCLE_MONTHLY, 'aliases' => ['udemypro']],
+            ['name' => 'Skillshare', 'domain' => 'skillshare.com', 'category' => self::CATEGORY_EDUCATION, 'cycle' => self::CYCLE_ANNUAL, 'aliases' => ['skillshare']],
+            ['name' => 'MasterClass', 'domain' => 'masterclass.com', 'category' => self::CATEGORY_EDUCATION, 'cycle' => self::CYCLE_ANNUAL, 'aliases' => ['masterclass']],
+            ['name' => 'Brilliant', 'domain' => 'brilliant.org', 'category' => self::CATEGORY_EDUCATION, 'cycle' => self::CYCLE_ANNUAL, 'aliases' => ['brilliant']],
+            ['name' => 'Medium Membership', 'domain' => 'medium.com', 'category' => self::CATEGORY_NEWS, 'cycle' => self::CYCLE_MONTHLY, 'aliases' => ['medum', 'medium']],
+            ['name' => 'Substack', 'domain' => 'substack.com', 'category' => self::CATEGORY_NEWS, 'cycle' => self::CYCLE_MONTHLY, 'aliases' => ['substak', 'substack']],
+            ['name' => 'GrabUnlimited', 'domain' => 'grab.com', 'category' => self::CATEGORY_TRANSPORT, 'cycle' => self::CYCLE_MONTHLY, 'aliases' => ['grabunlimited', 'grabfood']],
+            ['name' => 'Wise', 'domain' => 'wise.com', 'category' => self::CATEGORY_FINANCE, 'cycle' => self::CYCLE_MONTHLY, 'aliases' => ['transferwise']],
+            ['name' => 'Revolut', 'domain' => 'revolut.com', 'category' => self::CATEGORY_FINANCE, 'cycle' => self::CYCLE_MONTHLY, 'aliases' => ['revolutmetal']],
+            ['name' => 'YNAB', 'domain' => 'ynab.com', 'category' => self::CATEGORY_FINANCE, 'cycle' => self::CYCLE_ANNUAL, 'aliases' => ['youneedabudget']],
+            ['name' => 'AIA Health', 'domain' => 'aia.com.my', 'category' => self::CATEGORY_HEALTH, 'cycle' => self::CYCLE_MONTHLY, 'aliases' => ['aiamalaysia', 'aiainsurance']],
+            ['name' => 'Prudential', 'domain' => 'prudential.com.my', 'category' => self::CATEGORY_HEALTH, 'cycle' => self::CYCLE_MONTHLY, 'aliases' => ['prudential']],
         ];
     }
 
@@ -198,7 +224,7 @@ class BrandIconService
         $primaryDomain = $candidates[0];
         $matchedBrand = $this->matchByDomainCandidates($candidates);
         $resolvedUrl = Cache::remember(
-            'brand_icon:'.md5(implode('|', $candidates)),
+            'brand_icon:'.hash('sha256', implode('|', $candidates)),
             now()->addHours(24),
             fn (): string => $this->probeProviders($candidates)
         );
