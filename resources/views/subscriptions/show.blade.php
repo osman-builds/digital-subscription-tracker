@@ -74,8 +74,13 @@
                     </div>
                     <div class="col-6 mt-2">
                         <div class="text-muted small fw-semibold">WEBSITE</div>
-                        @if($subscription->website_url)
-                            <a href="{{ $subscription->website_url }}" target="_blank" rel="noopener" class="text-truncate d-block">
+                        @php
+                            $safeWebsiteUrl = $subscription->website_url && in_array(strtolower((string) parse_url($subscription->website_url, PHP_URL_SCHEME)), ['http', 'https'], true)
+                                ? $subscription->website_url
+                                : null;
+                        @endphp
+                        @if($safeWebsiteUrl)
+                            <a href="{{ $safeWebsiteUrl }}" target="_blank" rel="noopener noreferrer" class="text-truncate d-block">
                                 <i class="bi bi-box-arrow-up-right me-1"></i>Visit site
                             </a>
                         @else

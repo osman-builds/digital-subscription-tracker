@@ -121,7 +121,8 @@ class SubscriptionController extends Controller
             $query->where('category_id', $request->category_id);
         }
         if ($request->filled('search')) {
-            $query->where('name', 'like', '%'.$request->search.'%');
+            $escapedSearch = str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], (string) $request->search);
+            $query->where('name', 'like', "%{$escapedSearch}%");
         }
 
         $subscriptions = $query->orderBy('next_billing_date')->paginate(12)->withQueryString();
@@ -143,25 +144,7 @@ class SubscriptionController extends Controller
     {
         $this->normalizeUrls($request);
 
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'amount' => 'required|numeric|min:0',
-            'currency' => 'required|string|size:3',
-            'billing_cycle' => 'required|in:weekly,monthly,quarterly,semi_annual,annual',
-            'start_date' => 'required|date',
-            'next_billing_date' => 'required|date',
-            'status' => 'required|in:active,inactive,cancelled',
-            'category_id' => [
-                'nullable',
-                Rule::exists('categories', 'id')->where(function ($query) {
-                    $query->whereNull('user_id')->orWhere('user_id', auth()->id());
-                }),
-            ],
-            'website_url' => 'nullable|url|max:255',
-            'logo_url' => 'nullable|url|max:255',
-            'notes' => 'nullable|string|max:500',
-        ]);
+        $validated = $request->validate($this->subscriptionRules());
 
         $validated['user_id'] = auth()->id();
         $validated['amount_myr'] = $this->fx->toMyr((float) $validated['amount'], $validated['currency']);
@@ -195,25 +178,7 @@ class SubscriptionController extends Controller
         $this->authorize($subscription);
         $this->normalizeUrls($request);
 
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'amount' => 'required|numeric|min:0',
-            'currency' => 'required|string|size:3',
-            'billing_cycle' => 'required|in:weekly,monthly,quarterly,semi_annual,annual',
-            'start_date' => 'required|date',
-            'next_billing_date' => 'required|date',
-            'status' => 'required|in:active,inactive,cancelled',
-            'category_id' => [
-                'nullable',
-                Rule::exists('categories', 'id')->where(function ($query) {
-                    $query->whereNull('user_id')->orWhere('user_id', auth()->id());
-                }),
-            ],
-            'website_url' => 'nullable|url|max:255',
-            'logo_url' => 'nullable|url|max:255',
-            'notes' => 'nullable|string|max:500',
-        ]);
+        $validated = $request->validate($this->subscriptionRules());
 
         $validated['amount_myr'] = $this->fx->toMyr((float) $validated['amount'], $validated['currency']);
 
@@ -250,7 +215,7 @@ class SubscriptionController extends Controller
         }
 
         $url = trim((string) $request->input('website_url'));
-        if (! preg_match('~^(?:f|ht)tps?://~i', $url)) {
+        if (! preg_match('~^(?:[a-z][a-z0-9+.-]*://|javascript:|data:|vbscript:)~i', $url)) {
             $url = 'https://'.$url;
             $request->merge(['website_url' => $url]);
         }
@@ -301,6 +266,30 @@ class SubscriptionController extends Controller
     private function authorize(Subscription $subscription): void
     {
         abort_if($subscription->user_id !== auth()->id(), 403);
+    }
+
+    /** Shared validation rules for creating and updating subscriptions */
+    private function subscriptionRules(): array
+    {
+        return [
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'amount' => 'required|numeric|min:0',
+            'currency' => 'required|string|size:3',
+            'billing_cycle' => 'required|in:weekly,monthly,quarterly,semi_annual,annual',
+            'start_date' => 'required|date',
+            'next_billing_date' => 'required|date',
+            'status' => 'required|in:active,inactive,cancelled',
+            'category_id' => [
+                'nullable',
+                Rule::exists('categories', 'id')->where(function ($query) {
+                    $query->whereNull('user_id')->orWhere('user_id', auth()->id());
+                }),
+            ],
+            'website_url' => 'nullable|url:http,https|max:255',
+            'logo_url' => 'nullable|url:http,https|max:255',
+            'notes' => 'nullable|string|max:500',
+        ];
     }
 
     /** Supported currencies for the dropdown */

@@ -41,4 +41,10 @@ return [
         'base_url' => 'https://v6.exchangerate-api.com/v6',
     ],
 
+    // Optional Cloudflare Turnstile CAPTCHA (enforced only when both keys are non-empty)
+    'turnstile' => [
+        'site_key' => env('TURNSTILE_SITE_KEY', ''),
+        'secret_key' => env('TURNSTILE_SECRET_KEY', ''),
+    ],
+
 ];

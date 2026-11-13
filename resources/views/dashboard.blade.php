@@ -215,9 +215,9 @@
         donutChart = new Chart(ctx, {
             type: 'doughnut',
             data: {
-                labels: {!! json_encode($categoryBreakdown->keys()->values()) !!},
+                labels: @json($categoryBreakdown->keys()->values()),
                 datasets: [{
-                    data: {!! json_encode($categoryBreakdown->values()) !!},
+                    data: @json($categoryBreakdown->values()),
                     backgroundColor: palette.slice(0, {{ $categoryBreakdown->count() }}),
                     borderColor: c.border,
                     borderWidth: 2,

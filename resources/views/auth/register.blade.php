@@ -84,6 +84,8 @@
                     </div>
                 </div>
 
+                <x-bot-protection />
+
                 <button type="submit" class="btn btn-primary w-100 py-2 fw-semibold">
                     <i class="bi bi-person-plus me-2"></i>Create Account
                 </button>

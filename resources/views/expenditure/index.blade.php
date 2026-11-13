@@ -197,10 +197,10 @@
         barChart = new Chart(ctx, {
             type: 'bar',
             data: {
-                labels: {!! json_encode($monthly->pluck('month')) !!},
+                labels: @json($monthly->pluck('month')),
                 datasets: [{
                     label: 'Monthly Spend ({{ $currencySymbol ?? 'RM' }})',
-                    data: {!! json_encode($monthly->pluck('total')) !!},
+                    data: @json($monthly->pluck('total')),
                     backgroundColor: 'rgba(99,102,241,0.8)',
                     borderColor: 'rgba(99,102,241,1)',
                     borderWidth: 1,
@@ -236,9 +236,9 @@
         donutChart = new Chart(ctx, {
             type: 'doughnut',
             data: {
-                labels: {!! json_encode($categoryBreakdown->keys()->values()) !!},
+                labels: @json($categoryBreakdown->keys()->values()),
                 datasets: [{
-                    data: {!! json_encode($categoryBreakdown->values()) !!},
+                    data: @json($categoryBreakdown->values()),
                     backgroundColor: palette.slice(0, {{ $categoryBreakdown->count() }}),
                     borderColor: c.border,
                     borderWidth: 2,

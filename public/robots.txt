@@ -1,2 +1,10 @@
 User-agent: *
-Disallow:
+Allow: /
+Disallow: /dashboard
+Disallow: /subscriptions
+Disallow: /categories
+Disallow: /expenditure
+Disallow: /settings
+Disallow: /verify-email
+Disallow: /confirm-password
+Disallow: /reset-password
