@@ -168,6 +168,37 @@ class BotAndSecurityHardeningTest extends TestCase
         $this->assertAuthenticatedAs($user);
     }
 
+    public function test_turnstile_enforces_allowed_hostnames_when_configured(): void
+    {
+        config()->set('services.turnstile.site_key', 'test-site-key');
+        config()->set('services.turnstile.secret_key', 'test-secret-key');
+        config()->set('services.turnstile.hostnames', ['mysubshield.me']);
+
+        Http::fake([
+            'https://challenges.cloudflare.com/turnstile/v0/siteverify' => Http::sequence()
+                ->push(['success' => true, 'hostname' => 'evil-clone.test'], 200)
+                ->push(['success' => true, 'hostname' => 'mysubshield.me'], 200),
+        ]);
+
+        $user = User::factory()->create(['email' => 'hostcheck@example.com']);
+
+        $wrongHost = $this->post('/login', [
+            'email' => $user->email,
+            'password' => 'password',
+            'cf-turnstile-response' => 'foreign-token',
+        ]);
+        $wrongHost->assertSessionHasErrors('email');
+        $this->assertGuest();
+
+        $validHost = $this->post('/login', [
+            'email' => $user->email,
+            'password' => 'password',
+            'cf-turnstile-response' => 'valid-token',
+        ]);
+        $validHost->assertRedirect(route('dashboard'));
+        $this->assertAuthenticatedAs($user);
+    }
+
     public function test_login_route_enforces_volumetric_ip_rate_limit(): void
     {
         for ($i = 0; $i < 20; $i++) {

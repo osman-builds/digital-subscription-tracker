@@ -54,7 +54,19 @@ class RejectBotSubmissions
                 'remoteip' => $request->ip(),
             ]);
 
-            return $response->successful() && (bool) $response->json('success', false);
+            if (! $response->successful() || ! (bool) $response->json('success', false)) {
+                return false;
+            }
+
+            $allowedHostnames = (array) config('services.turnstile.hostnames', []);
+            if ($allowedHostnames !== []) {
+                $verifiedHostname = strtolower((string) $response->json('hostname', ''));
+                $normalizedAllowed = array_map('strtolower', $allowedHostnames);
+
+                return in_array($verifiedHostname, $normalizedAllowed, true);
+            }
+
+            return true;
         } catch (\Throwable) {
             return false;
         }
