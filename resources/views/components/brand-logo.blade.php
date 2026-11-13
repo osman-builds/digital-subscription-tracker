@@ -23,16 +23,20 @@
     $logoUrl = $subscription->logo_url ?? null;
     $domain  = null;
 
-    // Derive domain from website_url if no explicit logo
-    if (!$logoUrl && !empty($subscription->website_url)) {
+    // Derive domain from website_url for icon fallback
+    if (!empty($subscription->website_url)) {
         $host   = parse_url($subscription->website_url, PHP_URL_HOST) ?? '';
         $domain = preg_replace('/^www\./', '', $host);
     }
 
-    // Google Favicon API URL (no key required, publicly accessible)
+    // Primary and secondary icon provider URLs (no API key required)
     $faviconUrl = $domain
         ? "https://t2.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://{$domain}&size=64"
         : null;
+    $duckDuckGoUrl = $domain
+        ? "https://icons.duckduckgo.com/ip3/{$domain}.ico"
+        : null;
+    $fallbackSrc = ($duckDuckGoUrl && $logoUrl !== $duckDuckGoUrl) ? $duckDuckGoUrl : '';
 
     // Colour from category, or default indigo
     $color = $subscription->category->color ?? '#6366f1';
@@ -45,8 +49,9 @@
      style="width:{{ $size }}px;height:{{ $size }}px;background:{{ $color }}22;">
 
     @if($logoUrl)
-        {{-- Manually set logo URL --}}
+        {{-- Saved or auto-resolved logo URL with automatic DuckDuckGo fallback --}}
         <img src="{{ $logoUrl }}"
+             @if($fallbackSrc) data-fallback-src="{{ $fallbackSrc }}" @endif
              alt="{{ $name }} logo"
              width="{{ $size }}"
              height="{{ $size }}"
@@ -56,8 +61,9 @@
               style="color:{{ $color }};font-size:{{ round($size * 0.45) }}px;">{{ $initial }}</span>
 
     @elseif($faviconUrl)
-        {{-- Google Favicon resolution --}}
+        {{-- Google Favicon resolution with DuckDuckGo fallback --}}
         <img src="{{ $faviconUrl }}"
+             data-fallback-src="{{ $duckDuckGoUrl }}"
              alt="{{ $name }} logo"
              width="{{ round($size * 0.7) }}"
              height="{{ round($size * 0.7) }}"

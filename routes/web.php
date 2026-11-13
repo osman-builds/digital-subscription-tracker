@@ -23,6 +23,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     Route::get('/subscriptions/export', [SubscriptionController::class, 'export'])->name('subscriptions.export');
+    Route::get('/subscriptions/resolve-icon', [SubscriptionController::class, 'resolveIcon'])
+        ->middleware('throttle:60,1')
+        ->name('subscriptions.resolve_icon');
     Route::resource('subscriptions', SubscriptionController::class);
 
     Route::resource('categories', CategoryController::class)->except(['show', 'create', 'edit']);

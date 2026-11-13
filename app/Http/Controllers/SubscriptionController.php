@@ -4,14 +4,32 @@ namespace App\Http\Controllers;
 
 use App\Models\Category;
 use App\Models\Subscription;
+use App\Services\BrandIconService;
 use App\Services\FxRateService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class SubscriptionController extends Controller
 {
-    public function __construct(private FxRateService $fx) {}
+    public function __construct(
+        private FxRateService $fx,
+        private BrandIconService $brandIcons,
+    ) {}
+
+    /** Resolve the best available brand icon and metadata for a domain. */
+    public function resolveIcon(Request $request): JsonResponse
+    {
+        $domain = (string) $request->query('domain', '');
+        $resolved = $this->brandIcons->resolveForDomain($domain);
+
+        if ($resolved === null) {
+            return response()->json(['message' => 'Invalid domain.'], 422);
+        }
+
+        return response()->json($resolved);
+    }
 
     /** Stream subscriptions as a CSV export */
     public function export(): StreamedResponse
@@ -116,8 +134,9 @@ class SubscriptionController extends Controller
     {
         $categories = Category::forUser(auth()->id())->orderBy('name')->get();
         $currencies = $this->currencyList();
+        $brandCatalog = $this->brandIcons->catalog();
 
-        return view('subscriptions.create', compact('categories', 'currencies'));
+        return view('subscriptions.create', compact('categories', 'currencies', 'brandCatalog'));
     }
 
     public function store(Request $request)
@@ -166,8 +185,9 @@ class SubscriptionController extends Controller
         $this->authorize($subscription);
         $categories = Category::forUser(auth()->id())->orderBy('name')->get();
         $currencies = $this->currencyList();
+        $brandCatalog = $this->brandIcons->catalog();
 
-        return view('subscriptions.edit', compact('subscription', 'categories', 'currencies'));
+        return view('subscriptions.edit', compact('subscription', 'categories', 'currencies', 'brandCatalog'));
     }
 
     public function update(Request $request, Subscription $subscription)
@@ -236,11 +256,10 @@ class SubscriptionController extends Controller
         }
 
         if (! $request->filled('logo_url')) {
-            $host = parse_url($url, PHP_URL_HOST) ?? '';
-            $cleanHost = preg_replace('/^www\./', '', (string) $host);
-            if ($cleanHost) {
+            $cleanHost = $this->brandIcons->cleanHost($url);
+            if ($cleanHost !== '') {
                 $request->merge([
-                    'logo_url' => "https://t2.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://{$cleanHost}&size=128",
+                    'logo_url' => $this->brandIcons->googleFaviconUrl($cleanHost),
                 ]);
             }
         }
@@ -252,42 +271,14 @@ class SubscriptionController extends Controller
             return;
         }
 
-        $nameLower = strtolower(trim((string) $request->input('name')));
-        $brandMap = [
-            'netflix' => 'netflix.com',
-            'spotify' => 'spotify.com',
-            'youtube' => 'youtube.com',
-            'github' => 'github.com',
-            'chatgpt' => 'openai.com',
-            'openai' => 'openai.com',
-            'claude' => 'anthropic.com',
-            'apple' => 'apple.com',
-            'icloud' => 'apple.com',
-            'adobe' => 'adobe.com',
-            'canva' => 'canva.com',
-            'figma' => 'figma.com',
-            'notion' => 'notion.so',
-            'disney' => 'disneyplus.com',
-            'amazon' => 'amazon.com',
-            'google' => 'google.com',
-            'microsoft' => 'microsoft.com',
-            'discord' => 'discord.com',
-            'duolingo' => 'duolingo.com',
-            'slack' => 'slack.com',
-            'zoom' => 'zoom.us',
-            'dropbox' => 'dropbox.com',
-            'linkedin' => 'linkedin.com',
-        ];
+        $matched = $this->brandIcons->matchByName((string) $request->input('name'));
 
-        foreach ($brandMap as $brand => $domain) {
-            if (str_contains($nameLower, $brand)) {
-                $url = "https://{$domain}";
-                $request->merge([
-                    'website_url' => $url,
-                    'logo_url' => "https://t2.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://{$domain}&size=128",
-                ]);
-                break;
-            }
+        if ($matched !== null) {
+            $domain = $matched['domain'];
+            $request->merge([
+                'website_url' => "https://{$domain}",
+                'logo_url' => $this->brandIcons->googleFaviconUrl($domain),
+            ]);
         }
     }
 

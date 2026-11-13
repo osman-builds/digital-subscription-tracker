@@ -48,6 +48,12 @@
             <button type="button" class="btn btn-sm btn-outline-secondary py-1 px-2 border-opacity-25 quick-brand-btn" data-name="Notion Plus" data-url="https://notion.so" data-category="Productivity" data-cycle="monthly">
                 <img src="https://t2.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://notion.so&size=32" width="14" height="14" class="me-1" alt="">Notion
             </button>
+            <button type="button" class="btn btn-sm btn-outline-secondary py-1 px-2 border-opacity-25 quick-brand-btn" data-name="Calm" data-url="https://calm.com" data-category="Health & Fitness" data-cycle="annual">
+                <img src="https://t2.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://calm.com&size=32" width="14" height="14" class="me-1" alt="">Calm
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-secondary py-1 px-2 border-opacity-25 quick-brand-btn" data-name="Strava" data-url="https://strava.com" data-category="Health & Fitness" data-cycle="annual">
+                <img src="https://t2.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://strava.com&size=32" width="14" height="14" class="me-1" alt="">Strava
+            </button>
         </div>
     </div>
 </div>
@@ -63,10 +69,16 @@
             <input type="text" id="sub_website_url" name="website_url"
                    class="form-control border-start-0 @error('website_url') is-invalid @enderror"
                    value="{{ old('website_url', $subscription->website_url ?? '') }}"
-                   placeholder="e.g. netflix.com or https://spotify.com"
+                   placeholder="e.g. calm.com, strava.com, or any domain"
                    autocomplete="off">
+            <button type="button" id="btnFetchIcon" class="btn btn-outline-secondary" title="Fetch Brand Icon">
+                <i class="bi bi-arrow-clockwise"></i>
+            </button>
         </div>
-        <div class="form-text">Paste or type any service website URL to automatically fetch its official logo and details.</div>
+        <div class="form-text">
+            Type any domain to resolve its icon automatically.
+            <button type="button" id="btnToggleCustomLogo" class="btn btn-link btn-sm p-0 ms-1 text-decoration-none align-baseline">Custom icon URL</button>
+        </div>
         @error('website_url')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
     </div>
 
@@ -84,60 +96,19 @@
             <input type="text" id="sub_name" name="name"
                    class="form-control border-start-0 @error('name') is-invalid @enderror"
                    value="{{ old('name', $subscription->name ?? '') }}"
-                   placeholder="e.g. Netflix, Spotify"
+                   placeholder="e.g. Netflix, Calm, Strava"
                    list="popularServiceList"
                    autocomplete="off" required>
         </div>
-        <div class="form-text">Smart typing assists with brand names and catches typos instantly.</div>
+        <div class="form-text">Supports Health & Fitness, Software, Streaming, Finance, Education, and custom domains.</div>
         @error('name')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
     </div>
 
-    {{-- HTML5 Datalist for instant browser autocompletion --}}
+    {{-- HTML5 Datalist populated from BrandIconService catalog --}}
     <datalist id="popularServiceList">
-        <option value="Netflix">
-        <option value="Spotify">
-        <option value="YouTube Premium">
-        <option value="GitHub Copilot">
-        <option value="ChatGPT Plus">
-        <option value="Claude Pro">
-        <option value="Apple iCloud+">
-        <option value="Adobe Creative Cloud">
-        <option value="Canva Pro">
-        <option value="Figma Professional">
-        <option value="Notion Plus">
-        <option value="Disney+">
-        <option value="Amazon Prime">
-        <option value="Google One">
-        <option value="Microsoft 365">
-        <option value="Discord Nitro">
-        <option value="Duolingo Super">
-        <option value="Midjourney">
-        <option value="Slack Pro">
-        <option value="Zoom One">
-        <option value="Dropbox Plus">
-        <option value="LinkedIn Premium">
-        <option value="X / Twitter Premium">
-        <option value="HBO Max">
-        <option value="Hulu">
-        <option value="Crunchyroll">
-        <option value="Twitch Sub">
-        <option value="1Password">
-        <option value="Bitwarden">
-        <option value="NordVPN">
-        <option value="ExpressVPN">
-        <option value="Surfshark">
-        <option value="Proton Mail">
-        <option value="Vercel Pro">
-        <option value="Supabase Pro">
-        <option value="DigitalOcean">
-        <option value="AWS">
-        <option value="Linear">
-        <option value="Grammarly Premium">
-        <option value="Coursera Plus">
-        <option value="Udemy">
-        <option value="Audible">
-        <option value="Medium Membership">
-        <option value="Substack">
+        @foreach(($brandCatalog ?? []) as $brandItem)
+            <option value="{{ $brandItem['name'] }}">
+        @endforeach
     </datalist>
 
     {{-- ── Dynamic Smart Auto-Correction & Typo Suggestion Box ─────────────── --}}
@@ -266,8 +237,16 @@
         @error('description')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
     </div>
 
-    {{-- Hidden / Advanced Logo URL --}}
-    <input type="hidden" id="sub_logo_url" name="logo_url" value="{{ old('logo_url', $subscription->logo_url ?? '') }}">
+    {{-- Optional Custom Logo URL Override --}}
+    <div class="col-12 d-none" id="customLogoWrapper">
+        <label for="sub_logo_url" class="form-label fw-semibold">Custom Brand Icon URL <span class="text-muted fw-normal small">(Optional)</span></label>
+        <input type="url" id="sub_logo_url" name="logo_url"
+               class="form-control @error('logo_url') is-invalid @enderror"
+               value="{{ old('logo_url', $subscription->logo_url ?? '') }}"
+               placeholder="https://example.com/logo.png">
+        <div class="form-text">Leave auto-detected or paste a direct HTTPS image URL if a niche provider has no public favicon.</div>
+        @error('logo_url')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+    </div>
 
     {{-- Notes --}}
     <div class="col-12">
@@ -290,6 +269,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const startDateInput = document.getElementById('sub_start_date');
     const nextDateInput = document.getElementById('sub_next_billing_date');
     const btnPlusMonth = document.getElementById('btnPlusMonth');
+    const btnFetchIcon = document.getElementById('btnFetchIcon');
+    const btnToggleCustomLogo = document.getElementById('btnToggleCustomLogo');
+    const customLogoWrapper = document.getElementById('customLogoWrapper');
 
     // Typo notification elements
     const typoAlert = document.getElementById('smartTypoAlert');
@@ -300,57 +282,16 @@ document.addEventListener('DOMContentLoaded', function() {
     const detectedAlert = document.getElementById('smartDetectedAlert');
     const detectedNameText = document.getElementById('detectedNameText');
 
+    const serviceDatabase = @json($brandCatalog ?? []);
+    const resolveIconEndpoint = @json(route('subscriptions.resolve_icon'));
+    const defaultPlaceholderSvg = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' fill='%2394a3b8' viewBox='0 0 16 16'><path d='M8 0a8 8 0 1 0 0 16A8 8 0 0 0 8 0zm0 14A6 6 0 1 1 8 2a6 6 0 0 1 0 12z'/></svg>";
+
     let currentPendingCorrection = null;
     let typoDismissedFor = '';
+    let activeFetchController = null;
+    let previewFallbackQueue = [];
+    let userEditedLogoManually = false;
 
-    // Comprehensive knowledge base of 60+ global services with common typos/aliases
-    const serviceDatabase = [
-        { name: 'Netflix', domain: 'netflix.com', category: 'Entertainment', cycle: 'monthly', aliases: ['netfix', 'netflx', 'neflix', 'netfilx', 'netflixx', 'netfllix'] },
-        { name: 'Spotify', domain: 'spotify.com', category: 'Music', cycle: 'monthly', aliases: ['spotfy', 'spotifi', 'spotifay', 'spotfiy', 'spotifyy'] },
-        { name: 'YouTube Premium', domain: 'youtube.com', category: 'Entertainment', cycle: 'monthly', aliases: ['yutube', 'youtub', 'youtubepremium', 'yt', 'ytpremium', 'youtbe'] },
-        { name: 'GitHub Copilot', domain: 'github.com', category: 'Software & Dev', cycle: 'monthly', aliases: ['githb', 'gitub', 'githubcopilot', 'copilot', 'ghcopilot', 'git hub'] },
-        { name: 'ChatGPT Plus', domain: 'openai.com', category: 'Productivity', cycle: 'monthly', aliases: ['chatgtp', 'chagpt', 'chatgbt', 'chatgpt', 'openai', 'opena', 'open-ai', 'gpt4'] },
-        { name: 'Claude Pro', domain: 'anthropic.com', category: 'Productivity', cycle: 'monthly', aliases: ['claude', 'claud', 'anthropic', 'claudeai', 'claudepro'] },
-        { name: 'Apple iCloud+', domain: 'apple.com', category: 'Cloud Storage', cycle: 'monthly', aliases: ['icloud', 'icloude', 'aple', 'appletv', 'applemusic', 'appleone'] },
-        { name: 'Adobe Creative Cloud', domain: 'adobe.com', category: 'Software & Dev', cycle: 'monthly', aliases: ['adob', 'photoshop', 'illustrator', 'creativecloud', 'lightroom'] },
-        { name: 'Canva Pro', domain: 'canva.com', category: 'Software & Dev', cycle: 'annual', aliases: ['canav', 'canvapro', 'camva'] },
-        { name: 'Figma Professional', domain: 'figma.com', category: 'Software & Dev', cycle: 'monthly', aliases: ['figm', 'figmaa', 'figmapro'] },
-        { name: 'Notion Plus', domain: 'notion.so', category: 'Productivity', cycle: 'monthly', aliases: ['noton', 'notionapp', 'notionai'] },
-        { name: 'Disney+', domain: 'disneyplus.com', category: 'Entertainment', cycle: 'monthly', aliases: ['disny', 'disney', 'disneyplus', 'disnep'] },
-        { name: 'Amazon Prime', domain: 'amazon.com', category: 'Entertainment', cycle: 'annual', aliases: ['amzon', 'prime', 'amazonprime', 'primevideo', 'amazn'] },
-        { name: 'Google One', domain: 'google.com', category: 'Cloud Storage', cycle: 'monthly', aliases: ['googl', 'googleone', 'gsuite', 'googleworkspace', 'gdrive'] },
-        { name: 'Microsoft 365', domain: 'microsoft.com', category: 'Productivity', cycle: 'annual', aliases: ['microsft', 'office365', 'm365', 'msft', 'office'] },
-        { name: 'Discord Nitro', domain: 'discord.com', category: 'Gaming', cycle: 'monthly', aliases: ['discrod', 'dicord', 'discordnitro', 'nitro'] },
-        { name: 'Duolingo Super', domain: 'duolingo.com', category: 'Health & Fitness', cycle: 'annual', aliases: ['duo', 'doulingo', 'duolingosuper'] },
-        { name: 'Midjourney', domain: 'midjourney.com', category: 'Software & Dev', cycle: 'monthly', aliases: ['midjourny', 'mid journy', 'mid-journey'] },
-        { name: 'Slack Pro', domain: 'slack.com', category: 'Productivity', cycle: 'monthly', aliases: ['slak', 'slackpro'] },
-        { name: 'Zoom One', domain: 'zoom.us', category: 'Productivity', cycle: 'monthly', aliases: ['zom', 'zoom'] },
-        { name: 'Dropbox Plus', domain: 'dropbox.com', category: 'Cloud Storage', cycle: 'monthly', aliases: ['dropbx', 'dropox'] },
-        { name: 'LinkedIn Premium', domain: 'linkedin.com', category: 'Productivity', cycle: 'monthly', aliases: ['linkdin', 'linkind', 'linkedinpremium'] },
-        { name: 'X / Twitter Premium', domain: 'x.com', category: 'Entertainment', cycle: 'monthly', aliases: ['twitter', 'twiter', 'xpremium', 'twitterblue'] },
-        { name: 'HBO Max', domain: 'max.com', category: 'Entertainment', cycle: 'monthly', aliases: ['hbomax', 'hbo', 'max'] },
-        { name: 'Hulu', domain: 'hulu.com', category: 'Entertainment', cycle: 'monthly', aliases: ['hlu', 'hullu'] },
-        { name: 'Crunchyroll', domain: 'crunchyroll.com', category: 'Entertainment', cycle: 'monthly', aliases: ['crunchy', 'crunchroll', 'crunchyrool'] },
-        { name: 'Twitch Sub', domain: 'twitch.tv', category: 'Gaming', cycle: 'monthly', aliases: ['twich', 'twitch'] },
-        { name: '1Password', domain: '1password.com', category: 'Software & Dev', cycle: 'annual', aliases: ['onepassword', '1pass', 'onepass'] },
-        { name: 'Bitwarden', domain: 'bitwarden.com', category: 'Software & Dev', cycle: 'annual', aliases: ['bitwardn', 'bitwarder'] },
-        { name: 'NordVPN', domain: 'nordvpn.com', category: 'Software & Dev', cycle: 'annual', aliases: ['nord', 'nord-vpn'] },
-        { name: 'ExpressVPN', domain: 'expressvpn.com', category: 'Software & Dev', cycle: 'annual', aliases: ['express', 'express-vpn'] },
-        { name: 'Surfshark', domain: 'surfshark.com', category: 'Software & Dev', cycle: 'annual', aliases: ['surf shark'] },
-        { name: 'Proton Mail', domain: 'proton.me', category: 'Productivity', cycle: 'annual', aliases: ['proton', 'protonmail'] },
-        { name: 'Vercel Pro', domain: 'vercel.com', category: 'Software & Dev', cycle: 'monthly', aliases: ['versel', 'vercel'] },
-        { name: 'Supabase Pro', domain: 'supabase.com', category: 'Software & Dev', cycle: 'monthly', aliases: ['superbase', 'supa base'] },
-        { name: 'DigitalOcean', domain: 'digitalocean.com', category: 'Software & Dev', cycle: 'monthly', aliases: ['digital ocean', 'docean'] },
-        { name: 'AWS', domain: 'aws.amazon.com', category: 'Software & Dev', cycle: 'monthly', aliases: ['amazonwebservices', 'aws'] },
-        { name: 'Linear', domain: 'linear.app', category: 'Productivity', cycle: 'monthly', aliases: ['linar', 'linearapp'] },
-        { name: 'Grammarly Premium', domain: 'grammarly.com', category: 'Productivity', cycle: 'annual', aliases: ['grammerly', 'gramarly', 'gramerly'] },
-        { name: 'Coursera Plus', domain: 'coursera.org', category: 'News & Reading', cycle: 'annual', aliases: ['corsera', 'coursera'] },
-        { name: 'Audible', domain: 'audible.com', category: 'Entertainment', cycle: 'monthly', aliases: ['audibl', 'audibleplus'] },
-        { name: 'Medium Membership', domain: 'medium.com', category: 'News & Reading', cycle: 'monthly', aliases: ['medum', 'medium'] },
-        { name: 'Substack', domain: 'substack.com', category: 'News & Reading', cycle: 'monthly', aliases: ['substak', 'substack'] }
-    ];
-
-    // Levenshtein distance algorithm for fuzzy typo detection
     function levenshtein(a, b) {
         if (!a || !b) return (a || '').length + (b || '').length;
         if (a === b) return 0;
@@ -360,28 +301,21 @@ document.addEventListener('DOMContentLoaded', function() {
 
         for (let i = 1; i <= b.length; i++) {
             for (let j = 1; j <= a.length; j++) {
-                if (b.charAt(i - 1) === a.charAt(j - 1)) {
-                    matrix[i][j] = matrix[i - 1][j - 1];
-                } else {
-                    matrix[i][j] = Math.min(
-                        matrix[i - 1][j - 1] + 1, // substitution
-                        matrix[i][j - 1] + 1,     // insertion
-                        matrix[i - 1][j] + 1      // deletion
-                    );
-                }
+                matrix[i][j] = b.charAt(i - 1) === a.charAt(j - 1)
+                    ? matrix[i - 1][j - 1]
+                    : Math.min(matrix[i - 1][j - 1] + 1, matrix[i][j - 1] + 1, matrix[i - 1][j] + 1);
             }
         }
         return matrix[b.length][a.length];
     }
 
-    // Clean and normalize text / domain
     function normalizeString(text) {
         if (!text) return '';
         return text.toLowerCase()
             .replace(/^https?:\/\//i, '')
             .replace(/^www\./i, '')
             .split('/')[0]
-            .replace(/\.(com|org|net|io|so|app|us|tv|me|ai|co)$/i, '')
+            .replace(/\.(com|org|net|io|so|app|us|tv|me|ai|co|health|fit|uk|my|sg|au|edu|gov)(\.[a-z]{2})?$/i, '')
             .replace(/[^a-z0-9]/g, '');
     }
 
@@ -389,27 +323,47 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!input) return '';
         let clean = input.trim().toLowerCase();
         clean = clean.replace(/^https?:\/\//i, '');
-        clean = clean.split('/')[0];
+        clean = clean.split(/[/?#]/)[0];
         clean = clean.replace(/^www\./i, '');
         return clean;
     }
 
-    function getFaviconUrl(domain) {
+    function isValidDomain(domain) {
+        return /^[a-z0-9.-]+\.[a-z]{2,}$/i.test(domain);
+    }
+
+    function getGoogleFaviconUrl(domain) {
         return 'https://t2.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=' + encodeURIComponent('https://' + domain) + '&size=128';
     }
 
-    // Apply service details to the form
-    function applyService(service, isManualCorrection = false) {
-        currentPendingCorrection = null;
-        typoAlert.classList.add('d-none');
+    function getDuckDuckGoUrl(domain) {
+        return 'https://icons.duckduckgo.com/ip3/' + encodeURIComponent(domain) + '.ico';
+    }
 
-        nameInput.value = service.name;
-        urlInput.value = 'https://' + service.domain;
-        const logoUrl = getFaviconUrl(service.domain);
-        logoInput.value = logoUrl;
-        previewImg.src = logoUrl;
+    function getIconHorseUrl(domain) {
+        return 'https://icon.horse/icon/' + encodeURIComponent(domain);
+    }
 
-        // Auto-select category
+    function setPreviewWithFallbacks(primaryUrl, domain) {
+        if (!primaryUrl) return;
+        const candidates = [
+            primaryUrl,
+            domain ? getGoogleFaviconUrl(domain) : null,
+            domain ? getDuckDuckGoUrl(domain) : null,
+            domain ? getIconHorseUrl(domain) : null,
+        ].filter(Boolean);
+
+        const unique = [...new Set(candidates)];
+        const initial = unique.shift();
+        previewFallbackQueue = unique;
+
+        if (!userEditedLogoManually) {
+            logoInput.value = initial;
+        }
+        previewImg.src = initial;
+    }
+
+    function applyCategoryAndCycle(service) {
         if (categorySelect && service.category) {
             for (let i = 0; i < categorySelect.options.length; i++) {
                 const opt = categorySelect.options[i];
@@ -419,13 +373,23 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
         }
-
-        // Auto-select billing cycle
         if (cycleSelect && service.cycle) {
             cycleSelect.value = service.cycle;
         }
+    }
 
-        // Surface positive match confirmation
+    function applyService(service, overwriteUrl = true) {
+        currentPendingCorrection = null;
+        typoAlert.classList.add('d-none');
+
+        nameInput.value = service.name;
+        if (overwriteUrl) {
+            urlInput.value = 'https://' + service.domain;
+        }
+        userEditedLogoManually = false;
+        setPreviewWithFallbacks(getGoogleFaviconUrl(service.domain), service.domain);
+        applyCategoryAndCycle(service);
+
         if (detectedAlert && detectedNameText) {
             detectedNameText.textContent = service.name;
             detectedAlert.classList.remove('d-none');
@@ -435,8 +399,12 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Fuzzy spell check & typo detector
-    function checkFuzzyMatch(rawInput) {
+    function findExactServiceByDomain(domain) {
+        const clean = extractCleanDomain(domain);
+        return serviceDatabase.find((s) => s.domain === clean || clean.endsWith('.' + s.domain)) || null;
+    }
+
+    function checkFuzzyMatch(rawInput, isDomainInput = false) {
         const norm = normalizeString(rawInput);
         if (!norm || norm.length < 3) {
             typoAlert.classList.add('d-none');
@@ -447,34 +415,39 @@ document.addEventListener('DOMContentLoaded', function() {
             return null;
         }
 
-        // 1. Check exact matches first
         for (const s of serviceDatabase) {
             const sNorm = normalizeString(s.name);
             const dNorm = normalizeString(s.domain);
             if (norm === sNorm || norm === dNorm) {
-                // Exact match!
                 typoAlert.classList.add('d-none');
                 return { type: 'exact', service: s };
             }
             if (s.aliases && s.aliases.includes(norm)) {
-                // Direct alias match (e.g. netfix -> Netflix)
                 return { type: 'typo', service: s, distance: 1 };
             }
         }
 
-        // 2. Check Levenshtein distance against brand names, domains, and aliases
+        // Skip fuzzy typo guessing when user enters a valid non-catalog commercial domain (e.g. noom.com, calm.com)
+        if (isDomainInput) {
+            typoAlert.classList.add('d-none');
+            return null;
+        }
+
         let bestMatch = null;
         let minDistance = 999;
 
         for (const s of serviceDatabase) {
+            const dNorm = normalizeString(s.domain);
+            if (dNorm.length < 4) continue;
+
             const candidates = [
                 normalizeString(s.name),
-                normalizeString(s.domain),
-                ...(s.aliases || []).map(a => normalizeString(a))
+                dNorm,
+                ...(s.aliases || []).map(a => normalizeString(a)),
             ];
 
             for (const cand of candidates) {
-                if (!cand) continue;
+                if (!cand || cand.length < 4) continue;
                 const dist = levenshtein(norm, cand);
                 if (dist < minDistance) {
                     minDistance = dist;
@@ -483,8 +456,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
 
-        // Thresholds: string length 3 -> dist 1; length >= 4 -> dist <= 2
-        const threshold = norm.length <= 3 ? 1 : 2;
+        const threshold = norm.length <= 4 ? 1 : 2;
         if (bestMatch && minDistance > 0 && minDistance <= threshold) {
             return { type: 'typo', service: bestMatch, distance: minDistance };
         }
@@ -493,29 +465,67 @@ document.addEventListener('DOMContentLoaded', function() {
         return null;
     }
 
-    // Auto-detect when URL or Domain is entered
-    function autoDetectFromUrl(inputVal) {
+    function fetchResolvedIconForDomain(domain) {
+        if (!isValidDomain(domain)) return;
+
+        if (activeFetchController) {
+            activeFetchController.abort();
+        }
+        activeFetchController = new AbortController();
+
+        fetch(resolveIconEndpoint + '?domain=' + encodeURIComponent(domain), {
+            headers: { 'Accept': 'application/json' },
+            signal: activeFetchController.signal,
+        })
+            .then((res) => res.ok ? res.json() : null)
+            .then((data) => {
+                if (!data || !data.logo_url) return;
+                setPreviewWithFallbacks(data.logo_url, data.domain || domain);
+
+                if (data.matched_brand) {
+                    if (!nameInput.value.trim()) {
+                        nameInput.value = data.matched_brand.name;
+                    }
+                    applyCategoryAndCycle(data.matched_brand);
+                }
+            })
+            .catch((err) => {
+                if (err.name !== 'AbortError') {
+                    // Client fallback queue already handles offline failures
+                }
+            });
+    }
+
+    function autoDetectFromUrl(inputVal, normalizeUrlInput = false) {
         const domain = extractCleanDomain(inputVal);
         if (!domain) return;
 
-        // Check if known or fuzzy match
-        const match = checkFuzzyMatch(domain);
-        if (match && match.type === 'exact') {
-            applyService(match.service);
-            return;
-        } else if (match && match.type === 'typo') {
-            showTypoSuggestion(match.service);
+        if (normalizeUrlInput && isValidDomain(domain)) {
+            urlInput.value = 'https://' + domain;
+        }
+
+        const exactCatalogBrand = findExactServiceByDomain(domain);
+        if (exactCatalogBrand) {
+            applyService(exactCatalogBrand, normalizeUrlInput);
             return;
         }
 
-        // Generic custom domain (e.g. customsaas.io)
-        const fullUrl = 'https://' + domain;
-        const logoUrl = getFaviconUrl(domain);
-        urlInput.value = fullUrl;
-        logoInput.value = logoUrl;
-        previewImg.src = logoUrl;
+        if (!isValidDomain(domain)) {
+            const match = checkFuzzyMatch(domain, false);
+            if (match && match.type === 'exact') {
+                applyService(match.service, normalizeUrlInput);
+            } else if (match && match.type === 'typo') {
+                showTypoSuggestion(match.service);
+            }
+            return;
+        }
 
-        if (!nameInput.value || nameInput.value.trim().length <= 3) {
+        typoAlert.classList.add('d-none');
+        userEditedLogoManually = false;
+        setPreviewWithFallbacks(getGoogleFaviconUrl(domain), domain);
+        fetchResolvedIconForDomain(domain);
+
+        if (!nameInput.value.trim() && normalizeUrlInput) {
             const namePart = domain.split('.')[0];
             nameInput.value = namePart.charAt(0).toUpperCase() + namePart.slice(1);
         }
@@ -539,24 +549,23 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
 
-            // If user typed a URL into name box
             if (val.includes('.') && !val.includes(' ')) {
-                autoDetectFromUrl(val);
+                autoDetectFromUrl(val, false);
                 return;
             }
 
-            const match = checkFuzzyMatch(val);
+            const match = checkFuzzyMatch(val, false);
             if (match && match.type === 'exact') {
-                applyService(match.service);
+                applyService(match.service, !urlInput.value.trim());
             } else if (match && match.type === 'typo') {
                 showTypoSuggestion(match.service);
             } else {
                 typoAlert.classList.add('d-none');
             }
-        }, 150);
+        }, 200);
     });
 
-    // Event handler for typing into Website URL
+    // Event handler for typing into Website URL (never mutates cursor mid-typing)
     urlInput.addEventListener('input', function() {
         clearTimeout(debounceTimer);
         debounceTimer = setTimeout(() => {
@@ -566,19 +575,39 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
 
-            const match = checkFuzzyMatch(val);
-            if (match && match.type === 'exact') {
-                applyService(match.service);
-            } else if (match && match.type === 'typo') {
-                showTypoSuggestion(match.service);
-            } else if (val.includes('.')) {
-                autoDetectFromUrl(val);
-            }
-        }, 150);
+            autoDetectFromUrl(val, false);
+        }, 250);
     });
 
     urlInput.addEventListener('blur', function() {
-        if (this.value) autoDetectFromUrl(this.value);
+        if (this.value.trim()) {
+            autoDetectFromUrl(this.value, true);
+        }
+    });
+
+    if (btnFetchIcon) {
+        btnFetchIcon.addEventListener('click', function() {
+            if (urlInput.value.trim()) {
+                userEditedLogoManually = false;
+                autoDetectFromUrl(urlInput.value, true);
+            }
+        });
+    }
+
+    if (btnToggleCustomLogo && customLogoWrapper) {
+        btnToggleCustomLogo.addEventListener('click', function() {
+            customLogoWrapper.classList.toggle('d-none');
+            if (!customLogoWrapper.classList.contains('d-none')) {
+                logoInput.focus();
+            }
+        });
+    }
+
+    logoInput.addEventListener('input', function() {
+        const customUrl = this.value.trim();
+        userEditedLogoManually = customUrl.length > 0;
+        previewFallbackQueue = [];
+        previewImg.src = customUrl || defaultPlaceholderSvg;
     });
 
     // Apply typo auto-correction button click
@@ -598,25 +627,27 @@ document.addEventListener('DOMContentLoaded', function() {
     // One-click popular service pills
     document.querySelectorAll('.quick-brand-btn').forEach(function(btn) {
         btn.addEventListener('click', function() {
-            const name = this.getAttribute('data-name');
-            const url = this.getAttribute('data-url');
-            const cat = this.getAttribute('data-category');
-            const cycle = this.getAttribute('data-cycle');
-            const domain = extractCleanDomain(url);
-
             applyService({
-                name: name,
-                domain: domain,
-                category: cat,
-                cycle: cycle
-            });
+                name: this.getAttribute('data-name'),
+                domain: extractCleanDomain(this.getAttribute('data-url')),
+                category: this.getAttribute('data-category'),
+                cycle: this.getAttribute('data-cycle'),
+            }, true);
         });
     });
 
-    // Live logo preview error fallback
-    if (liveLogoPreview) {
-        liveLogoPreview.addEventListener('error', function() {
-            this.src = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' fill='%2394a3b8' viewBox='0 0 16 16'><path d='M8 0a8 8 0 1 0 0 16A8 8 0 0 0 8 0zm0 14A6 6 0 1 1 8 2a6 6 0 0 1 0 12z'/></svg>";
+    // Multi-provider live logo preview fallback queue
+    if (previewImg) {
+        previewImg.addEventListener('error', function() {
+            if (previewFallbackQueue.length > 0) {
+                const nextUrl = previewFallbackQueue.shift();
+                if (!userEditedLogoManually) {
+                    logoInput.value = nextUrl;
+                }
+                this.src = nextUrl;
+                return;
+            }
+            this.src = defaultPlaceholderSvg;
         });
     }
 

@@ -446,11 +446,18 @@
 
     // Fallback handler for brand logo images that fail to load
     document.addEventListener('error', function (event) {
-        if (event.target && event.target.classList && event.target.classList.contains('brand-fallback-img')) {
-            event.target.style.display = 'none';
-            if (event.target.nextElementSibling) {
-                event.target.nextElementSibling.classList.remove('d-none');
-                event.target.nextElementSibling.classList.add('d-flex');
+        var img = event.target;
+        if (img && img.classList && img.classList.contains('brand-fallback-img')) {
+            var fallbackSrc = img.getAttribute('data-fallback-src');
+            if (fallbackSrc && img.getAttribute('data-fallback-tried') !== '1') {
+                img.setAttribute('data-fallback-tried', '1');
+                img.src = fallbackSrc;
+                return;
+            }
+            img.style.display = 'none';
+            if (img.nextElementSibling) {
+                img.nextElementSibling.classList.remove('d-none');
+                img.nextElementSibling.classList.add('d-flex');
             }
         }
     }, true);
