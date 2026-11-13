@@ -14,7 +14,7 @@
                 <span class="input-group-text"><i class="bi bi-envelope"></i></span>
                 <input id="email" type="email" name="email" value="{{ old('email') }}"
                        class="form-control @error('email') is-invalid @enderror"
-                       required autofocus autocomplete="email" placeholder="you@example.com">
+                       required autocomplete="email" placeholder="you@example.com">
             </div>
         </div>
 

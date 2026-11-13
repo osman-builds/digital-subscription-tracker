@@ -6,12 +6,14 @@ use App\Models\Category;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Route;
-use RuntimeException;
+use Tests\Fixtures\SimulatedServerException;
 use Tests\TestCase;
 
 class ErrorHandlingTest extends TestCase
 {
     use RefreshDatabase;
+
+    private const INTERNAL_ERROR_ROUTE = '/_test-internal-error';
 
     public function test_missing_web_route_renders_branded_404_without_leaking_route_details(): void
     {
@@ -67,18 +69,18 @@ class ErrorHandlingTest extends TestCase
     {
         config(['app.debug' => false]);
 
-        Route::get('/_test-internal-error', function (): void {
-            throw new RuntimeException('SENSITIVE_INTERNAL_DB_FAILURE_TOKEN');
+        Route::get(self::INTERNAL_ERROR_ROUTE, function (): void {
+            throw new SimulatedServerException('SENSITIVE_INTERNAL_DB_FAILURE_TOKEN');
         });
 
-        $htmlResponse = $this->get('/_test-internal-error');
+        $htmlResponse = $this->get(self::INTERNAL_ERROR_ROUTE);
         $htmlResponse->assertStatus(500);
         $htmlResponse->assertSee('ERROR 500');
         $htmlResponse->assertSee('Something Went Wrong');
         $htmlResponse->assertDontSee('SENSITIVE_INTERNAL_DB_FAILURE_TOKEN');
-        $htmlResponse->assertDontSee('RuntimeException');
+        $htmlResponse->assertDontSee('SimulatedServerException');
 
-        $jsonResponse = $this->getJson('/_test-internal-error');
+        $jsonResponse = $this->getJson(self::INTERNAL_ERROR_ROUTE);
         $jsonResponse->assertStatus(500);
         $jsonResponse->assertExactJson(['message' => 'Something went wrong.']);
     }

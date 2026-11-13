@@ -14,7 +14,7 @@
                 <span class="input-group-text"><i class="bi bi-shield-lock"></i></span>
                 <input id="password" type="password" name="password"
                        class="form-control @error('password') is-invalid @enderror"
-                       required autofocus autocomplete="current-password">
+                       required autocomplete="current-password">
             </div>
         </div>
 
