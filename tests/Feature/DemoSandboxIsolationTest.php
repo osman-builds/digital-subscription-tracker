@@ -15,6 +15,8 @@ class DemoSandboxIsolationTest extends TestCase
 
     private const DEMO_EMAIL = 'demo@subtracker.test';
 
+    private const SANDBOX_HOBBY = 'Sandbox Hobby';
+
     public function test_sandbox_launch_requires_turnstile_when_configured_and_blocks_honeypot(): void
     {
         config()->set('services.turnstile.site_key', 'sandbox-site-key');
@@ -63,15 +65,15 @@ class DemoSandboxIsolationTest extends TestCase
             ->assertSee('Isolated Sandbox');
 
         $this->post(route('categories.store'), [
-            'name' => 'Sandbox Hobby',
+            'name' => self::SANDBOX_HOBBY,
             'color' => '#14b8a6',
         ])->assertRedirect(route('categories.index'));
 
         $this->get(route('categories.index'))
             ->assertOk()
-            ->assertSee('Sandbox Hobby');
+            ->assertSee(self::SANDBOX_HOBBY);
 
-        $this->assertDatabaseMissing('categories', ['name' => 'Sandbox Hobby']);
+        $this->assertDatabaseMissing('categories', ['name' => self::SANDBOX_HOBBY]);
 
         $this->post(route('subscriptions.store'), [
             'name' => 'Tester Only Service',

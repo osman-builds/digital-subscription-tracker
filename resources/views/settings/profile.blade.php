@@ -74,10 +74,10 @@
                         <small class="text-muted d-block">Active Subscriptions</small>
                         @php
                             $subCount = $user->isSandbox()
-                                ? app(\App\Services\SandboxService::class)->allSubscriptions($user->id)->count()
+                                ? app(\App\Services\SandboxSubscriptionStore::class)->all($user->id)->count()
                                 : $user->subscriptions()->count();
                             $catCount = $user->isSandbox()
-                                ? app(\App\Services\SandboxService::class)->allCategories($user->id)->whereNotNull('user_id')->count()
+                                ? app(\App\Services\SandboxCategoryStore::class)->all($user->id)->whereNotNull('user_id')->count()
                                 : $user->categories()->count();
                         @endphp
                         <span class="fw-bold fs-6">{{ $subCount }} tracked</span>

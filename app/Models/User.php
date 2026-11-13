@@ -67,17 +67,14 @@ class User extends Authenticatable implements MustVerifyEmail
         }
 
         $lower = strtolower(trim($email));
-        if ($lower === strtolower((string) config('demo.email', 'demo@subtracker.test'))) {
-            return true;
-        }
+        $demoEmail = strtolower((string) config('demo.email', 'demo@subtracker.test'));
+        $blockedSuffixes = ['.test', '.invalid', '.local', '.example', '.localhost'];
 
-        foreach (['.test', '.invalid', '.local', '.example', '.localhost'] as $suffix) {
-            if (str_ends_with($lower, $suffix)) {
-                return true;
-            }
-        }
+        $hasBlockedSuffix = collect($blockedSuffixes)->contains(
+            fn (string $suffix): bool => str_ends_with($lower, $suffix)
+        );
 
-        return false;
+        return $lower === $demoEmail || $hasBlockedSuffix;
     }
 
     /**

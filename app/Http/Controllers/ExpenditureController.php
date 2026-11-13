@@ -4,13 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Models\Subscription;
 use App\Services\FxRateService;
-use App\Services\SandboxService;
+use App\Services\SandboxSubscriptionStore;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class ExpenditureController extends Controller
 {
-    public function index(Request $request, FxRateService $fx, SandboxService $sandbox)
+    public function index(Request $request, FxRateService $fx, SandboxSubscriptionStore $sandboxSubscriptions)
     {
         $year = (int) $request->get('year', now()->year);
         $user = auth()->user();
@@ -20,7 +20,7 @@ class ExpenditureController extends Controller
         $currencySymbol = $fx->symbol($baseCurrency);
 
         $activeSubscriptions = $user->isSandbox()
-            ? $sandbox->activeSubscriptions($userId)
+            ? $sandboxSubscriptions->active($userId)
             : Subscription::with('category')->forUser($userId)->active()->get();
 
         // ── Monthly breakdown ────────────────────────────────────────────────

@@ -4,11 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Models\Subscription;
 use App\Services\FxRateService;
-use App\Services\SandboxService;
+use App\Services\SandboxSubscriptionStore;
 
 class DashboardController extends Controller
 {
-    public function index(FxRateService $fx, SandboxService $sandbox)
+    public function index(FxRateService $fx, SandboxSubscriptionStore $sandboxSubscriptions)
     {
         $user = auth()->user();
         $userId = $user->id;
@@ -17,8 +17,8 @@ class DashboardController extends Controller
         $currencySymbol = $fx->symbol($baseCurrency);
 
         if ($user->isSandbox()) {
-            $subscriptions = $sandbox->activeSubscriptions($userId);
-            $dueSoon = $sandbox->dueSoonSubscriptions($userId, 7);
+            $subscriptions = $sandboxSubscriptions->active($userId);
+            $dueSoon = $sandboxSubscriptions->dueSoon($userId, 7);
         } else {
             $subscriptions = Subscription::with('category')
                 ->forUser($userId)

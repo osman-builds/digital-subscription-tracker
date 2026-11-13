@@ -42,7 +42,6 @@ class RejectBotSubmissions
     private function verifyTurnstile(Request $request, string $secretKey): bool
     {
         $token = (string) $request->input(self::TURNSTILE_FIELD, '');
-
         if ($token === '') {
             return false;
         }
@@ -54,21 +53,21 @@ class RejectBotSubmissions
                 'remoteip' => $request->ip(),
             ]);
 
-            if (! $response->successful() || ! (bool) $response->json('success', false)) {
-                return false;
-            }
-
-            $allowedHostnames = (array) config('services.turnstile.hostnames', []);
-            if ($allowedHostnames !== []) {
-                $verifiedHostname = strtolower((string) $response->json('hostname', ''));
-                $normalizedAllowed = array_map('strtolower', $allowedHostnames);
-
-                return in_array($verifiedHostname, $normalizedAllowed, true);
-            }
-
-            return true;
+            return $response->successful()
+                && (bool) $response->json('success', false)
+                && $this->matchesAllowedHostnames((string) $response->json('hostname', ''));
         } catch (\Throwable) {
             return false;
         }
+    }
+
+    private function matchesAllowedHostnames(string $hostname): bool
+    {
+        $allowedHostnames = (array) config('services.turnstile.hostnames', []);
+        if ($allowedHostnames === []) {
+            return true;
+        }
+
+        return in_array(strtolower($hostname), array_map('strtolower', $allowedHostnames), true);
     }
 }

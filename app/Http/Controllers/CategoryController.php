@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Category;
-use App\Services\SandboxService;
+use App\Services\SandboxCategoryStore;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -11,7 +11,9 @@ use Illuminate\View\View;
 
 class CategoryController extends Controller
 {
-    public function __construct(private SandboxService $sandbox) {}
+    private const COLOR_HEX_REGEX = 'regex:/^#[0-9A-Fa-f]{6}$/';
+
+    public function __construct(private SandboxCategoryStore $sandboxCategories) {}
 
     public function index(): View
     {
@@ -19,7 +21,7 @@ class CategoryController extends Controller
         $userId = $user->id;
 
         if ($user->isSandbox()) {
-            $categories = $this->sandbox->allCategories($userId);
+            $categories = $this->sandboxCategories->all($userId);
 
             return view('categories.index', compact('categories'));
         }
@@ -43,14 +45,14 @@ class CategoryController extends Controller
         if ($user->isSandbox()) {
             $validated = $request->validate([
                 'name' => ['required', 'string', 'max:255'],
-                'color' => ['required', 'string', 'size:7', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+                'color' => ['required', 'string', 'size:7', self::COLOR_HEX_REGEX],
             ]);
 
-            if ($this->sandbox->categoryNameExists($userId, $validated['name'])) {
+            if ($this->sandboxCategories->nameExists($userId, $validated['name'])) {
                 return back()->withErrors(['name' => 'A category with this name already exists.'])->withInput();
             }
 
-            $this->sandbox->createCategory($userId, $validated);
+            $this->sandboxCategories->create($userId, $validated);
 
             return redirect()->route('categories.index')
                 ->with('success', "Category \"{$validated['name']}\" created (sandbox session only)!");
@@ -67,7 +69,7 @@ class CategoryController extends Controller
                     });
                 }),
             ],
-            'color' => ['required', 'string', 'size:7', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+            'color' => ['required', 'string', 'size:7', self::COLOR_HEX_REGEX],
         ]);
 
         $validated['user_id'] = $userId;
@@ -89,14 +91,14 @@ class CategoryController extends Controller
         if ($user->isSandbox()) {
             $validated = $request->validate([
                 'name' => ['required', 'string', 'max:255'],
-                'color' => ['required', 'string', 'size:7', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+                'color' => ['required', 'string', 'size:7', self::COLOR_HEX_REGEX],
             ]);
 
-            if ($this->sandbox->categoryNameExists($userId, $validated['name'], (int) $category->id)) {
+            if ($this->sandboxCategories->nameExists($userId, $validated['name'], (int) $category->id)) {
                 return back()->withErrors(['name' => 'A category with this name already exists.'])->withInput();
             }
 
-            $this->sandbox->updateCategory($userId, $category, $validated);
+            $this->sandboxCategories->update($userId, $category, $validated);
 
             return redirect()->route('categories.index')
                 ->with('success', 'Category updated (sandbox session only)!');
@@ -115,7 +117,7 @@ class CategoryController extends Controller
                     })
                     ->ignore($category->id),
             ],
-            'color' => ['required', 'string', 'size:7', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+            'color' => ['required', 'string', 'size:7', self::COLOR_HEX_REGEX],
         ]);
 
         $category->update($validated);
@@ -131,7 +133,7 @@ class CategoryController extends Controller
 
         $user = auth()->user();
         if ($user->isSandbox()) {
-            $this->sandbox->deleteCategory($user->id, $category);
+            $this->sandboxCategories->delete($user->id, $category);
 
             return redirect()->route('categories.index')
                 ->with('success', 'Category deleted (sandbox session only).');

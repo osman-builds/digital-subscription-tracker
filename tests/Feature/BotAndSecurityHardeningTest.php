@@ -17,6 +17,8 @@ class BotAndSecurityHardeningTest extends TestCase
 
     private const NEXT_DATE = '2026-12-01';
 
+    private const LOGIN_PATH = '/login';
+
     public function test_dashboard_and_expenditure_charts_hex_escape_category_names(): void
     {
         $user = User::factory()->create();
@@ -109,7 +111,7 @@ class BotAndSecurityHardeningTest extends TestCase
     {
         $user = User::factory()->create(['email' => 'human@example.com']);
 
-        $loginResponse = $this->post('/login', [
+        $loginResponse = $this->post(self::LOGIN_PATH, [
             'email' => $user->email,
             'password' => 'password',
             'website_hp' => 'https://spam-bot.invalid',
@@ -139,7 +141,7 @@ class BotAndSecurityHardeningTest extends TestCase
         config()->set('services.turnstile.site_key', 'test-site-key');
         config()->set('services.turnstile.secret_key', 'test-secret-key');
 
-        $loginView = $this->get('/login');
+        $loginView = $this->get(self::LOGIN_PATH);
         $loginView->assertOk();
         $loginView->assertSee('cf-turnstile', false);
 
@@ -151,7 +153,7 @@ class BotAndSecurityHardeningTest extends TestCase
 
         $user = User::factory()->create(['email' => 'turnstile@example.com']);
 
-        $failed = $this->post('/login', [
+        $failed = $this->post(self::LOGIN_PATH, [
             'email' => $user->email,
             'password' => 'password',
             'cf-turnstile-response' => 'invalid-token',
@@ -159,7 +161,7 @@ class BotAndSecurityHardeningTest extends TestCase
         $failed->assertSessionHasErrors('email');
         $this->assertGuest();
 
-        $passed = $this->post('/login', [
+        $passed = $this->post(self::LOGIN_PATH, [
             'email' => $user->email,
             'password' => 'password',
             'cf-turnstile-response' => 'valid-token',
@@ -182,7 +184,7 @@ class BotAndSecurityHardeningTest extends TestCase
 
         $user = User::factory()->create(['email' => 'hostcheck@example.com']);
 
-        $wrongHost = $this->post('/login', [
+        $wrongHost = $this->post(self::LOGIN_PATH, [
             'email' => $user->email,
             'password' => 'password',
             'cf-turnstile-response' => 'foreign-token',
@@ -190,7 +192,7 @@ class BotAndSecurityHardeningTest extends TestCase
         $wrongHost->assertSessionHasErrors('email');
         $this->assertGuest();
 
-        $validHost = $this->post('/login', [
+        $validHost = $this->post(self::LOGIN_PATH, [
             'email' => $user->email,
             'password' => 'password',
             'cf-turnstile-response' => 'valid-token',
@@ -202,14 +204,14 @@ class BotAndSecurityHardeningTest extends TestCase
     public function test_login_route_enforces_volumetric_ip_rate_limit(): void
     {
         for ($i = 0; $i < 20; $i++) {
-            $response = $this->post('/login', [
+            $response = $this->post(self::LOGIN_PATH, [
                 'email' => "spray{$i}@example.com",
                 'password' => 'wrong-password',
             ]);
             $this->assertNotSame(429, $response->getStatusCode());
         }
 
-        $throttled = $this->post('/login', [
+        $throttled = $this->post(self::LOGIN_PATH, [
             'email' => 'spray21@example.com',
             'password' => 'wrong-password',
         ]);

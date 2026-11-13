@@ -5,7 +5,8 @@ namespace App\Providers;
 use App\Models\Category;
 use App\Models\Subscription;
 use App\Notifications\WelcomeNotification;
-use App\Services\SandboxService;
+use App\Services\SandboxCategoryStore;
+use App\Services\SandboxSubscriptionStore;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Event;
@@ -39,7 +40,7 @@ class AppServiceProvider extends ServiceProvider
         Route::bind('subscription', function (string $value): Subscription {
             $user = auth()->user();
             if ($user !== null && $user->isSandbox()) {
-                return app(SandboxService::class)->findSubscriptionOrFail($user->id, (int) $value);
+                return app(SandboxSubscriptionStore::class)->findOrFail($user->id, (int) $value);
             }
 
             return Subscription::findOrFail($value);
@@ -48,7 +49,7 @@ class AppServiceProvider extends ServiceProvider
         Route::bind('category', function (string $value): Category {
             $user = auth()->user();
             if ($user !== null && $user->isSandbox()) {
-                return app(SandboxService::class)->findCategoryOrFail($user->id, (int) $value);
+                return app(SandboxCategoryStore::class)->findOrFail($user->id, (int) $value);
             }
 
             return Category::findOrFail($value);
