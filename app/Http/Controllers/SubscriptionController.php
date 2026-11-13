@@ -6,8 +6,10 @@ use App\Models\Category;
 use App\Models\Subscription;
 use App\Services\BrandIconService;
 use App\Services\FxRateService;
+use App\Services\SandboxService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Validation\Rule;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -16,11 +18,20 @@ class SubscriptionController extends Controller
     public function __construct(
         private FxRateService $fx,
         private BrandIconService $brandIcons,
+        private SandboxService $sandbox,
     ) {}
 
     /** Resolve the best available brand icon and metadata for a domain. */
     public function resolveIcon(Request $request): JsonResponse
     {
+        $user = auth()->user();
+
+        if ($user->isSandbox() || ! $user->hasRealVerifiedEmail()) {
+            return response()->json([
+                'message' => 'Live brand icon API lookup is reserved for verified accounts.',
+            ], 403);
+        }
+
         $domain = (string) $request->query('domain', '');
         $resolved = $this->brandIcons->resolveForDomain($domain);
 
@@ -36,10 +47,12 @@ class SubscriptionController extends Controller
     {
         $user = auth()->user();
         $baseCurrency = $user->getSettings()->base_currency ?? 'MYR';
-        $subscriptions = Subscription::with('category')
-            ->where('user_id', $user->id)
-            ->orderBy('name')
-            ->get();
+        $subscriptions = $user->isSandbox()
+            ? $this->sandbox->allSubscriptions($user->id)->sortBy('name')->values()
+            : Subscription::with('category')
+                ->where('user_id', $user->id)
+                ->orderBy('name')
+                ->get();
 
         $filename = 'subshield-subscriptions-'.now()->format('Y-m-d').'.csv';
 
@@ -112,6 +125,13 @@ class SubscriptionController extends Controller
         $baseCurrency = $settings->base_currency ?? 'MYR';
         $currencySymbol = $this->fx->symbol($baseCurrency);
 
+        if ($user->isSandbox()) {
+            $subscriptions = $this->sandboxIndexSubscriptions($request, $user->id);
+            $categories = $this->sandbox->allCategories($user->id);
+
+            return view('subscriptions.index', compact('subscriptions', 'categories', 'baseCurrency', 'currencySymbol'));
+        }
+
         $query = Subscription::with('category')->forUser($user->id);
 
         if ($request->filled('status')) {
@@ -133,7 +153,7 @@ class SubscriptionController extends Controller
 
     public function create()
     {
-        $categories = Category::forUser(auth()->id())->orderBy('name')->get();
+        $categories = $this->accessibleCategories();
         $currencies = $this->currencyList();
         $brandCatalog = $this->brandIcons->catalog();
 
@@ -145,9 +165,15 @@ class SubscriptionController extends Controller
         $this->normalizeUrls($request);
 
         $validated = $request->validate($this->subscriptionRules());
-
         $validated['user_id'] = auth()->id();
         $validated['amount_myr'] = $this->fx->toMyr((float) $validated['amount'], $validated['currency']);
+
+        if (auth()->user()->isSandbox()) {
+            $this->sandbox->createSubscription(auth()->id(), $validated);
+
+            return redirect()->route('subscriptions.index')
+                ->with('success', "Subscription \"{$validated['name']}\" added (sandbox session only)!");
+        }
 
         Subscription::create($validated);
 
@@ -158,7 +184,9 @@ class SubscriptionController extends Controller
     public function show(Subscription $subscription)
     {
         $this->authorize($subscription);
-        $subscription->load('category');
+        if (! auth()->user()->isSandbox()) {
+            $subscription->load('category');
+        }
 
         return view('subscriptions.show', compact('subscription'));
     }
@@ -166,7 +194,7 @@ class SubscriptionController extends Controller
     public function edit(Subscription $subscription)
     {
         $this->authorize($subscription);
-        $categories = Category::forUser(auth()->id())->orderBy('name')->get();
+        $categories = $this->accessibleCategories();
         $currencies = $this->currencyList();
         $brandCatalog = $this->brandIcons->catalog();
 
@@ -179,8 +207,14 @@ class SubscriptionController extends Controller
         $this->normalizeUrls($request);
 
         $validated = $request->validate($this->subscriptionRules());
-
         $validated['amount_myr'] = $this->fx->toMyr((float) $validated['amount'], $validated['currency']);
+
+        if (auth()->user()->isSandbox()) {
+            $this->sandbox->updateSubscription(auth()->id(), $subscription, $validated);
+
+            return redirect()->route('subscriptions.index')
+                ->with('success', "Subscription \"{$validated['name']}\" updated (sandbox session only)!");
+        }
 
         $subscription->update($validated);
 
@@ -192,6 +226,14 @@ class SubscriptionController extends Controller
     {
         $this->authorize($subscription);
         $name = $subscription->name;
+
+        if (auth()->user()->isSandbox()) {
+            $this->sandbox->deleteSubscription(auth()->id(), $subscription);
+
+            return redirect()->route('subscriptions.index')
+                ->with('success', "Subscription \"{$name}\" deleted (sandbox session only).");
+        }
+
         $subscription->delete();
 
         return redirect()->route('subscriptions.index')
@@ -262,6 +304,43 @@ class SubscriptionController extends Controller
 
     // -------------------------------------------------------------------------
 
+    /** Get categories accessible to current user (session or DB) */
+    private function accessibleCategories()
+    {
+        return auth()->user()->isSandbox()
+            ? $this->sandbox->allCategories(auth()->id())
+            : Category::forUser(auth()->id())->orderBy('name')->get();
+    }
+
+    /** Filter and paginate in-session sandbox subscriptions */
+    private function sandboxIndexSubscriptions(Request $request, int $userId): LengthAwarePaginator
+    {
+        $filtered = $this->sandbox->allSubscriptions($userId);
+
+        if ($request->filled('status')) {
+            $filtered = $filtered->where('status', $request->status);
+        }
+        if ($request->filled('category_id')) {
+            $filtered = $filtered->where('category_id', (int) $request->category_id);
+        }
+        if ($request->filled('search')) {
+            $needle = strtolower((string) $request->search);
+            $filtered = $filtered->filter(fn (Subscription $sub): bool => str_contains(strtolower($sub->name), $needle));
+        }
+
+        $sorted = $filtered->sortBy('next_billing_date')->values();
+        $page = max(1, (int) $request->query('page', 1));
+        $perPage = 12;
+
+        return (new LengthAwarePaginator(
+            $sorted->forPage($page, $perPage)->values(),
+            $sorted->count(),
+            $perPage,
+            $page,
+            ['path' => $request->url()]
+        ))->withQueryString();
+    }
+
     /** Ensure subscription belongs to authenticated user */
     private function authorize(Subscription $subscription): void
     {
@@ -271,6 +350,12 @@ class SubscriptionController extends Controller
     /** Shared validation rules for creating and updating subscriptions */
     private function subscriptionRules(): array
     {
+        $categoryRule = auth()->user()->isSandbox()
+            ? Rule::in($this->sandbox->allCategories(auth()->id())->pluck('id')->all())
+            : Rule::exists('categories', 'id')->where(function ($query) {
+                $query->whereNull('user_id')->orWhere('user_id', auth()->id());
+            });
+
         return [
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
@@ -280,12 +365,7 @@ class SubscriptionController extends Controller
             'start_date' => 'required|date',
             'next_billing_date' => 'required|date',
             'status' => 'required|in:active,inactive,cancelled',
-            'category_id' => [
-                'nullable',
-                Rule::exists('categories', 'id')->where(function ($query) {
-                    $query->whereNull('user_id')->orWhere('user_id', auth()->id());
-                }),
-            ],
+            'category_id' => ['nullable', $categoryRule],
             'website_url' => 'nullable|url:http,https|max:255',
             'logo_url' => 'nullable|url:http,https|max:255',
             'notes' => 'nullable|string|max:500',

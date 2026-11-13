@@ -11,8 +11,6 @@ use Illuminate\Support\Facades\Log;
 
 class SendRenewalReminders extends Command
 {
-    private const DEMO_EMAIL = 'demo@subtracker.test';
-
     protected $signature = 'subscriptions:remind {--days=3 : Days ahead to check for renewals}';
 
     protected $description = 'Log and notify users about subscriptions renewing soon';
@@ -90,7 +88,7 @@ class SendRenewalReminders extends Command
 
     private function isDeliverabilitySuppressed(User $user): bool
     {
-        if ($user->email === self::DEMO_EMAIL || str_ends_with(strtolower($user->email), '.test') || ! $user->hasVerifiedEmail()) {
+        if (! $user->hasRealVerifiedEmail()) {
             $this->line("Skipping unverified/demo user {$user->email} to preserve mail deliverability.");
 
             return true;

@@ -84,9 +84,13 @@
             </form>
 
             <hr class="my-4">
-            <p class="text-center text-muted small mb-0">
+            <p class="text-center text-muted small mb-2">
                 Don't have an account?
                 <a href="{{ route('register') }}" class="fw-semibold text-decoration-none">Create one</a>
+            </p>
+            <p class="text-center text-muted small mb-0">
+                Just want to test the app?
+                <a href="{{ route('demo.show') }}" class="fw-semibold text-decoration-none">Launch 1-Hour Sandbox</a>
             </p>
         </div>
     </div>

@@ -72,13 +72,21 @@
                 <div class="col-12 col-sm-4">
                     <div class="p-3 rounded-3 bg-body-tertiary">
                         <small class="text-muted d-block">Active Subscriptions</small>
-                        <span class="fw-bold fs-6">{{ $user->subscriptions()->count() }} tracked</span>
+                        @php
+                            $subCount = $user->isSandbox()
+                                ? app(\App\Services\SandboxService::class)->allSubscriptions($user->id)->count()
+                                : $user->subscriptions()->count();
+                            $catCount = $user->isSandbox()
+                                ? app(\App\Services\SandboxService::class)->allCategories($user->id)->whereNotNull('user_id')->count()
+                                : $user->categories()->count();
+                        @endphp
+                        <span class="fw-bold fs-6">{{ $subCount }} tracked</span>
                     </div>
                 </div>
                 <div class="col-12 col-sm-4">
                     <div class="p-3 rounded-3 bg-body-tertiary">
                         <small class="text-muted d-block">Custom Categories</small>
-                        <span class="fw-bold fs-6">{{ $user->categories()->count() }} configured</span>
+                        <span class="fw-bold fs-6">{{ $catCount }} configured</span>
                     </div>
                 </div>
             </div>
@@ -102,7 +110,7 @@
                     </p>
                 </div>
                 <div>
-                    @if($user->email === 'demo@subtracker.test')
+                    @if($user->isSandbox())
                         <button type="button" class="btn btn-outline-danger px-4 py-2" disabled title="The demo account cannot be deleted">
                             <i class="bi bi-lock me-1"></i>Protected Demo Account
                         </button>

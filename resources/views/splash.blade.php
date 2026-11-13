@@ -501,7 +501,7 @@
                     <a href="{{ route('register') }}" class="btn btn-primary-saas btn-lg px-4 py-3">
                         <i class="bi bi-shield-check me-2"></i>Start Free — No Card Needed
                     </a>
-                    <a href="{{ route('login') }}" class="btn btn-secondary-saas btn-lg px-4 py-3">
+                    <a href="{{ route('demo.show') }}" class="btn btn-secondary-saas btn-lg px-4 py-3">
                         <i class="bi bi-box-arrow-in-right me-2"></i>Explore Live Demo
                     </a>
                 </div>
@@ -799,7 +799,7 @@
                 <a href="{{ route('register') }}" class="btn btn-primary-saas btn-lg px-5 py-3">
                     <i class="bi bi-rocket-takeoff me-2"></i>Create Free Account
                 </a>
-                <a href="{{ route('login') }}" class="btn btn-secondary-saas btn-lg px-5 py-3">
+                <a href="{{ route('demo.show') }}" class="btn btn-secondary-saas btn-lg px-5 py-3">
                     <i class="bi bi-box-arrow-in-right me-2"></i>Explore Live Demo
                 </a>
             </div>

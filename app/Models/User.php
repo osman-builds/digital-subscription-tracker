@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Notifications\EmailVerificationOtpNotification;
+use App\Services\SandboxService;
 use Database\Factories\UserFactory;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
@@ -46,19 +47,66 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasOne(UserSetting::class);
     }
 
-    /** Get settings, creating defaults if missing */
+    /**
+     * Determine whether this account is the isolated demo/sandbox user.
+     */
+    public function isSandbox(): bool
+    {
+        $demoEmail = strtolower((string) config('demo.email', 'demo@subtracker.test'));
+
+        return strtolower((string) $this->email) === $demoEmail;
+    }
+
+    /**
+     * Determine whether an email belongs to a reserved/non-routable domain.
+     */
+    public static function isNonRoutableEmail(?string $email): bool
+    {
+        if ($email === null || $email === '') {
+            return true;
+        }
+
+        $lower = strtolower(trim($email));
+        if ($lower === strtolower((string) config('demo.email', 'demo@subtracker.test'))) {
+            return true;
+        }
+
+        foreach (['.test', '.invalid', '.local', '.example', '.localhost'] as $suffix) {
+            if (str_ends_with($lower, $suffix)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Determine whether the user is a real account with a verified routable email.
+     */
+    public function hasRealVerifiedEmail(): bool
+    {
+        return ! is_null($this->email_verified_at)
+            && ! $this->isSandbox()
+            && ! self::isNonRoutableEmail($this->email);
+    }
+
+    /** Get settings, returning session-only settings for sandbox users */
     public function getSettings(): UserSetting
     {
+        if ($this->isSandbox()) {
+            return app(SandboxService::class)->getSettings($this->id);
+        }
+
         return UserSetting::forUser($this->id);
     }
 
     /**
      * Determine if the user has verified their email address.
-     * The demo account does not require email OTP verification.
+     * The demo/sandbox account skips email OTP verification.
      */
     public function hasVerifiedEmail(): bool
     {
-        if ($this->email === 'demo@subtracker.test') {
+        if ($this->isSandbox()) {
             return true;
         }
 
@@ -70,7 +118,7 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function sendEmailVerificationNotification(): void
     {
-        if ($this->email === 'demo@subtracker.test') {
+        if ($this->isSandbox() || self::isNonRoutableEmail($this->email)) {
             return;
         }
 

@@ -17,9 +17,9 @@
             </div>
         </div>
         <div class="card-body p-4">
-            @if($user->email === 'demo@subtracker.test')
+            @if($user->isSandbox())
                 <div class="alert alert-info py-3 mb-4">
-                    <i class="bi bi-info-circle-fill me-2"></i><strong>Evaluation Account:</strong> The demo account password is fixed (<code>password</code>) for continuous evaluator access.
+                    <i class="bi bi-info-circle-fill me-2"></i><strong>Sandbox Mode:</strong> Credential changes are disabled in the isolated demo sandbox. Create a verified account to manage your own password.
                 </div>
             @endif
 
@@ -31,7 +31,7 @@
                         <input type="password" id="current_password" name="current_password"
                                class="form-control form-control-lg fs-6 @error('current_password') is-invalid @enderror"
                                placeholder="Enter your current password"
-                               {{ $user->email === 'demo@subtracker.test' ? 'disabled' : '' }}>
+                               {{ $user->isSandbox() ? 'disabled' : '' }}>
                         @error('current_password')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
                     <div class="col-12 col-md-6">
@@ -39,20 +39,20 @@
                         <input type="password" id="new_password" name="password"
                                class="form-control form-control-lg fs-6 @error('password') is-invalid @enderror"
                                placeholder="Min 8 characters (mixed case + number)"
-                               {{ $user->email === 'demo@subtracker.test' ? 'disabled' : '' }}>
+                               {{ $user->isSandbox() ? 'disabled' : '' }}>
                         @error('password')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
                     <div class="col-12 col-md-6">
                         <label for="password_confirmation" class="form-label fw-semibold">Confirm New Password</label>
                         <input type="password" id="password_confirmation" name="password_confirmation"
                                class="form-control form-control-lg fs-6" placeholder="Repeat new password"
-                               {{ $user->email === 'demo@subtracker.test' ? 'disabled' : '' }}>
+                               {{ $user->isSandbox() ? 'disabled' : '' }}>
                     </div>
                 </div>
 
                 <div class="mt-4 pt-2">
                     <button type="submit" class="btn btn-primary px-4 py-2 fw-semibold"
-                            {{ $user->email === 'demo@subtracker.test' ? 'disabled' : '' }}>
+                            {{ $user->isSandbox() ? 'disabled' : '' }}>
                         <i class="bi bi-key me-1"></i>Update Password
                     </button>
                 </div>

@@ -4,12 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Models\Subscription;
 use App\Services\FxRateService;
+use App\Services\SandboxService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class ExpenditureController extends Controller
 {
-    public function index(Request $request, FxRateService $fx)
+    public function index(Request $request, FxRateService $fx, SandboxService $sandbox)
     {
         $year = (int) $request->get('year', now()->year);
         $user = auth()->user();
@@ -18,10 +19,9 @@ class ExpenditureController extends Controller
         $baseCurrency = $settings->base_currency ?? 'MYR';
         $currencySymbol = $fx->symbol($baseCurrency);
 
-        $activeSubscriptions = Subscription::with('category')
-            ->forUser($userId)
-            ->active()
-            ->get();
+        $activeSubscriptions = $user->isSandbox()
+            ? $sandbox->activeSubscriptions($userId)
+            : Subscription::with('category')->forUser($userId)->active()->get();
 
         // ── Monthly breakdown ────────────────────────────────────────────────
         // For each month of the selected year, calculate total spend in base currency

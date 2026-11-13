@@ -4,10 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Models\Subscription;
 use App\Services\FxRateService;
+use App\Services\SandboxService;
 
 class DashboardController extends Controller
 {
-    public function index(FxRateService $fx)
+    public function index(FxRateService $fx, SandboxService $sandbox)
     {
         $user = auth()->user();
         $userId = $user->id;
@@ -15,20 +16,25 @@ class DashboardController extends Controller
         $baseCurrency = $settings->base_currency ?? 'MYR';
         $currencySymbol = $fx->symbol($baseCurrency);
 
-        $subscriptions = Subscription::with('category')
-            ->forUser($userId)
-            ->active()
-            ->get();
+        if ($user->isSandbox()) {
+            $subscriptions = $sandbox->activeSubscriptions($userId);
+            $dueSoon = $sandbox->dueSoonSubscriptions($userId, 7);
+        } else {
+            $subscriptions = Subscription::with('category')
+                ->forUser($userId)
+                ->active()
+                ->get();
+
+            $dueSoon = Subscription::with('category')
+                ->forUser($userId)
+                ->dueSoon(7)
+                ->orderBy('next_billing_date')
+                ->get();
+        }
 
         $totalMonthly = $subscriptions->sum(fn ($s) => $s->monthlyAmountIn($baseCurrency));
         $totalYearly = $subscriptions->sum(fn ($s) => $s->yearlyAmountIn($baseCurrency));
         $totalActive = $subscriptions->count();
-
-        $dueSoon = Subscription::with('category')
-            ->forUser($userId)
-            ->dueSoon(7)
-            ->orderBy('next_billing_date')
-            ->get();
 
         // Category breakdown for chart in user's base currency
         $categoryBreakdown = $subscriptions

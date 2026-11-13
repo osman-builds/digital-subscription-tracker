@@ -6,17 +6,22 @@ use App\Models\Subscription;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        // Create a demo user (bcrypt hash applied via 'hashed' cast on User model)
-        $demo = User::firstOrCreate(
-            ['email' => 'demo@subtracker.test'],
+        $demoEmail = (string) config('demo.email', 'demo@subtracker.test');
+        $configuredPassword = (string) config('demo.password', '');
+        $strongPassword = $configuredPassword !== '' ? $configuredPassword : Str::random(40);
+
+        // Rotate demo credentials on every seed so weak defaults never persist
+        $demo = User::updateOrCreate(
+            ['email' => $demoEmail],
             [
-                'name' => 'Demo User',
-                'password' => Hash::make('password'),
+                'name' => 'Sandbox Demo',
+                'password' => Hash::make($strongPassword),
                 'email_verified_at' => now(),
             ]
         );

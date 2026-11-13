@@ -95,14 +95,20 @@
 
                 {{-- ALERT PREFERENCES --}}
                 <div>
-                    <h6 class="fw-bold mb-3"><i class="bi bi-bell text-warning me-2"></i>Renewal Alerts & Lead Times</h6>
+                    <h6 class="fw-bold mb-3"><i class="bi bi-bell text-warning me-2"></i>Renewal Alerts &amp; Lead Times</h6>
+                    @if(auth()->user()->isSandbox())
+                        <div class="alert alert-light border small mb-3">
+                            <i class="bi bi-envelope-slash me-1 text-muted"></i>Outbound renewal emails are reserved for verified user accounts and are disabled in sandbox mode.
+                        </div>
+                    @endif
                     <div class="d-flex flex-column gap-3">
                         <div class="card bg-body-tertiary border-0 p-3">
                             <div class="form-check form-switch mb-0">
                                 <input class="form-check-input" type="checkbox" role="switch"
                                        aria-checked="{{ $settings->alert_7_days ? 'true' : 'false' }}"
                                        name="alert_7_days" id="alert7" value="1"
-                                       {{ $settings->alert_7_days ? 'checked' : '' }}>
+                                       {{ $settings->alert_7_days ? 'checked' : '' }}
+                                       {{ auth()->user()->isSandbox() ? 'disabled' : '' }}>
                                 <label class="form-check-label" for="alert7">
                                     <span class="fw-semibold">7-day reminder</span>
                                     <span class="text-muted ms-1 d-block d-sm-inline">— Display on upcoming dashboard renewals 7 days prior</span>
@@ -115,7 +121,8 @@
                                 <input class="form-check-input" type="checkbox" role="switch"
                                        aria-checked="{{ $settings->alert_3_days ? 'true' : 'false' }}"
                                        name="alert_3_days" id="alert3" value="1"
-                                       {{ $settings->alert_3_days ? 'checked' : '' }}>
+                                       {{ $settings->alert_3_days ? 'checked' : '' }}
+                                       {{ auth()->user()->isSandbox() ? 'disabled' : '' }}>
                                 <label class="form-check-label" for="alert3">
                                     <span class="fw-semibold">3-day urgent reminder</span>
                                     <span class="text-muted ms-1 d-block d-sm-inline">— Highlight urgently on dashboard 3 days prior</span>

@@ -2,9 +2,12 @@
 
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DemoSandboxController;
 use App\Http\Controllers\ExpenditureController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\SubscriptionController;
+use App\Http\Middleware\EnsureSandboxSessionValid;
+use App\Http\Middleware\RejectBotSubmissions;
 use Illuminate\Support\Facades\Route;
 
 // ── Public: splash landing page ───────────────────────────────────────────
@@ -17,8 +20,15 @@ Route::get('/', function () {
     return view('splash');
 })->name('splash');
 
+Route::middleware('guest')->group(function () {
+    Route::get('/demo', [DemoSandboxController::class, 'show'])->name('demo.show');
+    Route::post('/demo/start', [DemoSandboxController::class, 'start'])
+        ->middleware([RejectBotSubmissions::class, 'throttle:5,10'])
+        ->name('demo.start');
+});
+
 // ── Protected routes (require login) ─────────────────────────────────────
-Route::middleware(['auth', 'verified'])->group(function () {
+Route::middleware(['auth', 'verified', EnsureSandboxSessionValid::class])->group(function () {
 
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 

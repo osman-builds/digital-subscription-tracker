@@ -25,9 +25,40 @@ class FxRateService
      */
     public function getRates(): array
     {
+        if (auth()->check() && (auth()->user()->isSandbox() || ! auth()->user()->hasRealVerifiedEmail())) {
+            $cached = Cache::get(self::CACHE_KEY);
+
+            return is_array($cached) && $cached !== [] ? $cached : $this->fallbackRates();
+        }
+
         return Cache::remember(self::CACHE_KEY, self::CACHE_TTL_SECONDS, function () {
             return $this->fetchFromApi();
         });
+    }
+
+    /**
+     * Convert currency strictly using cached/fallback rates without triggering external API calls.
+     */
+    public function convertForSandbox(float $amount, string $from, string $to): float
+    {
+        $from = strtoupper(trim($from));
+        $to = strtoupper(trim($to));
+
+        if ($from === $to) {
+            return round($amount, 2);
+        }
+
+        $cached = Cache::get(self::CACHE_KEY);
+        $rates = is_array($cached) && $cached !== [] ? $cached : $this->fallbackRates();
+
+        $myr = $from === self::TARGET ? $amount : $amount * ($rates[$from] ?? 1.0);
+        if ($to === self::TARGET) {
+            return round($myr, 2);
+        }
+
+        $rateTo = $rates[$to] ?? 0;
+
+        return $rateTo > 0 ? round($myr / $rateTo, 2) : round($myr, 2);
     }
 
     /**

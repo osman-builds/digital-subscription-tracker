@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\SandboxService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -10,7 +11,7 @@ use Illuminate\Validation\Rules\Password;
 
 class SettingsController extends Controller
 {
-    private const DEMO_EMAIL = 'demo@subtracker.test';
+    public function __construct(private SandboxService $sandbox) {}
 
     public function index()
     {
@@ -53,7 +54,15 @@ class SettingsController extends Controller
             'alert_3_days' => 'nullable|boolean',
         ]);
 
-        $settings = auth()->user()->getSettings();
+        $user = auth()->user();
+
+        if ($user->isSandbox()) {
+            $this->sandbox->updatePreferences($user->id, $validated['base_currency']);
+
+            return back()->with('success', 'Currency preference updated for this sandbox session (email alerts remain disabled in sandbox mode).');
+        }
+
+        $settings = $user->getSettings();
         $settings->update([
             'base_currency' => strtoupper($validated['base_currency']),
             'alert_7_days' => $request->boolean('alert_7_days'),
@@ -66,7 +75,15 @@ class SettingsController extends Controller
     /** Save dark mode preference from server (also backed by localStorage) */
     public function updateDarkMode(Request $request)
     {
-        $settings = auth()->user()->getSettings();
+        $user = auth()->user();
+
+        if ($user->isSandbox()) {
+            $darkMode = $this->sandbox->updateDarkMode($user->id, $request->boolean('dark_mode'));
+
+            return response()->json(['dark_mode' => $darkMode]);
+        }
+
+        $settings = $user->getSettings();
         $settings->update(['dark_mode' => $request->boolean('dark_mode')]);
 
         return response()->json(['dark_mode' => $settings->dark_mode]);
@@ -77,7 +94,7 @@ class SettingsController extends Controller
     {
         $user = auth()->user();
 
-        if ($user->email === self::DEMO_EMAIL && $request->input('email') !== self::DEMO_EMAIL) {
+        if ($user->isSandbox()) {
             return back()->with('error', 'The demo evaluation account email cannot be modified.');
         }
 
@@ -109,8 +126,8 @@ class SettingsController extends Controller
     /** Change password */
     public function updatePassword(Request $request)
     {
-        if (auth()->user()->email === self::DEMO_EMAIL) {
-            return back()->with('error', 'The demo evaluation account password is fixed for grading evaluation.');
+        if (auth()->user()->isSandbox()) {
+            return back()->with('error', 'The demo evaluation account password cannot be changed.');
         }
 
         $request->validate([
@@ -130,7 +147,7 @@ class SettingsController extends Controller
     {
         $user = $request->user();
 
-        if ($user->email === self::DEMO_EMAIL) {
+        if ($user->isSandbox()) {
             return back()->with('error', 'The demo evaluation account cannot be deleted.');
         }
 
