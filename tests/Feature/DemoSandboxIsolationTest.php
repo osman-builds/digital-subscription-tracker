@@ -91,6 +91,7 @@ class DemoSandboxIsolationTest extends TestCase
             ->assertOk()
             ->assertSee('Tester Only Service');
 
+        $this->assertDatabaseCount('users', 0);
         $this->assertDatabaseCount('subscriptions', 0);
         $this->assertDatabaseCount('user_settings', 0);
     }

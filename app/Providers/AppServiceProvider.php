@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Auth\SandboxUserProvider;
 use App\Models\Category;
 use App\Models\Subscription;
 use App\Notifications\WelcomeNotification;
@@ -9,6 +10,7 @@ use App\Services\SandboxCategoryStore;
 use App\Services\SandboxSubscriptionStore;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Pagination\Paginator;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
@@ -29,6 +31,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Auth::provider('sandbox-eloquent', function ($app, array $config): SandboxUserProvider {
+            return new SandboxUserProvider($app['hash'], $config['model']);
+        });
+
         Paginator::useBootstrapFive();
 
         Password::defaults(function () {

@@ -52,6 +52,10 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function isSandbox(): bool
     {
+        if ((int) $this->id === SandboxService::SANDBOX_USER_ID) {
+            return true;
+        }
+
         $demoEmail = strtolower((string) config('demo.email', 'demo@subtracker.test'));
 
         return strtolower((string) $this->email) === $demoEmail;

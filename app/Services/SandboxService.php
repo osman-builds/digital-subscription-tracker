@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Category;
+use App\Models\User;
 use App\Models\UserSetting;
 
 /**
@@ -10,6 +11,8 @@ use App\Models\UserSetting;
  */
 class SandboxService
 {
+    public const SANDBOX_USER_ID = 0;
+
     public const SESSION_ROOT = 'sandbox';
 
     public const KEY_EXPIRES_AT = 'sandbox.expires_at';
@@ -37,6 +40,19 @@ class SandboxService
     private const DEFAULT_CURRENCY = 'MYR';
 
     public function __construct(private FxRateService $fx) {}
+
+    public static function makeVirtualUser(): User
+    {
+        $user = new User;
+        $user->forceFill([
+            'id' => self::SANDBOX_USER_ID,
+            'name' => 'Sandbox Demo',
+            'email' => (string) config('demo.email', 'demo@subtracker.test'),
+            'email_verified_at' => now(),
+        ]);
+
+        return $user;
+    }
 
     public function startSession(int $userId): void
     {
