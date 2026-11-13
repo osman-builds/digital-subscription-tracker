@@ -1,25 +1,31 @@
-<x-guest-layout>
-    <div class="mb-4 text-sm text-gray-600">
-        {{ __('Forgot your password? No problem. Just let us know your email address and we will email you a password reset link that will allow you to choose a new one.') }}
-    </div>
+@extends('layouts.auth')
 
-    <!-- Session Status -->
-    <x-auth-session-status class="mb-4" :status="session('status')" />
+@section('title', 'Forgot Password — SubShield')
+@section('heading', 'Forgot Password')
+@section('subheading', 'Enter your email and we will send you a password reset link.')
 
+@section('content')
     <form method="POST" action="{{ route('password.email') }}">
         @csrf
 
-        <!-- Email Address -->
-        <div>
-            <x-input-label for="email" :value="__('Email')" />
-            <x-text-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required />
-            <x-input-error :messages="$errors->get('email')" class="mt-2" />
+        <div class="mb-3">
+            <label for="email" class="form-label fw-semibold">Email</label>
+            <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                <input id="email" type="email" name="email" value="{{ old('email') }}"
+                       class="form-control @error('email') is-invalid @enderror"
+                       required autofocus autocomplete="email" placeholder="you@example.com">
+            </div>
         </div>
 
-        <div class="flex items-center justify-end mt-4">
-            <x-primary-button>
-                {{ __('Email Password Reset Link') }}
-            </x-primary-button>
+        <button type="submit" class="btn btn-indigo w-100 fw-semibold py-2">
+            <i class="bi bi-send me-1"></i>Email Password Reset Link
+        </button>
+
+        <div class="text-center mt-3">
+            <a href="{{ route('login') }}" class="text-decoration-none small text-muted">
+                <i class="bi bi-arrow-left me-1"></i>Back to Sign In
+            </a>
         </div>
     </form>
-</x-guest-layout>
+@endsection

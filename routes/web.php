@@ -42,5 +42,5 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/settings/dark-mode', [SettingsController::class, 'updateDarkMode'])->name('settings.dark_mode');
 });
 
-// ── Breeze auth routes ────────────────────────────────────────────────────
+// ── Authentication routes ──────────────────────────────────────────────────
 require __DIR__.'/auth.php';
