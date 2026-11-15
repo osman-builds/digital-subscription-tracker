@@ -19,6 +19,12 @@ class BotAndSecurityHardeningTest extends TestCase
 
     private const LOGIN_PATH = '/login';
 
+    private const TURNSTILE_VERIFY_URL = 'https://challenges.cloudflare.com/turnstile/v0/siteverify';
+
+    private const TURNSTILE_FIELD = 'cf-turnstile-response';
+
+    private const VALID_TEST_PASSWORD = 'password';
+
     public function test_dashboard_and_expenditure_charts_hex_escape_category_names(): void
     {
         $user = User::factory()->create();
@@ -146,25 +152,34 @@ class BotAndSecurityHardeningTest extends TestCase
         $loginView->assertSee('cf-turnstile', false);
 
         Http::fake([
-            'https://challenges.cloudflare.com/turnstile/v0/siteverify' => Http::sequence()
-                ->push(['success' => false], 200)
-                ->push(['success' => true], 200),
+            self::TURNSTILE_VERIFY_URL => Http::sequence()
+                ->push(['success' => false, 'error-codes' => ['timeout-or-duplicate']], 200)
+                ->push(['success' => true, 'action' => 'sandbox'], 200)
+                ->push(['success' => true, 'action' => 'login'], 200),
         ]);
 
         $user = User::factory()->create(['email' => 'turnstile@example.com']);
 
         $failed = $this->post(self::LOGIN_PATH, [
             'email' => $user->email,
-            'password' => 'password',
-            'cf-turnstile-response' => 'invalid-token',
+            'password' => self::VALID_TEST_PASSWORD,
+            self::TURNSTILE_FIELD => 'invalid-or-replayed-token',
         ]);
         $failed->assertSessionHasErrors('email');
         $this->assertGuest();
 
+        $mismatchedAction = $this->post(self::LOGIN_PATH, [
+            'email' => $user->email,
+            'password' => self::VALID_TEST_PASSWORD,
+            self::TURNSTILE_FIELD => 'sandbox-action-token',
+        ]);
+        $mismatchedAction->assertSessionHasErrors('email');
+        $this->assertGuest();
+
         $passed = $this->post(self::LOGIN_PATH, [
             'email' => $user->email,
-            'password' => 'password',
-            'cf-turnstile-response' => 'valid-token',
+            'password' => self::VALID_TEST_PASSWORD,
+            self::TURNSTILE_FIELD => 'valid-token',
         ]);
         $passed->assertRedirect(route('dashboard'));
         $this->assertAuthenticatedAs($user);
@@ -177,28 +192,51 @@ class BotAndSecurityHardeningTest extends TestCase
         config()->set('services.turnstile.hostnames', ['mysubshield.me']);
 
         Http::fake([
-            'https://challenges.cloudflare.com/turnstile/v0/siteverify' => Http::sequence()
-                ->push(['success' => true, 'hostname' => 'evil-clone.test'], 200)
-                ->push(['success' => true, 'hostname' => 'mysubshield.me'], 200),
+            self::TURNSTILE_VERIFY_URL => Http::sequence()
+                ->push(['success' => true, 'hostname' => 'evil-clone.test', 'action' => 'login'], 200)
+                ->push(['success' => true, 'hostname' => 'mysubshield.me', 'action' => 'login'], 200),
         ]);
 
         $user = User::factory()->create(['email' => 'hostcheck@example.com']);
 
         $wrongHost = $this->post(self::LOGIN_PATH, [
             'email' => $user->email,
-            'password' => 'password',
-            'cf-turnstile-response' => 'foreign-token',
+            'password' => self::VALID_TEST_PASSWORD,
+            self::TURNSTILE_FIELD => 'foreign-token',
         ]);
         $wrongHost->assertSessionHasErrors('email');
         $this->assertGuest();
 
         $validHost = $this->post(self::LOGIN_PATH, [
             'email' => $user->email,
-            'password' => 'password',
-            'cf-turnstile-response' => 'valid-token',
+            'password' => self::VALID_TEST_PASSWORD,
+            self::TURNSTILE_FIELD => 'valid-token',
         ]);
         $validHost->assertRedirect(route('dashboard'));
         $this->assertAuthenticatedAs($user);
+    }
+
+    public function test_reset_password_renders_and_enforces_turnstile_when_configured(): void
+    {
+        config()->set('services.turnstile.site_key', 'test-site-key');
+        config()->set('services.turnstile.secret_key', 'test-secret-key');
+
+        $resetView = $this->get('/reset-password/sample-token');
+        $resetView->assertOk();
+        $resetView->assertSee('data-action="reset-password"', false);
+
+        Http::fake([
+            self::TURNSTILE_VERIFY_URL => Http::response(['success' => false], 200),
+        ]);
+
+        $blocked = $this->post('/reset-password', [
+            'token' => 'sample-token',
+            'email' => 'user@example.com',
+            'password' => 'NewPassword123',
+            'password_confirmation' => 'NewPassword123',
+            self::TURNSTILE_FIELD => 'bad-token',
+        ]);
+        $blocked->assertSessionHasErrors('email');
     }
 
     public function test_login_route_enforces_volumetric_ip_rate_limit(): void

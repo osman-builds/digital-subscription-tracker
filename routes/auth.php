@@ -18,26 +18,26 @@ Route::middleware('guest')->group(function () {
         ->name('register');
 
     Route::post('register', [RegisteredUserController::class, 'store'])
-        ->middleware([RejectBotSubmissions::class, 'throttle:5,10']);
+        ->middleware([RejectBotSubmissions::class.':register', 'throttle:5,10']);
 
     Route::get('login', [AuthenticatedSessionController::class, 'create'])
         ->name('login');
 
     Route::post('login', [AuthenticatedSessionController::class, 'store'])
-        ->middleware([RejectBotSubmissions::class, 'throttle:20,1']);
+        ->middleware([RejectBotSubmissions::class.':login', 'throttle:20,1']);
 
     Route::get('forgot-password', [PasswordResetLinkController::class, 'create'])
         ->name('password.request');
 
     Route::post('forgot-password', [PasswordResetLinkController::class, 'store'])
-        ->middleware([RejectBotSubmissions::class, 'throttle:5,10'])
+        ->middleware([RejectBotSubmissions::class.':forgot-password', 'throttle:5,10'])
         ->name('password.email');
 
     Route::get('reset-password/{token}', [NewPasswordController::class, 'create'])
         ->name('password.reset');
 
     Route::post('reset-password', [NewPasswordController::class, 'store'])
-        ->middleware('throttle:5,10')
+        ->middleware([RejectBotSubmissions::class.':reset-password', 'throttle:5,10'])
         ->name('password.store');
 });
 

@@ -19,7 +19,7 @@ class RejectBotSubmissions
 
     private const VERIFY_URL = 'https://challenges.cloudflare.com/turnstile/v0/siteverify';
 
-    public function handle(Request $request, Closure $next): Response
+    public function handle(Request $request, Closure $next, ?string $expectedAction = null): Response
     {
         if ($request->filled(self::HONEYPOT_FIELD)) {
             return back()
@@ -30,7 +30,7 @@ class RejectBotSubmissions
         $siteKey = (string) config('services.turnstile.site_key', '');
         $secretKey = (string) config('services.turnstile.secret_key', '');
 
-        if ($siteKey !== '' && $secretKey !== '' && ! $this->verifyTurnstile($request, $secretKey)) {
+        if ($siteKey !== '' && $secretKey !== '' && ! $this->verifyTurnstile($request, $secretKey, $expectedAction)) {
             return back()
                 ->withInput($request->except('password', 'password_confirmation'))
                 ->withErrors(['email' => 'Bot verification failed. Please complete the challenge and try again.']);
@@ -39,7 +39,7 @@ class RejectBotSubmissions
         return $next($request);
     }
 
-    private function verifyTurnstile(Request $request, string $secretKey): bool
+    private function verifyTurnstile(Request $request, string $secretKey, ?string $expectedAction): bool
     {
         $token = (string) $request->input(self::TURNSTILE_FIELD, '');
         if ($token === '') {
@@ -55,7 +55,8 @@ class RejectBotSubmissions
 
             return $response->successful()
                 && (bool) $response->json('success', false)
-                && $this->matchesAllowedHostnames((string) $response->json('hostname', ''));
+                && $this->matchesAllowedHostnames((string) $response->json('hostname', ''))
+                && $this->matchesExpectedAction((string) $response->json('action', ''), $expectedAction);
         } catch (\Throwable) {
             return false;
         }
@@ -69,5 +70,14 @@ class RejectBotSubmissions
         }
 
         return in_array(strtolower($hostname), array_map('strtolower', $allowedHostnames), true);
+    }
+
+    private function matchesExpectedAction(string $actualAction, ?string $expectedAction): bool
+    {
+        if ($expectedAction === null || $expectedAction === '') {
+            return true;
+        }
+
+        return $actualAction === $expectedAction;
     }
 }

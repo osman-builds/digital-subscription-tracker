@@ -76,7 +76,7 @@
                     </div>
                 </div>
 
-                <x-bot-protection />
+                <x-bot-protection action="login" />
 
                 <button type="submit" class="btn btn-primary w-100 py-2 fw-semibold">
                     <i class="bi bi-box-arrow-in-right me-2"></i>Sign In

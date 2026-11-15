@@ -1,3 +1,5 @@
+@props(['action' => 'auth'])
+
 @php
     $turnstileSiteKey = config('services.turnstile.site_key');
     $turnstileEnabled = filled($turnstileSiteKey) && filled(config('services.turnstile.secret_key'));
@@ -10,7 +12,7 @@
 
 @if($turnstileEnabled)
     <div class="mb-3">
-        <div class="cf-turnstile" data-sitekey="{{ $turnstileSiteKey }}" data-theme="light"></div>
+        <div class="cf-turnstile" data-sitekey="{{ $turnstileSiteKey }}" data-action="{{ $action }}" data-theme="light"></div>
     </div>
     @once
         <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>

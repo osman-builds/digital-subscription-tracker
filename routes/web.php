@@ -23,7 +23,7 @@ Route::get('/', function () {
 Route::middleware('guest')->group(function () {
     Route::get('/demo', [DemoSandboxController::class, 'show'])->name('demo.show');
     Route::post('/demo/start', [DemoSandboxController::class, 'start'])
-        ->middleware([RejectBotSubmissions::class, 'throttle:5,10'])
+        ->middleware([RejectBotSubmissions::class.':sandbox', 'throttle:5,10'])
         ->name('demo.start');
 });
 

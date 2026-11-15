@@ -37,7 +37,7 @@ class DemoSandboxIsolationTest extends TestCase
         Http::fake([
             'https://challenges.cloudflare.com/turnstile/v0/siteverify' => Http::sequence()
                 ->push(['success' => false], 200)
-                ->push(['success' => true, 'hostname' => 'mysubshield.me'], 200),
+                ->push(['success' => true, 'hostname' => 'mysubshield.me', 'action' => 'sandbox'], 200),
         ]);
 
         $failed = $this->post(route('demo.start'), [

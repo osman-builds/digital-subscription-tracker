@@ -40,6 +40,8 @@
             </div>
         </div>
 
+        <x-bot-protection action="reset-password" />
+
         <button type="submit" class="btn btn-indigo w-100 fw-semibold py-2">
             <i class="bi bi-check-circle me-1"></i>Reset Password
         </button>
