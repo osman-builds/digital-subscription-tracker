@@ -256,6 +256,68 @@ class BotAndSecurityHardeningTest extends TestCase
         $throttled->assertStatus(429);
     }
 
+    public function test_automated_script_user_agents_are_blocked_immediately(): void
+    {
+        $response = $this->withHeaders([
+            'User-Agent' => 'python-requests/2.31.0',
+        ])->post(self::LOGIN_PATH, [
+            'email' => 'bot@example.com',
+            'password' => self::VALID_TEST_PASSWORD,
+        ]);
+
+        $response->assertStatus(403);
+        $this->assertStringContainsString('Automated script activity detected', (string) $response->getContent());
+        $this->assertGuest();
+    }
+
+    public function test_tampered_client_device_token_is_rejected(): void
+    {
+        $failed = $this->post(self::LOGIN_PATH, [
+            'email' => 'user@example.com',
+            'password' => self::VALID_TEST_PASSWORD,
+            'client_device_token' => 'invalid-non-base64-payload!!',
+        ]);
+        $failed->assertSessionHasErrors('email');
+        $this->assertGuest();
+
+        $validToken = base64_encode(json_encode([
+            'sw' => 1920,
+            'sh' => 1080,
+            'cd' => 24,
+            'tp' => 0,
+            'hc' => 8,
+            'tz' => -480,
+        ]));
+
+        $user = User::factory()->create();
+        $passed = $this->post(self::LOGIN_PATH, [
+            'email' => $user->email,
+            'password' => self::VALID_TEST_PASSWORD,
+            'client_device_token' => $validToken,
+        ]);
+        $passed->assertRedirect(route('dashboard'));
+        $this->assertAuthenticatedAs($user);
+    }
+
+    public function test_repeated_bot_violations_trigger_temporary_ip_jail(): void
+    {
+        for ($i = 0; $i < 3; $i++) {
+            $this->post(self::LOGIN_PATH, [
+                'email' => 'attacker@example.com',
+                'password' => self::VALID_TEST_PASSWORD,
+                'website_hp' => 'bot-honeypot-trap',
+            ]);
+        }
+
+        $jailed = $this->post(self::LOGIN_PATH, [
+            'email' => 'attacker@example.com',
+            'password' => self::VALID_TEST_PASSWORD,
+        ]);
+
+        $jailed->assertStatus(429);
+        $this->assertStringContainsString('Access temporarily restricted', (string) $jailed->getContent());
+    }
+
     public function test_robots_txt_disallows_authenticated_routes_and_allows_root(): void
     {
         $robots = file_get_contents(public_path('robots.txt'));

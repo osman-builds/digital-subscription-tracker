@@ -2,82 +2,104 @@
 
 namespace App\Http\Middleware;
 
+use App\Services\BotDefenseService;
 use Closure;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Http;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
- * Reject automated bot form submissions using an invisible honeypot field
- * and optional Cloudflare Turnstile verification when keys are configured.
+ * Reject automated bot form submissions using script signature detection,
+ * temporary IP jailing, invisible honeypot traps, client hardware token validation,
+ * and Cloudflare Turnstile verification.
  */
 class RejectBotSubmissions
 {
     private const HONEYPOT_FIELD = 'website_hp';
 
-    private const TURNSTILE_FIELD = 'cf-turnstile-response';
+    private const DEVICE_TOKEN_FIELD = 'client_device_token';
 
-    private const VERIFY_URL = 'https://challenges.cloudflare.com/turnstile/v0/siteverify';
+    private const ERR_BOT_FAILED = 'Unable to process this submission.';
+
+    private const ERR_TURNSTILE_FAILED = 'Bot verification failed. Please complete the challenge and try again.';
+
+    private const MSG_ACCESS_RESTRICTED = 'Access temporarily restricted due to suspicious automated activity.';
+
+    private const MSG_AUTOMATED_SCRIPT = 'Forbidden: Automated script activity detected.';
+
+    public function __construct(
+        private readonly BotDefenseService $botDefense
+    ) {}
 
     public function handle(Request $request, Closure $next, ?string $expectedAction = null): Response
     {
-        if ($request->filled(self::HONEYPOT_FIELD)) {
-            return back()
-                ->withInput($request->except('password', 'password_confirmation'))
-                ->withErrors(['email' => 'Unable to process this submission.']);
-        }
-
-        $siteKey = (string) config('services.turnstile.site_key', '');
-        $secretKey = (string) config('services.turnstile.secret_key', '');
-
-        if ($siteKey !== '' && $secretKey !== '' && ! $this->verifyTurnstile($request, $secretKey, $expectedAction)) {
-            return back()
-                ->withInput($request->except('password', 'password_confirmation'))
-                ->withErrors(['email' => 'Bot verification failed. Please complete the challenge and try again.']);
+        $blockedResponse = $this->checkBotViolations($request, $expectedAction);
+        if ($blockedResponse !== null) {
+            return $blockedResponse;
         }
 
         return $next($request);
     }
 
-    private function verifyTurnstile(Request $request, string $secretKey, ?string $expectedAction): bool
+    private function checkBotViolations(Request $request, ?string $expectedAction): ?Response
     {
-        $token = (string) $request->input(self::TURNSTILE_FIELD, '');
-        if ($token === '') {
+        $ip = (string) $request->ip();
+
+        $instantBlock = $this->checkInstantBlocks($request, $ip);
+        if ($instantBlock !== null) {
+            return $instantBlock;
+        }
+
+        return $this->checkFormBotTriggers($request, $ip, $expectedAction);
+    }
+
+    private function checkInstantBlocks(Request $request, string $ip): ?Response
+    {
+        if ($this->botDefense->isIpJailed($ip)) {
+            return response(self::MSG_ACCESS_RESTRICTED, 429);
+        }
+
+        if ($this->botDefense->isSuspiciousScript($request)) {
+            $this->botDefense->recordViolation($ip);
+
+            return response(self::MSG_AUTOMATED_SCRIPT, 403);
+        }
+
+        return null;
+    }
+
+    private function checkFormBotTriggers(Request $request, string $ip, ?string $expectedAction): ?Response
+    {
+        if ($request->filled(self::HONEYPOT_FIELD) || $this->botDefense->isDeviceTokenTampered($request->input(self::DEVICE_TOKEN_FIELD))) {
+            $this->botDefense->recordViolation($ip);
+
+            return $this->backWithBotError($request, self::ERR_BOT_FAILED);
+        }
+
+        if ($this->failsTurnstile($request, $expectedAction)) {
+            $this->botDefense->recordViolation($ip);
+
+            return $this->backWithBotError($request, self::ERR_TURNSTILE_FAILED);
+        }
+
+        return null;
+    }
+
+    private function failsTurnstile(Request $request, ?string $expectedAction): bool
+    {
+        $siteKey = (string) config('services.turnstile.site_key', '');
+        $secretKey = (string) config('services.turnstile.secret_key', '');
+
+        if ($siteKey === '' || $secretKey === '') {
             return false;
         }
 
-        try {
-            $response = Http::timeout(3)->asForm()->post(self::VERIFY_URL, [
-                'secret' => $secretKey,
-                'response' => $token,
-                'remoteip' => $request->ip(),
-            ]);
-
-            return $response->successful()
-                && (bool) $response->json('success', false)
-                && $this->matchesAllowedHostnames((string) $response->json('hostname', ''))
-                && $this->matchesExpectedAction((string) $response->json('action', ''), $expectedAction);
-        } catch (\Throwable) {
-            return false;
-        }
+        return ! $this->botDefense->verifyTurnstile($request, $secretKey, $expectedAction);
     }
 
-    private function matchesAllowedHostnames(string $hostname): bool
+    private function backWithBotError(Request $request, string $errorMessage): Response
     {
-        $allowedHostnames = (array) config('services.turnstile.hostnames', []);
-        if ($allowedHostnames === []) {
-            return true;
-        }
-
-        return in_array(strtolower($hostname), array_map('strtolower', $allowedHostnames), true);
-    }
-
-    private function matchesExpectedAction(string $actualAction, ?string $expectedAction): bool
-    {
-        if ($expectedAction === null || $expectedAction === '') {
-            return true;
-        }
-
-        return $actualAction === $expectedAction;
+        return back()
+            ->withInput($request->except('password', 'password_confirmation'))
+            ->withErrors(['email' => $errorMessage]);
     }
 }
