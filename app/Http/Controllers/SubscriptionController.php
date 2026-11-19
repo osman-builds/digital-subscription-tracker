@@ -168,6 +168,7 @@ class SubscriptionController extends Controller
 
         $validated = $request->validate($this->subscriptionRules());
         $validated['user_id'] = auth()->id();
+        $validated['is_trial'] = $request->boolean('is_trial');
         $validated['amount_myr'] = $this->fx->toMyr((float) $validated['amount'], $validated['currency']);
 
         if (auth()->user()->isSandbox()) {
@@ -209,6 +210,7 @@ class SubscriptionController extends Controller
         $this->normalizeUrls($request);
 
         $validated = $request->validate($this->subscriptionRules());
+        $validated['is_trial'] = $request->boolean('is_trial');
         $validated['amount_myr'] = $this->fx->toMyr((float) $validated['amount'], $validated['currency']);
 
         if (auth()->user()->isSandbox()) {
@@ -222,6 +224,21 @@ class SubscriptionController extends Controller
 
         return redirect()->route('subscriptions.index')
             ->with('success', "Subscription \"{$subscription->name}\" updated!");
+    }
+
+    public function renew(Subscription $subscription)
+    {
+        $this->authorize($subscription);
+
+        if (auth()->user()->isSandbox()) {
+            $this->sandboxSubscriptions->advanceCycle(auth()->id(), $subscription);
+
+            return back()->with('success', "Renewal cycle advanced for \"{$subscription->name}\" (sandbox session only)!");
+        }
+
+        $subscription->advanceBillingCycle();
+
+        return back()->with('success', "Billing cycle advanced for \"{$subscription->name}\"! Next billing date is {$subscription->next_billing_date?->format('M d, Y')}.");
     }
 
     public function destroy(Subscription $subscription)
@@ -369,8 +386,11 @@ class SubscriptionController extends Controller
             'start_date' => 'required|date',
             'next_billing_date' => 'required|date',
             'status' => 'required|in:active,inactive,cancelled',
+            'is_trial' => 'nullable|boolean',
+            'trial_ends_at' => 'nullable|date',
             'category_id' => ['nullable', $categoryRule],
             'website_url' => 'nullable|url:http,https|max:255',
+            'cancellation_url' => 'nullable|url:http,https|max:255',
             'logo_url' => 'nullable|url:http,https|max:255',
             'notes' => 'nullable|string|max:500',
         ];

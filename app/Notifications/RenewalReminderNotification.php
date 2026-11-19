@@ -52,7 +52,8 @@ class RenewalReminderNotification extends Notification
                 $originalContext = " ({$subSymbol} ".number_format((float) $sub->amount, 2)." {$sub->currency})";
             }
 
-            $mail->line("• **{$sub->name}** — {$symbol} {$amountInBase}{$originalContext} (Due {$dueText} on {$sub->next_billing_date->format('M d, Y')})");
+            $trialTag = $sub->is_trial ? ' [FREE TRIAL]' : '';
+            $mail->line("• **{$sub->name}**{$trialTag} — {$symbol} {$amountInBase}{$originalContext} (Due {$dueText} on {$sub->next_billing_date->format('M d, Y')})");
         }
 
         return $mail

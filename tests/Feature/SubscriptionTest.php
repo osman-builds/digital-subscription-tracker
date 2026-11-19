@@ -148,4 +148,75 @@ class SubscriptionTest extends TestCase
         $this->assertStringContainsString("'=cmd|calc!A0", $content);
         $this->assertStringContainsString("'+formula_test", $content);
     }
+
+    public function test_user_can_create_trial_subscription_with_cancellation_url(): void
+    {
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user)->post(route('subscriptions.store'), [
+            'name' => 'Figma Pro Trial',
+            'amount' => '12.00',
+            'currency' => 'USD',
+            'billing_cycle' => 'monthly',
+            'status' => 'active',
+            'start_date' => now()->toDateString(),
+            'next_billing_date' => now()->addDays(14)->toDateString(),
+            'is_trial' => '1',
+            'trial_ends_at' => now()->addDays(14)->toDateString(),
+            'cancellation_url' => 'https://figma.com/settings/billing',
+        ]);
+
+        $response->assertRedirect(route('subscriptions.index'));
+
+        $sub = Subscription::where('name', 'Figma Pro Trial')->first();
+        $this->assertNotNull($sub);
+        $this->assertTrue($sub->is_trial);
+        $this->assertEquals(now()->addDays(14)->toDateString(), $sub->trial_ends_at->toDateString());
+        $this->assertEquals('https://figma.com/settings/billing', $sub->cancellation_url);
+    }
+
+    public function test_user_can_renew_and_advance_billing_cycle(): void
+    {
+        $user = User::factory()->create();
+        $initialBillingDate = now()->addDays(2)->startOfDay();
+
+        $sub = Subscription::create([
+            'user_id' => $user->id,
+            'name' => 'Spotify Family',
+            'amount' => '16.99',
+            'currency' => 'USD',
+            'billing_cycle' => 'monthly',
+            'status' => 'active',
+            'start_date' => now()->subMonth()->toDateString(),
+            'next_billing_date' => $initialBillingDate->toDateString(),
+        ]);
+
+        $response = $this->actingAs($user)->post(route('subscriptions.renew', $sub));
+
+        $response->assertRedirect();
+        $response->assertSessionHas('success');
+
+        $sub->refresh();
+        $this->assertEquals($initialBillingDate->copy()->addMonth()->toDateString(), $sub->next_billing_date->toDateString());
+    }
+
+    public function test_cannot_renew_other_users_subscription(): void
+    {
+        $user = User::factory()->create();
+        $otherUser = User::factory()->create();
+
+        $sub = Subscription::create([
+            'user_id' => $otherUser->id,
+            'name' => 'Other Netflix',
+            'amount' => '15.99',
+            'currency' => 'USD',
+            'billing_cycle' => 'monthly',
+            'status' => 'active',
+            'start_date' => now()->subMonth()->toDateString(),
+            'next_billing_date' => now()->addDays(3)->toDateString(),
+        ]);
+
+        $response = $this->actingAs($user)->post(route('subscriptions.renew', $sub));
+        $response->assertForbidden();
+    }
 }

@@ -25,11 +25,10 @@ class DashboardController extends Controller
                 ->active()
                 ->get();
 
-            $dueSoon = Subscription::with('category')
-                ->forUser($userId)
-                ->dueSoon(7)
-                ->orderBy('next_billing_date')
-                ->get();
+            $dueSoon = $subscriptions
+                ->filter(fn ($s) => $s->daysUntilRenewal() <= 7 && $s->daysUntilRenewal() >= 0)
+                ->sortBy('next_billing_date')
+                ->values();
         }
 
         $totalMonthly = $subscriptions->sum(fn ($s) => $s->monthlyAmountIn($baseCurrency));

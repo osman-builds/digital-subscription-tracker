@@ -110,7 +110,12 @@
                             <x-brand-logo :subscription="$sub" :size="38" rounded="rounded-2" />
                         </div>
                         <div class="flex-grow-1">
-                            <div class="fw-semibold">{{ $sub->name }}</div>
+                            <div class="fw-semibold">
+                                {{ $sub->name }}
+                                @if($sub->is_trial)
+                                    <span class="badge bg-warning text-dark ms-1" style="font-size: 0.7rem;"><i class="bi bi-gift me-1"></i>Trial</span>
+                                @endif
+                            </div>
                             <small class="text-muted">{{ $sub->next_billing_date->format('M d, Y') }}</small>
                         </div>
                         <div class="text-end">
@@ -123,6 +128,12 @@
                                 {{ $days === 0 ? 'Today!' : ($days === 1 ? 'Tomorrow' : "in {$days} days") }}
                             </small></div>
                         </div>
+                        <form action="{{ route('subscriptions.renew', $sub) }}" method="POST" class="ms-3">
+                            @csrf
+                            <button type="submit" class="btn btn-sm btn-outline-success py-1 px-2" title="Mark as Paid & Advance Cycle">
+                                <i class="bi bi-check2"></i> <span class="d-none d-sm-inline">Paid</span>
+                            </button>
+                        </form>
                     </div>
                 @empty
                     <div class="text-center py-5 text-muted">

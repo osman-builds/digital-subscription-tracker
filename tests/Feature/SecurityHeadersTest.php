@@ -21,6 +21,9 @@ class SecurityHeadersTest extends TestCase
         $csp = (string) $response->headers->get('Content-Security-Policy');
         $this->assertStringContainsString("default-src 'self'", $csp);
         $this->assertStringContainsString('https://cdn.jsdelivr.net', $csp);
+        $this->assertStringContainsString('https://challenges.cloudflare.com', $csp);
+        $this->assertStringContainsString("worker-src 'self' blob:", $csp);
+        $this->assertStringContainsString("child-src 'self' https://challenges.cloudflare.com blob:", $csp);
     }
 
     public function test_hsts_header_is_attached_on_https_requests(): void

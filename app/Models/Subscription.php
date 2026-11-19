@@ -20,7 +20,10 @@ class Subscription extends Model
         'start_date',
         'next_billing_date',
         'status',
+        'is_trial',
+        'trial_ends_at',
         'website_url',
+        'cancellation_url',
         'logo_url',
         'notes',
     ];
@@ -32,6 +35,8 @@ class Subscription extends Model
             'category_id' => 'integer',
             'start_date' => 'date',
             'next_billing_date' => 'date',
+            'trial_ends_at' => 'date',
+            'is_trial' => 'boolean',
             'amount' => 'decimal:2',
             'amount_myr' => 'decimal:2',
         ];
@@ -164,6 +169,43 @@ class Subscription extends Model
         return (int) now()->startOfDay()->diffInDays($this->next_billing_date, false);
     }
 
+    /** Advance billing date to next renewal cycle */
+    public function advanceBillingCycle(): self
+    {
+        $current = $this->next_billing_date ?? now();
+        $base = $current->isPast() ? now() : $current;
+
+        $nextDate = match ($this->billing_cycle) {
+            'weekly' => $base->copy()->addWeek(),
+            'monthly' => $base->copy()->addMonth(),
+            'quarterly' => $base->copy()->addMonths(3),
+            'semi_annual' => $base->copy()->addMonths(6),
+            'annual' => $base->copy()->addYear(),
+            default => $base->copy()->addMonth(),
+        };
+
+        $this->next_billing_date = $nextDate;
+        if ($this->is_trial && $this->trial_ends_at?->isPast()) {
+            $this->is_trial = false;
+        }
+
+        $this->save();
+
+        return $this;
+    }
+
+    /** Whether free trial is currently active */
+    public function isTrialActive(): bool
+    {
+        return (bool) $this->is_trial && $this->trial_ends_at !== null && $this->trial_ends_at->isFuture();
+    }
+
+    /** Days until free trial ends */
+    public function daysUntilTrialEnds(): ?int
+    {
+        return $this->trial_ends_at ? (int) now()->startOfDay()->diffInDays($this->trial_ends_at->startOfDay(), false) : null;
+    }
+
     // -------------------------------------------------------------------------
     // Scopes
     // -------------------------------------------------------------------------
@@ -182,6 +224,16 @@ class Subscription extends Model
     {
         return $query->where('status', 'active')
             ->whereBetween('next_billing_date', [
+                now()->toDateString(),
+                now()->addDays($days)->toDateString(),
+            ]);
+    }
+
+    public function scopeTrialExpiringSoon($query, int $days = 3)
+    {
+        return $query->where('status', 'active')
+            ->where('is_trial', true)
+            ->whereBetween('trial_ends_at', [
                 now()->toDateString(),
                 now()->addDays($days)->toDateString(),
             ]);

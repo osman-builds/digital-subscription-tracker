@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Category;
 use App\Models\Subscription;
+use Carbon\Carbon;
 use Illuminate\Support\Collection;
 
 /**
@@ -72,7 +73,10 @@ class SandboxSubscriptionStore
             'start_date' => $attributes['start_date'],
             'next_billing_date' => $attributes['next_billing_date'],
             'status' => $attributes['status'],
+            'is_trial' => (bool) ($attributes['is_trial'] ?? false),
+            'trial_ends_at' => $attributes['trial_ends_at'] ?? null,
             'website_url' => $attributes['website_url'] ?? null,
+            'cancellation_url' => $attributes['cancellation_url'] ?? null,
             'logo_url' => $attributes['logo_url'] ?? null,
             'notes' => $attributes['notes'] ?? null,
         ];
@@ -101,6 +105,35 @@ class SandboxSubscriptionStore
         $this->sandbox->ensureInitialized($userId);
         $subscriptions = (array) session(SandboxService::KEY_SUBSCRIPTIONS, []);
         unset($subscriptions[(int) $subscription->id]);
+        session([SandboxService::KEY_SUBSCRIPTIONS => $subscriptions]);
+    }
+
+    public function advanceCycle(int $userId, Subscription $subscription): void
+    {
+        $this->sandbox->ensureInitialized($userId);
+        $subscriptions = (array) session(SandboxService::KEY_SUBSCRIPTIONS, []);
+        $id = (int) $subscription->id;
+        abort_if(! isset($subscriptions[$id]), 404);
+
+        $current = $subscription->next_billing_date ?? now();
+        $base = $current->isPast() ? now() : $current;
+        $nextDate = match ($subscription->billing_cycle) {
+            'weekly' => $base->copy()->addWeek(),
+            'monthly' => $base->copy()->addMonth(),
+            'quarterly' => $base->copy()->addMonths(3),
+            'semi_annual' => $base->copy()->addMonths(6),
+            'annual' => $base->copy()->addYear(),
+            default => $base->copy()->addMonth(),
+        };
+
+        $subscriptions[$id]['next_billing_date'] = $nextDate->format('Y-m-d');
+        if (! empty($subscriptions[$id]['is_trial'])) {
+            $trialEnd = isset($subscriptions[$id]['trial_ends_at']) ? Carbon::parse($subscriptions[$id]['trial_ends_at']) : null;
+            if ($trialEnd && $trialEnd->isPast()) {
+                $subscriptions[$id]['is_trial'] = false;
+            }
+        }
+
         session([SandboxService::KEY_SUBSCRIPTIONS => $subscriptions]);
     }
 

@@ -9,6 +9,14 @@
     </a>
     <h4 class="mb-0 fw-bold">{{ $subscription->name }}</h4>
     <div class="ms-auto d-flex gap-2">
+        @if($subscription->status === 'active')
+            <form action="{{ route('subscriptions.renew', $subscription) }}" method="POST" class="d-inline">
+                @csrf
+                <button type="submit" class="btn btn-outline-success btn-sm" title="Advance to next billing cycle">
+                    <i class="bi bi-arrow-repeat me-1"></i>Advance Cycle
+                </button>
+            </form>
+        @endif
         <a href="{{ route('subscriptions.edit', $subscription) }}" class="btn btn-outline-primary btn-sm">
             <i class="bi bi-pencil me-1"></i>Edit
         </a>
@@ -37,7 +45,12 @@
                             </span>
                         @endif
                     </div>
-                    <div class="ms-auto">
+                    <div class="ms-auto d-flex align-items-center gap-2">
+                        @if($subscription->is_trial)
+                            <span class="badge bg-warning text-dark fs-6">
+                                <i class="bi bi-gift me-1"></i>Free Trial
+                            </span>
+                        @endif
                         @if($subscription->status === 'active')
                             <span class="badge bg-success fs-6">Active</span>
                         @elseif($subscription->status === 'inactive')
@@ -91,6 +104,19 @@
                         <div class="col-12 mt-2">
                             <div class="text-muted small fw-semibold">NOTES</div>
                             <div>{{ $subscription->notes }}</div>
+                        </div>
+                    @endif
+                    @php
+                        $safeCancelUrl = $subscription->cancellation_url && in_array(strtolower((string) parse_url($subscription->cancellation_url, PHP_URL_SCHEME)), ['http', 'https'], true)
+                            ? $subscription->cancellation_url
+                            : null;
+                    @endphp
+                    @if($safeCancelUrl)
+                        <div class="col-12 mt-3 pt-2 border-top">
+                            <div class="text-muted small fw-semibold mb-1">CANCELLATION PAGE</div>
+                            <a href="{{ $safeCancelUrl }}" target="_blank" rel="noopener noreferrer" class="btn btn-outline-warning btn-sm">
+                                <i class="bi bi-box-arrow-up-right me-1"></i>Direct Cancellation Page
+                            </a>
                         </div>
                     @endif
                 </div>

@@ -75,7 +75,14 @@
                                 <div class="d-flex align-items-center gap-2">
                                     <x-brand-logo :subscription="$sub" :size="34" rounded="rounded-2" />
                                     <div>
-                                        <div class="fw-semibold">{{ $sub->name }}</div>
+                                        <div class="fw-semibold">
+                                            {{ $sub->name }}
+                                            @if($sub->is_trial)
+                                                <span class="badge bg-warning text-dark ms-1" style="font-size: 0.72rem;">
+                                                    <i class="bi bi-gift me-1"></i>Trial
+                                                </span>
+                                            @endif
+                                        </div>
                                         @if($sub->description)
                                             <small class="text-muted">{{ Str::limit($sub->description, 40) }}</small>
                                         @endif
@@ -117,6 +124,20 @@
                                 @endif
                             </td>
                             <td class="pe-4 text-end">
+                                @if($sub->status === 'active')
+                                    <form action="{{ route('subscriptions.renew', $sub) }}" method="POST" class="d-inline">
+                                        @csrf
+                                        <button type="submit" class="btn btn-sm btn-outline-success me-1" title="Mark as Paid & Advance Cycle">
+                                            <i class="bi bi-arrow-repeat"></i>
+                                        </button>
+                                    </form>
+                                @endif
+                                @if($sub->cancellation_url)
+                                    <a href="{{ $sub->cancellation_url }}" target="_blank" rel="noopener noreferrer"
+                                       class="btn btn-sm btn-outline-warning me-1" title="Direct Cancellation Page">
+                                        <i class="bi bi-box-arrow-up-right"></i>
+                                    </a>
+                                @endif
                                 <a href="{{ route('subscriptions.show', $sub) }}"
                                    class="btn btn-sm btn-outline-secondary me-1" title="View">
                                     <i class="bi bi-eye"></i>

@@ -36,6 +36,8 @@ Route::middleware(['auth', 'verified', EnsureSandboxSessionValid::class])->group
     Route::get('/subscriptions/resolve-icon', [SubscriptionController::class, 'resolveIcon'])
         ->middleware('throttle:60,1')
         ->name('subscriptions.resolve_icon');
+    Route::post('/subscriptions/{subscription}/renew', [SubscriptionController::class, 'renew'])
+        ->name('subscriptions.renew');
     Route::resource('subscriptions', SubscriptionController::class);
 
     Route::resource('categories', CategoryController::class)->except(['show', 'create', 'edit']);
