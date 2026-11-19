@@ -77,28 +77,6 @@ class SubscriptionTest extends TestCase
         $this->assertStringContainsString('spotify.com', (string) $sub->logo_url);
     }
 
-    public function test_unlisted_brand_name_automatically_infers_domain_and_logo(): void
-    {
-        $user = User::factory()->create();
-
-        $response = $this->actingAs($user)->post(route('subscriptions.store'), [
-            'name' => 'Figma',
-            'amount' => '15.00',
-            'currency' => 'USD',
-            'billing_cycle' => 'monthly',
-            'status' => 'active',
-            'start_date' => now()->toDateString(),
-            'next_billing_date' => now()->addMonth()->toDateString(),
-        ]);
-
-        $response->assertRedirect(route('subscriptions.index'));
-
-        $sub = Subscription::where('name', 'Figma')->first();
-        $this->assertNotNull($sub);
-        $this->assertEquals('https://figma.com', $sub->website_url);
-        $this->assertStringContainsString('figma.com', (string) $sub->logo_url);
-    }
-
     public function test_user_can_export_subscriptions_to_csv(): void
     {
         $user = User::factory()->create();

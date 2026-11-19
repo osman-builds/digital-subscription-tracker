@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Category;
 use App\Models\Subscription;
+use App\Rules\SecurePublicUrl;
 use App\Services\BrandIconService;
 use App\Services\FxRateService;
 use App\Services\SandboxCategoryStore;
@@ -261,10 +262,11 @@ class SubscriptionController extends Controller
 
     // -------------------------------------------------------------------------
 
-    /** Normalize website URL and auto-fill logo URL if needed */
+    /** Normalize website and cancellation URLs and auto-fill logo URL if needed */
     private function normalizeUrls(Request $request): void
     {
         $this->normalizeWebsiteUrl($request);
+        $this->normalizeCancellationUrl($request);
         $this->inferBrandDetailsFromName($request);
         $this->inferNameFromWebsite($request);
     }
@@ -276,10 +278,12 @@ class SubscriptionController extends Controller
         }
 
         $url = trim((string) $request->input('website_url'));
-        if (! preg_match('~^(?:[a-z][a-z0-9+.-]*://|javascript:|data:|vbscript:)~i', $url)) {
+        if (str_starts_with(strtolower($url), 'http://')) {
+            $url = 'https://'.substr($url, 7);
+        } elseif (! preg_match('~^(?:[a-z][a-z0-9+.-]*://|javascript:|data:|vbscript:)~i', $url)) {
             $url = 'https://'.$url;
-            $request->merge(['website_url' => $url]);
         }
+        $request->merge(['website_url' => $url]);
 
         if (! $request->filled('logo_url')) {
             $cleanHost = $this->brandIcons->cleanHost($url);
@@ -291,6 +295,21 @@ class SubscriptionController extends Controller
         }
     }
 
+    private function normalizeCancellationUrl(Request $request): void
+    {
+        if (! $request->filled('cancellation_url')) {
+            return;
+        }
+
+        $url = trim((string) $request->input('cancellation_url'));
+        if (str_starts_with(strtolower($url), 'http://')) {
+            $url = 'https://'.substr($url, 7);
+        } elseif (! preg_match('~^(?:[a-z][a-z0-9+.-]*://|javascript:|data:|vbscript:)~i', $url)) {
+            $url = 'https://'.$url;
+        }
+        $request->merge(['cancellation_url' => $url]);
+    }
+
     private function inferBrandDetailsFromName(Request $request): void
     {
         if (! $request->filled('name') || $request->filled('website_url')) {
@@ -299,23 +318,13 @@ class SubscriptionController extends Controller
 
         $matched = $this->brandIcons->matchByName((string) $request->input('name'));
 
-        $domain = $matched !== null
-            ? $matched['domain']
-            : $this->inferDomainFromBrandName((string) $request->input('name'));
-
-        if ($domain !== '') {
+        if ($matched !== null) {
+            $domain = $matched['domain'];
             $request->merge([
                 'website_url' => "https://{$domain}",
                 'logo_url' => $this->brandIcons->googleFaviconUrl($domain),
             ]);
         }
-    }
-
-    private function inferDomainFromBrandName(string $name): string
-    {
-        $clean = strtolower((string) preg_replace('/[^a-z0-9]/i', '', $name));
-
-        return strlen($clean) >= 2 ? "{$clean}.com" : '';
     }
 
     private function inferNameFromWebsite(Request $request): void
@@ -399,9 +408,9 @@ class SubscriptionController extends Controller
             'is_trial' => 'nullable|boolean',
             'trial_ends_at' => 'nullable|date',
             'category_id' => ['nullable', $categoryRule],
-            'website_url' => 'nullable|url:http,https|max:255',
-            'cancellation_url' => 'nullable|url:http,https|max:255',
-            'logo_url' => 'nullable|url:http,https|max:255',
+            'website_url' => ['nullable', 'max:255', new SecurePublicUrl],
+            'cancellation_url' => ['nullable', 'max:255', new SecurePublicUrl],
+            'logo_url' => ['nullable', 'max:255', new SecurePublicUrl],
             'notes' => 'nullable|string|max:500',
         ];
     }

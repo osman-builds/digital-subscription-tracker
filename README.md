@@ -20,7 +20,7 @@
   <img src="https://img.shields.io/badge/Bot%20Defense-Cloudflare%20Turnstile-F38020?style=flat-square&logo=cloudflare&logoColor=white" alt="Cloudflare Turnstile">
   <img src="https://img.shields.io/badge/Security-Zero%20File%20Uploads-10B981?style=flat-square&logo=shield&logoColor=white" alt="Zero File Uploads">
   <img src="https://img.shields.io/badge/CI%2FCD-GitHub_Actions-2088FF?style=flat-square&logo=githubactions&logoColor=white" alt="CI/CD">
-  <img src="https://img.shields.io/badge/Tests-97%20Passed%20(469%20assertions)-success?style=flat-square" alt="Test Suite">
+  <img src="https://img.shields.io/badge/Tests-102%20Passed%20(491%20assertions)-success?style=flat-square" alt="Test Suite">
   <img src="https://img.shields.io/badge/Lighthouse-100%2F100-success?style=flat-square&logo=googlechrome&logoColor=white" alt="Lighthouse 100/100">
   <img src="https://img.shields.io/badge/License-MIT-blue?style=flat-square" alt="License MIT">
 </p>
@@ -190,7 +190,7 @@ php artisan test --compact
 
 ## Quality & Testing Metrics
 
-* **Automated Unit & Feature Tests:** 97 passed (469 assertions, 0 failures).
+* **Automated Unit & Feature Tests:** 102 passed (491 assertions, 0 failures).
 * **Code Style:** Formatted and validated against PSR-12 / Laravel standards via Laravel Pint.
 * **Chrome DevTools Lighthouse Audit:**
   - Accessibility: **100 / 100**
