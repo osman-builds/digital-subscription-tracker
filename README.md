@@ -19,6 +19,7 @@
   <img src="https://img.shields.io/badge/MySQL-8.0-4479A1?style=flat-square&logo=mysql&logoColor=white" alt="MySQL 8.0">
   <img src="https://img.shields.io/badge/Bot%20Defense-Cloudflare%20Turnstile-F38020?style=flat-square&logo=cloudflare&logoColor=white" alt="Cloudflare Turnstile">
   <img src="https://img.shields.io/badge/Security-Zero%20File%20Uploads-10B981?style=flat-square&logo=shield&logoColor=white" alt="Zero File Uploads">
+  <a href="https://sonarcloud.io/summary/new_code?id=osman-builds_digital-subscription-tracker"><img src="https://sonarcloud.io/api/project_badges/quality_gate?project=osman-builds_digital-subscription-tracker&token=790f61f35ee3a9c567797eba3cf53ff89e8fb186" alt="Quality Gate Status"></a>
   <img src="https://img.shields.io/badge/CI%2FCD-GitHub_Actions-2088FF?style=flat-square&logo=githubactions&logoColor=white" alt="CI/CD">
   <img src="https://img.shields.io/badge/Tests-102%20Passed%20(491%20assertions)-success?style=flat-square" alt="Test Suite">
   <img src="https://img.shields.io/badge/Lighthouse-100%2F100-success?style=flat-square&logo=googlechrome&logoColor=white" alt="Lighthouse 100/100">
@@ -135,37 +136,6 @@ npm run build
 
 # 6. Start the local server
 php artisan serve
-```
-
-### Environment Variables (.env.example)
-
-Configure your local or production environment using placeholder credentials:
-
-```dotenv
-APP_NAME=SubShield
-APP_ENV=local
-APP_KEY=
-APP_DEBUG=true
-APP_URL=http://127.0.0.1:8000
-
-DB_CONNECTION=mysql
-DB_HOST=127.0.0.1
-DB_PORT=3306
-DB_DATABASE=subscription_tracker
-DB_USERNAME=root
-DB_PASSWORD=
-
-# Transactional Mail (Resend)
-MAIL_MAILER=resend
-RESEND_API_KEY=your_resend_api_key_here
-
-# Foreign Exchange Currency Rates
-EXCHANGE_RATE_API_KEY=your_exchangerate_api_key_here
-
-# Cloudflare Turnstile Bot Defense (Optional - active when configured)
-TURNSTILE_SITE_KEY=your_turnstile_site_key_here
-TURNSTILE_SECRET_KEY=your_turnstile_secret_key_here
-TURNSTILE_HOSTNAMES=mysubshield.me,localhost,127.0.0.1
 ```
 
 ---
