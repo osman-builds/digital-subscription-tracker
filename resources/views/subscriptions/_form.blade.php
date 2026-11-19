@@ -79,6 +79,10 @@
             Type any domain to resolve its icon automatically.
             <button type="button" id="btnToggleCustomLogo" class="btn btn-link btn-sm p-0 ms-1 text-decoration-none align-baseline">Custom icon URL</button>
         </div>
+        <div id="tldSuggestionWrapper" class="mt-1 d-none">
+            <span class="small text-muted me-1">Quick domain:</span>
+            <span id="tldPillsContainer" class="d-inline-flex flex-wrap gap-1"></span>
+        </div>
         @error('website_url')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
     </div>
 
@@ -315,6 +319,39 @@ document.addEventListener('DOMContentLoaded', function() {
     const btnDismissTypo = document.getElementById('btnDismissTypo');
     const detectedAlert = document.getElementById('smartDetectedAlert');
     const detectedNameText = document.getElementById('detectedNameText');
+    const tldWrapper = document.getElementById('tldSuggestionWrapper');
+    const tldContainer = document.getElementById('tldPillsContainer');
+    const commonTlds = ['.com', '.io', '.app', '.ai', '.co', '.org'];
+
+    function renderTldPills(brandClean, selectedTld) {
+        if (!tldWrapper || !tldContainer || !brandClean || brandClean.length < 2) {
+            if (tldWrapper) {
+                tldWrapper.classList.add('d-none');
+            }
+            return;
+        }
+
+        tldContainer.innerHTML = '';
+        commonTlds.forEach(function(tld) {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'btn btn-xs py-0 px-2 rounded-pill ' + (tld === selectedTld ? 'btn-primary text-white' : 'btn-outline-secondary');
+            btn.style.fontSize = '0.72rem';
+            btn.textContent = tld;
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                const newDomain = brandClean + tld;
+                urlInput.value = 'https://' + newDomain;
+                urlInput.dataset.autoInferred = 'true';
+                if (!userEditedLogoManually) {
+                    setPreviewWithFallbacks(getGoogleFaviconUrl(newDomain), newDomain);
+                }
+                renderTldPills(brandClean, tld);
+            });
+            tldContainer.appendChild(btn);
+        });
+        tldWrapper.classList.remove('d-none');
+    }
 
     const serviceDatabase = @json($brandCatalog ?? []);
     const resolveIconEndpoint = @json(route('subscriptions.resolve_icon'));
@@ -416,6 +453,9 @@ document.addEventListener('DOMContentLoaded', function() {
     function applyService(service, overwriteUrl = true) {
         currentPendingCorrection = null;
         typoAlert.classList.add('d-none');
+        if (tldWrapper) {
+            tldWrapper.classList.add('d-none');
+        }
 
         nameInput.value = service.name;
         if (overwriteUrl) {
@@ -591,17 +631,41 @@ document.addEventListener('DOMContentLoaded', function() {
 
             const match = checkFuzzyMatch(val, false);
             if (match && match.type === 'exact') {
-                applyService(match.service, !urlInput.value.trim());
+                applyService(match.service, !urlInput.value.trim() || urlInput.dataset.autoInferred === 'true');
+                if (tldWrapper) {
+                    tldWrapper.classList.add('d-none');
+                }
             } else if (match && match.type === 'typo') {
                 showTypoSuggestion(match.service);
+                if (tldWrapper) {
+                    tldWrapper.classList.add('d-none');
+                }
             } else {
                 typoAlert.classList.add('d-none');
+                const clean = normalizeString(val);
+                if (clean && clean.length >= 2) {
+                    const candidateDomain = clean + '.com';
+                    if (!urlInput.value.trim() || urlInput.dataset.autoInferred === 'true') {
+                        urlInput.value = 'https://' + candidateDomain;
+                        urlInput.dataset.autoInferred = 'true';
+                    }
+                    if (!userEditedLogoManually) {
+                        setPreviewWithFallbacks(getGoogleFaviconUrl(candidateDomain), candidateDomain);
+                    }
+                    renderTldPills(clean, '.com');
+                } else if (tldWrapper) {
+                    tldWrapper.classList.add('d-none');
+                }
             }
         }, 200);
     });
 
     // Event handler for typing into Website URL (never mutates cursor mid-typing)
     urlInput.addEventListener('input', function() {
+        this.dataset.autoInferred = 'false';
+        if (tldWrapper) {
+            tldWrapper.classList.add('d-none');
+        }
         clearTimeout(debounceTimer);
         debounceTimer = setTimeout(() => {
             const val = urlInput.value.trim();

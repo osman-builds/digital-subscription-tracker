@@ -299,13 +299,23 @@ class SubscriptionController extends Controller
 
         $matched = $this->brandIcons->matchByName((string) $request->input('name'));
 
-        if ($matched !== null) {
-            $domain = $matched['domain'];
+        $domain = $matched !== null
+            ? $matched['domain']
+            : $this->inferDomainFromBrandName((string) $request->input('name'));
+
+        if ($domain !== '') {
             $request->merge([
                 'website_url' => "https://{$domain}",
                 'logo_url' => $this->brandIcons->googleFaviconUrl($domain),
             ]);
         }
+    }
+
+    private function inferDomainFromBrandName(string $name): string
+    {
+        $clean = strtolower((string) preg_replace('/[^a-z0-9]/i', '', $name));
+
+        return strlen($clean) >= 2 ? "{$clean}.com" : '';
     }
 
     private function inferNameFromWebsite(Request $request): void
