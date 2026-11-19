@@ -9,6 +9,7 @@ use App\Services\BrandIconService;
 use App\Services\FxRateService;
 use App\Services\SandboxCategoryStore;
 use App\Services\SandboxSubscriptionStore;
+use App\Services\SubscriptionUrlNormalizer;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -22,6 +23,7 @@ class SubscriptionController extends Controller
         private BrandIconService $brandIcons,
         private SandboxCategoryStore $sandboxCategories,
         private SandboxSubscriptionStore $sandboxSubscriptions,
+        private SubscriptionUrlNormalizer $urlNormalizer,
     ) {}
 
     /** Resolve the best available brand icon and metadata for a domain. */
@@ -165,7 +167,7 @@ class SubscriptionController extends Controller
 
     public function store(Request $request)
     {
-        $this->normalizeUrls($request);
+        $this->urlNormalizer->normalize($request);
 
         $validated = $request->validate($this->subscriptionRules());
         $validated['user_id'] = auth()->id();
@@ -208,7 +210,7 @@ class SubscriptionController extends Controller
     public function update(Request $request, Subscription $subscription)
     {
         $this->authorize($subscription);
-        $this->normalizeUrls($request);
+        $this->urlNormalizer->normalize($request);
 
         $validated = $request->validate($this->subscriptionRules());
         $validated['is_trial'] = $request->boolean('is_trial');
@@ -258,86 +260,6 @@ class SubscriptionController extends Controller
 
         return redirect()->route('subscriptions.index')
             ->with('success', "Subscription \"{$name}\" deleted.");
-    }
-
-    // -------------------------------------------------------------------------
-
-    /** Normalize website and cancellation URLs and auto-fill logo URL if needed */
-    private function normalizeUrls(Request $request): void
-    {
-        $this->normalizeWebsiteUrl($request);
-        $this->normalizeCancellationUrl($request);
-        $this->inferBrandDetailsFromName($request);
-        $this->inferNameFromWebsite($request);
-    }
-
-    private function normalizeWebsiteUrl(Request $request): void
-    {
-        if (! $request->filled('website_url')) {
-            return;
-        }
-
-        $url = trim((string) $request->input('website_url'));
-        if (str_starts_with(strtolower($url), 'http://')) {
-            $url = 'https://'.substr($url, 7);
-        } elseif (! preg_match('~^(?:[a-z][a-z0-9+.-]*://|javascript:|data:|vbscript:)~i', $url)) {
-            $url = 'https://'.$url;
-        }
-        $request->merge(['website_url' => $url]);
-
-        if (! $request->filled('logo_url')) {
-            $cleanHost = $this->brandIcons->cleanHost($url);
-            if ($cleanHost !== '') {
-                $request->merge([
-                    'logo_url' => $this->brandIcons->googleFaviconUrl($cleanHost),
-                ]);
-            }
-        }
-    }
-
-    private function normalizeCancellationUrl(Request $request): void
-    {
-        if (! $request->filled('cancellation_url')) {
-            return;
-        }
-
-        $url = trim((string) $request->input('cancellation_url'));
-        if (str_starts_with(strtolower($url), 'http://')) {
-            $url = 'https://'.substr($url, 7);
-        } elseif (! preg_match('~^(?:[a-z][a-z0-9+.-]*://|javascript:|data:|vbscript:)~i', $url)) {
-            $url = 'https://'.$url;
-        }
-        $request->merge(['cancellation_url' => $url]);
-    }
-
-    private function inferBrandDetailsFromName(Request $request): void
-    {
-        if (! $request->filled('name') || $request->filled('website_url')) {
-            return;
-        }
-
-        $matched = $this->brandIcons->matchByName((string) $request->input('name'));
-
-        if ($matched !== null) {
-            $domain = $matched['domain'];
-            $request->merge([
-                'website_url' => "https://{$domain}",
-                'logo_url' => $this->brandIcons->googleFaviconUrl($domain),
-            ]);
-        }
-    }
-
-    private function inferNameFromWebsite(Request $request): void
-    {
-        if ($request->filled('name') || ! $request->filled('website_url')) {
-            return;
-        }
-
-        $host = parse_url((string) $request->input('website_url'), PHP_URL_HOST) ?? '';
-        $cleanHost = preg_replace('/^www\./', '', (string) $host);
-        $parts = explode('.', $cleanHost);
-        $derivedName = ucfirst($parts[0] ?? 'Subscription');
-        $request->merge(['name' => $derivedName]);
     }
 
     // -------------------------------------------------------------------------

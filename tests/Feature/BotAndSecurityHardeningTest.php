@@ -25,6 +25,8 @@ class BotAndSecurityHardeningTest extends TestCase
 
     private const VALID_TEST_PASSWORD = 'password';
 
+    private const BOT_TEST_EMAIL = 'bot@example.com';
+
     public function test_dashboard_and_expenditure_charts_hex_escape_category_names(): void
     {
         $user = User::factory()->create();
@@ -127,13 +129,13 @@ class BotAndSecurityHardeningTest extends TestCase
 
         $registerResponse = $this->post('/register', [
             'name' => 'Bot User',
-            'email' => 'bot@example.com',
+            'email' => self::BOT_TEST_EMAIL,
             'password' => 'Password123',
             'password_confirmation' => 'Password123',
             'website_hp' => 'spam',
         ]);
         $registerResponse->assertSessionHasErrors('email');
-        $this->assertDatabaseMissing('users', ['email' => 'bot@example.com']);
+        $this->assertDatabaseMissing('users', ['email' => self::BOT_TEST_EMAIL]);
 
         $forgotResponse = $this->post('/forgot-password', [
             'email' => $user->email,
@@ -261,7 +263,7 @@ class BotAndSecurityHardeningTest extends TestCase
         $response = $this->withHeaders([
             'User-Agent' => 'python-requests/2.31.0',
         ])->post(self::LOGIN_PATH, [
-            'email' => 'bot@example.com',
+            'email' => self::BOT_TEST_EMAIL,
             'password' => self::VALID_TEST_PASSWORD,
         ]);
 

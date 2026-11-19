@@ -16,6 +16,8 @@ class SubscriptionTest extends TestCase
 
     private const NETFLIX_URL = 'https://netflix.com';
 
+    private const NETFLIX_AMOUNT = '15.99';
+
     public function test_create_subscription_screen_renders_successfully(): void
     {
         $user = User::factory()->create();
@@ -37,7 +39,7 @@ class SubscriptionTest extends TestCase
         $response = $this->actingAs($user)->post(route('subscriptions.store'), [
             'name' => self::NETFLIX_PREMIUM,
             'website_url' => 'netflix.com',
-            'amount' => '15.99',
+            'amount' => self::NETFLIX_AMOUNT,
             'currency' => 'USD',
             'billing_cycle' => 'monthly',
             'status' => 'active',
@@ -89,7 +91,7 @@ class SubscriptionTest extends TestCase
             'category_id' => $category->id,
             'name' => self::NETFLIX_PREMIUM,
             'website_url' => self::NETFLIX_URL,
-            'amount' => '15.99',
+            'amount' => self::NETFLIX_AMOUNT,
             'currency' => 'USD',
             'amount_myr' => '71.95',
             'billing_cycle' => 'monthly',
@@ -208,7 +210,7 @@ class SubscriptionTest extends TestCase
         $sub = Subscription::create([
             'user_id' => $otherUser->id,
             'name' => 'Other Netflix',
-            'amount' => '15.99',
+            'amount' => self::NETFLIX_AMOUNT,
             'currency' => 'USD',
             'billing_cycle' => 'monthly',
             'status' => 'active',

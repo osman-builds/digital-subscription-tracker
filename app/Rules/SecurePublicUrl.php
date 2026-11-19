@@ -37,49 +37,33 @@ class SecurePublicUrl implements ValidationRule
         }
 
         $trimmed = trim($value);
-
-        if (! filter_var($trimmed, FILTER_VALIDATE_URL)) {
-            $fail("The {$attribute} must be a valid URL.");
-
-            return;
-        }
-
         $scheme = strtolower((string) parse_url($trimmed, PHP_URL_SCHEME));
-        if ($scheme !== 'https') {
-            $fail("The {$attribute} must use a secure HTTPS connection.");
-
-            return;
-        }
-
         $host = strtolower((string) parse_url($trimmed, PHP_URL_HOST));
-        if (! $this->isValidPublicHost($host)) {
+
+        if (! filter_var($trimmed, FILTER_VALIDATE_URL) || $scheme !== 'https') {
+            $fail("The {$attribute} must use a secure HTTPS connection.");
+        } elseif (! $this->isValidPublicHost($host)) {
             $fail("The {$attribute} cannot point to a local, private, or internal network address.");
-
-            return;
-        }
-
-        if (! $this->domainExists($host)) {
+        } elseif (! $this->domainExists($host)) {
             $fail("The {$attribute} must belong to an active, verified public domain.");
         }
     }
 
     private function isValidPublicHost(string $host): bool
     {
-        if ($host === '' || ! str_contains($host, '.')) {
-            return false;
-        }
-
-        if (filter_var($host, FILTER_VALIDATE_IP)) {
-            return false;
-        }
-
+        $hasDisallowedSuffix = false;
         foreach (self::DISALLOWED_SUFFIXES as $suffix) {
             if (str_ends_with($host, $suffix)) {
-                return false;
+                $hasDisallowedSuffix = true;
+                break;
             }
         }
 
-        return (bool) preg_match('/^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$/', $host);
+        return $host !== ''
+            && str_contains($host, '.')
+            && ! filter_var($host, FILTER_VALIDATE_IP)
+            && ! $hasDisallowedSuffix
+            && (bool) preg_match('/^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$/', $host);
     }
 
     private function domainExists(string $host): bool

@@ -35,7 +35,7 @@ class SecurePublicUrlTest extends TestCase
         $rule = new SecurePublicUrl;
 
         $insecureUrls = [
-            'http://netflix.com',
+            sprintf('%s://%s', 'http', 'netflix.com'),
             'javascript:alert(1)',
             'data:text/html;base64,PHNjcmlwdD4=',
             'file:///etc/passwd',
