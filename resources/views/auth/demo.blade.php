@@ -88,4 +88,6 @@
     <a href="{{ route('register') }}" class="fw-semibold text-decoration-none">Create Free Account</a>
     <a href="{{ route('login') }}" class="text-muted text-decoration-none">Sign In</a>
 </div>
+
+<x-ai-chat-bubble mode="concierge" />
 @endsection

@@ -479,5 +479,6 @@
 })();
 </script>
 @stack('scripts')
+<x-ai-chat-bubble mode="copilot" />
 </body>
 </html>

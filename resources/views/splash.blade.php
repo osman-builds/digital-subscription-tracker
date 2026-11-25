@@ -31,6 +31,14 @@
             --text-muted: #94a3b8;
         }
 
+        html {
+            scroll-behavior: smooth;
+        }
+
+        .section-wrap {
+            scroll-margin-top: 85px;
+        }
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             background-color: var(--bg-base);
@@ -680,7 +688,8 @@
 </section>
 
 {{-- ── Core Intelligence Features (Bento Grid) ─────────────────────────── --}}
-<section class="section-wrap" id="features">
+<section class="section-wrap" id="intelligence">
+    <div id="features" style="position: relative; top: -85px; visibility: hidden;"></div>
     <div class="container">
         <div class="text-center mb-5">
             <span class="badge bg-primary bg-opacity-20 text-indigo-light px-3 py-2 mb-3 fw-bold" style="border-radius: 100px;">
@@ -972,5 +981,7 @@
         });
     });
 </script>
+
+<x-ai-chat-bubble mode="concierge" />
 </body>
 </html>

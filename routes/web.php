@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AiChatController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DemoSandboxController;
@@ -28,6 +29,11 @@ Route::middleware('guest')->group(function () {
         ->middleware([RejectBotSubmissions::class.':sandbox', 'throttle:5,10'])
         ->name('demo.start');
 });
+
+// ── Public AI Concierge (rate-limited per IP) ──────────────────────────────
+Route::post('/api/ai/concierge', [AiChatController::class, 'concierge'])
+    ->middleware('throttle:10,1')
+    ->name('ai.concierge');
 
 // ── Protected routes (require login) ─────────────────────────────────────
 Route::middleware(['auth', 'verified', EnsureSandboxSessionValid::class])->group(function () {
@@ -68,6 +74,11 @@ Route::middleware(['auth', 'verified', EnsureSandboxSessionValid::class])->group
     Route::patch('/settings/password', [SettingsController::class, 'updatePassword'])->name('settings.password');
     Route::delete('/settings/account', [SettingsController::class, 'deleteAccount'])->name('settings.delete_account');
     Route::post('/settings/dark-mode', [SettingsController::class, 'updateDarkMode'])->name('settings.dark_mode');
+
+    // ── Personal Financial AI Copilot (user/session scoped) ─────────────────
+    Route::post('/api/ai/copilot', [AiChatController::class, 'copilot'])
+        ->middleware('throttle:20,1')
+        ->name('ai.copilot');
 });
 
 // ── Authentication routes ──────────────────────────────────────────────────
