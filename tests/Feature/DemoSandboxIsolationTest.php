@@ -169,4 +169,52 @@ class DemoSandboxIsolationTest extends TestCase
         Http::assertNothingSent();
         Notification::assertNothingSent();
     }
+
+    public function test_demo_sandbox_prepopulates_rich_structured_intelligence_data_and_isolated_stores(): void
+    {
+        $this->post(route('demo.start'))->assertRedirect(route('dashboard'));
+
+        $dashboard = $this->get(route('dashboard'));
+        $dashboard->assertOk();
+        $dashboard->assertSee('Netflix');
+        $dashboard->assertSee('ChatGPT Plus');
+        $dashboard->assertSee('Optimization Score');
+        $dashboard->assertSee('Overlap(s)');
+
+        $expenditure = $this->get(route('expenditure.index'));
+        $expenditure->assertOk();
+        $expenditure->assertSee('12-Month Cashflow Spike Forecast');
+        $expenditure->assertSee('Price Creep Tracker');
+        $expenditure->assertSee('Recent Billing Ledger (FX Snapshots)');
+
+        $subscriptions = session('sandbox.subscriptions', []);
+        $netflix = collect($subscriptions)->firstWhere('name', 'Netflix');
+        $this->assertNotNull($netflix);
+
+        $netflixPage = $this->get(route('subscriptions.show', $netflix['id']));
+        $netflixPage->assertOk();
+        $netflixPage->assertSee('Price Change History');
+        $netflixPage->assertSee('Billing Ledger History');
+        $netflixPage->assertSee('10.7%');
+
+        $applyResponse = $this->post(route('subscriptions.apply_receipt', $netflix['id']), [
+            'amount' => '17.99',
+            'currency' => 'USD',
+            'billing_cycle' => 'monthly',
+            'next_billing_date' => now()->addMonth()->toDateString(),
+            'input_source' => 'ai_pdf',
+        ]);
+        $applyResponse->assertRedirect(route('subscriptions.show', $netflix['id']));
+
+        $updatedNetflixPage = $this->get(route('subscriptions.show', $netflix['id']));
+        $updatedNetflixPage->assertOk();
+        $updatedNetflixPage->assertSee('17.99');
+
+        $this->assertDatabaseCount('users', 0);
+        $this->assertDatabaseCount('subscriptions', 0);
+        $this->assertDatabaseCount('billing_events', 0);
+        $this->assertDatabaseCount('subscription_price_histories', 0);
+        $this->assertDatabaseCount('insight_alerts', 0);
+        $this->assertDatabaseCount('user_settings', 0);
+    }
 }

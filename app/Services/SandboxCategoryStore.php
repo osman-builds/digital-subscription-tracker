@@ -18,6 +18,9 @@ class SandboxCategoryStore
         $this->sandbox->ensureInitialized($userId);
 
         $systemCategories = Category::whereNull('user_id')->orderBy('name')->get();
+        if ($systemCategories->isEmpty()) {
+            $systemCategories = $this->defaultVirtualCategories();
+        }
         $sessionItems = (array) session(SandboxService::KEY_CATEGORIES, []);
         $subscriptions = (array) session(SandboxService::KEY_SUBSCRIPTIONS, []);
 
@@ -110,6 +113,33 @@ class SandboxCategoryStore
             SandboxService::KEY_CATEGORIES => $categories,
             SandboxService::KEY_SUBSCRIPTIONS => $subscriptions,
         ]);
+    }
+
+    /** @return Collection<int, Category> */
+    public function defaultVirtualCategories(): Collection
+    {
+        $defaults = [
+            ['id' => 1, 'name' => 'Entertainment', 'color' => '#ef4444'],
+            ['id' => 2, 'name' => 'Productivity', 'color' => '#3b82f6'],
+            ['id' => 3, 'name' => 'Music', 'color' => '#a855f7'],
+            ['id' => 4, 'name' => 'Cloud Storage', 'color' => '#06b6d4'],
+            ['id' => 5, 'name' => 'Gaming', 'color' => '#f97316'],
+            ['id' => 6, 'name' => 'News & Reading', 'color' => '#10b981'],
+            ['id' => 7, 'name' => 'Health & Fitness', 'color' => '#ec4899'],
+            ['id' => 8, 'name' => 'Software & Dev', 'color' => '#6366f1'],
+        ];
+
+        return collect($defaults)->map(function (array $cat): Category {
+            $model = new Category;
+            $model->forceFill([
+                'id' => $cat['id'],
+                'user_id' => null,
+                'name' => $cat['name'],
+                'color' => $cat['color'],
+            ]);
+
+            return $model;
+        });
     }
 
     private function hydrate(array $item, int $userId): Category

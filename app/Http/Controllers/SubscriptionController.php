@@ -8,6 +8,7 @@ use App\Rules\SecurePublicUrl;
 use App\Services\BrandIconService;
 use App\Services\FxRateService;
 use App\Services\SandboxCategoryStore;
+use App\Services\SandboxService;
 use App\Services\SandboxSubscriptionStore;
 use App\Services\SubscriptionLedgerService;
 use App\Services\SubscriptionUrlNormalizer;
@@ -24,6 +25,7 @@ class SubscriptionController extends Controller
         private BrandIconService $brandIcons,
         private SandboxCategoryStore $sandboxCategories,
         private SandboxSubscriptionStore $sandboxSubscriptions,
+        private SandboxService $sandbox,
         private SubscriptionUrlNormalizer $urlNormalizer,
         private SubscriptionLedgerService $ledger,
     ) {}
@@ -198,7 +200,9 @@ class SubscriptionController extends Controller
     public function show(Subscription $subscription)
     {
         $this->authorize($subscription);
-        if (! auth()->user()->isSandbox()) {
+        if (auth()->user()->isSandbox()) {
+            $this->sandbox->hydrateRelations($subscription);
+        } else {
             $subscription->load([
                 'category',
                 'priceHistories' => fn ($query) => $query->latest('recorded_at')->limit(10),

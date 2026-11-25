@@ -168,8 +168,12 @@ class FinancialIntelligenceService
         Collection $activeSubscriptions,
         string $baseCurrency
     ): array {
-        if ($user->isSandbox() || $activeSubscriptions->isEmpty()) {
+        if ($activeSubscriptions->isEmpty()) {
             return ['items' => collect(), 'extra_yearly_cost' => 0.0];
+        }
+
+        if ($user->isSandbox()) {
+            return $this->collectSandboxPriceCreep($activeSubscriptions, $baseCurrency);
         }
 
         $subIds = $activeSubscriptions->pluck('id')->all();
@@ -207,6 +211,64 @@ class FinancialIntelligenceService
                 'recorded_at' => $hike->recorded_at,
             ];
         });
+
+        return [
+            'items' => $items,
+            'extra_yearly_cost' => round($extraYearly, 2),
+        ];
+    }
+
+    /**
+     * @param  Collection<int, Subscription>  $activeSubscriptions
+     * @return array<string, mixed>
+     */
+    private function collectSandboxPriceCreep(
+        Collection $activeSubscriptions,
+        string $baseCurrency
+    ): array {
+        $raw = (array) session(SandboxService::KEY_PRICE_HISTORIES, []);
+        if (empty($raw)) {
+            return ['items' => collect(), 'extra_yearly_cost' => 0.0];
+        }
+
+        $extraYearly = 0.0;
+        $subsById = $activeSubscriptions->keyBy('id');
+
+        $items = collect($raw)
+            ->where('change_amount', '>', 0)
+            ->unique('subscription_id')
+            ->map(function (array $hike) use ($subsById, $baseCurrency, &$extraYearly): ?array {
+                $subId = (int) $hike['subscription_id'];
+                $sub = $subsById->get($subId);
+                if ($sub === null) {
+                    return null;
+                }
+
+                $deltaBase = $this->fx->convert((float) $hike['change_amount'], (string) $hike['currency'], $baseCurrency);
+                $annualMultiplier = match ($sub->billing_cycle) {
+                    'weekly' => 52,
+                    'quarterly' => 4,
+                    'semi_annual' => 2,
+                    'annual' => 1,
+                    default => 12,
+                };
+                $annualImpact = round($deltaBase * $annualMultiplier, 2);
+                $extraYearly += $annualImpact;
+
+                return [
+                    'subscription_id' => $subId,
+                    'name' => $sub->name,
+                    'old_amount' => (float) $hike['old_amount'],
+                    'new_amount' => (float) $hike['new_amount'],
+                    'currency' => (string) $hike['currency'],
+                    'change_percent' => (float) $hike['change_percent'],
+                    'annual_impact_base' => $annualImpact,
+                    'detected_via' => (string) ($hike['detected_via'] ?? SandboxService::SOURCE_AI_SCAN),
+                    'recorded_at' => isset($hike['recorded_at']) ? Carbon::parse($hike['recorded_at']) : now(),
+                ];
+            })
+            ->filter()
+            ->values();
 
         return [
             'items' => $items,

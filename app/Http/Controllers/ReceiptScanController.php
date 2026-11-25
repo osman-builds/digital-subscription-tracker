@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Services\FxRateService;
 use App\Services\ReceiptScannerService;
 use App\Services\SandboxCategoryStore;
+use App\Services\SandboxService;
 use App\Services\SandboxSubscriptionStore;
 use App\Services\SubscriptionLedgerService;
 use Illuminate\Http\JsonResponse;
@@ -24,6 +25,7 @@ class ReceiptScanController extends Controller
         private readonly FxRateService $fx,
         private readonly SandboxCategoryStore $sandboxCategories,
         private readonly SandboxSubscriptionStore $sandboxSubscriptions,
+        private readonly SandboxService $sandbox,
     ) {}
 
     /**
@@ -118,6 +120,27 @@ class ReceiptScanController extends Controller
                 'next_billing_date' => $validated['next_billing_date'],
                 'input_source' => $inputSource,
             ]);
+
+            $oldAmount = (float) $subscription->amount;
+            if ($oldAmount > 0 && abs($oldAmount - $newAmount) >= 0.01) {
+                $this->sandbox->recordPriceHistory(
+                    $user->id,
+                    (int) $subscription->id,
+                    $oldAmount,
+                    $newAmount,
+                    $currency,
+                    SandboxService::SOURCE_AI_SCAN
+                );
+            }
+
+            $this->sandbox->recordBillingEvent(
+                $user->id,
+                (int) $subscription->id,
+                $newAmount,
+                $currency,
+                $validated['billing_cycle'],
+                SandboxService::SOURCE_AI_SCAN
+            );
 
             return redirect()->route('subscriptions.show', $subscription)
                 ->with('success', "Verified receipt applied to \"{$subscription->name}\" (sandbox session only)!");

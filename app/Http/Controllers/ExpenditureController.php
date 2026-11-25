@@ -6,6 +6,7 @@ use App\Models\BillingEvent;
 use App\Models\Subscription;
 use App\Services\FinancialIntelligenceService;
 use App\Services\FxRateService;
+use App\Services\SandboxService;
 use App\Services\SandboxSubscriptionStore;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -16,7 +17,8 @@ class ExpenditureController extends Controller
         Request $request,
         FxRateService $fx,
         SandboxSubscriptionStore $sandboxSubscriptions,
-        FinancialIntelligenceService $intelligenceService
+        FinancialIntelligenceService $intelligenceService,
+        SandboxService $sandbox
     ) {
         $year = (int) $request->get('year', now()->year);
         $user = auth()->user();
@@ -73,7 +75,7 @@ class ExpenditureController extends Controller
         $fxUpdatedAt = $fx->lastUpdated();
         $intelligence = $intelligenceService->analyze($user, $activeSubscriptions, $settings, false);
         $billingEvents = $user->isSandbox()
-            ? collect()
+            ? $sandbox->getBillingEvents($userId, null, $activeSubscriptions)
             : BillingEvent::with('subscription')
                 ->where('user_id', $userId)
                 ->latest('billed_at')

@@ -161,7 +161,7 @@
     </div>
 </div>
 
-@if(! auth()->user()->isSandbox() && ($subscription->priceHistories->isNotEmpty() || $subscription->billingEvents->isNotEmpty()))
+@if($subscription->priceHistories->isNotEmpty() || $subscription->billingEvents->isNotEmpty())
 <div class="row g-3 mt-1">
     <div class="col-12 col-md-6">
         <div class="card border-0 shadow-sm h-100">
