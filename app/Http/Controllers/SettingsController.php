@@ -58,9 +58,11 @@ class SettingsController extends Controller
 
         $user = auth()->user();
         $settings = $user->getSettings();
-        $monthlyBudget = $request->exists('monthly_budget')
-            ? ($validated['monthly_budget'] !== null ? round((float) $validated['monthly_budget'], 2) : null)
-            : ($settings->monthly_budget !== null ? (float) $settings->monthly_budget : null);
+        if ($request->exists('monthly_budget')) {
+            $monthlyBudget = $validated['monthly_budget'] !== null ? round((float) $validated['monthly_budget'], 2) : null;
+        } else {
+            $monthlyBudget = $settings->monthly_budget !== null ? (float) $settings->monthly_budget : null;
+        }
         $alertPercent = isset($validated['budget_alert_percent'])
             ? (int) $validated['budget_alert_percent']
             : (int) ($settings->budget_alert_percent ?? 80);

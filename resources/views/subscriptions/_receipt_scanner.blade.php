@@ -44,7 +44,7 @@
         </div>
 
         {{-- Verified HITL Result Banner --}}
-        <div id="scanSuccessBanner" class="alert alert-success py-2 px-3 mt-3 mb-0 small d-none" role="status">
+        <div id="scanSuccessBanner" class="alert alert-success py-2 px-3 mt-3 mb-0 small d-none" aria-live="polite">
             <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
                 <div>
                     <i class="bi bi-check-circle-fill me-1"></i>

@@ -56,8 +56,7 @@ class FinancialIntelligenceService
 
         $alerts = $this->resolveAlerts(
             $user,
-            $baseCurrency,
-            $symbol,
+            ['code' => $baseCurrency, 'symbol' => $symbol],
             $budget,
             $expiringTrials,
             $renewalSpikes,
@@ -479,6 +478,7 @@ class FinancialIntelligenceService
     }
 
     /**
+     * @param  array{code: string, symbol: string}  $currency
      * @param  array<string, mixed>  $budget
      * @param  Collection<int, array<string, mixed>>  $expiringTrials
      * @param  Collection<int, array<string, mixed>>  $renewalSpikes
@@ -487,8 +487,7 @@ class FinancialIntelligenceService
      */
     private function resolveAlerts(
         User $user,
-        string $baseCurrency,
-        string $symbol,
+        array $currency,
         array $budget,
         Collection $expiringTrials,
         Collection $renewalSpikes,
@@ -496,8 +495,8 @@ class FinancialIntelligenceService
         bool $syncAlerts
     ): Collection {
         $candidates = $this->buildAlertCandidates(
-            $baseCurrency,
-            $symbol,
+            $currency['code'],
+            $currency['symbol'],
             $budget,
             $expiringTrials,
             $renewalSpikes,

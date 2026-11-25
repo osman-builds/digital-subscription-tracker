@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Exceptions\ReceiptScanException;
 use App\Models\AiExtractionAudit;
 use App\Models\Category;
 use App\Models\Subscription;
@@ -15,7 +16,6 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Validation\ValidationException;
-use RuntimeException;
 
 /**
  * Ephemeral in-memory multimodal AI receipt and PDF invoice scanner.
@@ -273,7 +273,7 @@ class ReceiptScannerService
 
         if (! $response->successful()) {
             $message = (string) ($response->json('error.message') ?? 'Gemini AI service is temporarily unavailable.');
-            throw new RuntimeException($message, $response->status());
+            throw new ReceiptScanException($message, $response->status());
         }
 
         $text = (string) data_get($response->json(), 'candidates.0.content.parts.0.text', '');
@@ -360,12 +360,12 @@ class ReceiptScannerService
     {
         $cleaned = trim($rawText);
         if (str_starts_with($cleaned, '```')) {
-            $cleaned = (string) preg_replace('/^```(?:json)?\s*|\s*```$/i', '', $cleaned);
+            $cleaned = (string) preg_replace('/(?:^```(?:json)?\s*)|(?:\s*```$)/i', '', $cleaned);
         }
 
         $decoded = json_decode($cleaned, true);
         if (! is_array($decoded)) {
-            throw new RuntimeException('Unable to parse structured subscription data from the AI response.');
+            throw new ReceiptScanException('Unable to parse structured subscription data from the AI response.');
         }
 
         return $decoded;

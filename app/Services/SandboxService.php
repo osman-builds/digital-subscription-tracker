@@ -9,6 +9,7 @@ use App\Models\SubscriptionPriceHistory;
 use App\Models\User;
 use App\Models\UserSetting;
 use Carbon\Carbon;
+use Carbon\CarbonInterface;
 use Illuminate\Support\Collection;
 
 /**
@@ -59,6 +60,8 @@ class SandboxService
     private const DEFAULT_CURRENCY = 'MYR';
 
     private const DEFAULT_BUDGET_ALERT_PERCENT = 80;
+
+    private const GITHUB_COPILOT_NAME = 'GitHub Copilot';
 
     public function __construct(private FxRateService $fx) {}
 
@@ -342,10 +345,35 @@ class SandboxService
         }
 
         $today = now();
+        $templates = array_merge(
+            $this->buildCoreSampleSubscriptions($categoryMap, $today),
+            $this->buildExtendedSampleSubscriptions($categoryMap, $today)
+        );
+
+        $result = [];
+        $id = self::VIRTUAL_ID_START - 500;
+        foreach ($templates as $tpl) {
+            $id++;
+            $tpl['id'] = $id;
+            $tpl['user_id'] = $userId;
+            $tpl['amount_myr'] = $this->fx->convertForSandbox((float) $tpl['amount'], $tpl['currency'], self::DEFAULT_CURRENCY);
+            $result[$id] = $tpl;
+        }
+
+        return $result;
+    }
+
+    /**
+     * @param  Collection<string, int>  $categoryMap
+     * @param  CarbonInterface  $today
+     * @return array<int, array<string, mixed>>
+     */
+    private function buildCoreSampleSubscriptions($categoryMap, $today): array
+    {
         $cycleMonthly = 'monthly';
         $statusActive = 'active';
 
-        $templates = [
+        return [
             [
                 'name' => 'Netflix',
                 'description' => '4K Ultra HD family streaming plan',
@@ -395,7 +423,7 @@ class SandboxService
                 'notes' => null,
             ],
             [
-                'name' => 'GitHub Copilot',
+                'name' => self::GITHUB_COPILOT_NAME,
                 'description' => 'AI code completion for developers',
                 'amount' => 10.00,
                 'currency' => 'USD',
@@ -426,6 +454,20 @@ class SandboxService
                 'logo_url' => null,
                 'notes' => null,
             ],
+        ];
+    }
+
+    /**
+     * @param  Collection<string, int>  $categoryMap
+     * @param  CarbonInterface  $today
+     * @return array<int, array<string, mixed>>
+     */
+    private function buildExtendedSampleSubscriptions($categoryMap, $today): array
+    {
+        $cycleMonthly = 'monthly';
+        $statusActive = 'active';
+
+        return [
             [
                 'name' => 'Google One',
                 'description' => '2TB cloud storage with Gemini Advanced',
@@ -507,18 +549,6 @@ class SandboxService
                 'notes' => null,
             ],
         ];
-
-        $result = [];
-        $id = self::VIRTUAL_ID_START - 500;
-        foreach ($templates as $tpl) {
-            $id++;
-            $tpl['id'] = $id;
-            $tpl['user_id'] = $userId;
-            $tpl['amount_myr'] = $this->fx->convertForSandbox((float) $tpl['amount'], $tpl['currency'], self::DEFAULT_CURRENCY);
-            $result[$id] = $tpl;
-        }
-
-        return $result;
     }
 
     /**
@@ -562,14 +592,14 @@ class SandboxService
         $specs = [
             ['name' => 'Netflix', 'amount' => 15.49, 'currency' => 'USD', 'cycle' => 'monthly', 'days_ago' => 28, 'source' => self::SOURCE_AI_SCAN, 'fx' => 4.4500],
             ['name' => 'Spotify', 'amount' => 10.99, 'currency' => 'EUR', 'cycle' => 'monthly', 'days_ago' => 25, 'source' => self::SOURCE_RECURRING, 'fx' => 4.7000],
-            ['name' => 'GitHub Copilot', 'amount' => 10.00, 'currency' => 'USD', 'cycle' => 'monthly', 'days_ago' => 29, 'source' => self::SOURCE_RECURRING, 'fx' => 4.4500],
+            ['name' => self::GITHUB_COPILOT_NAME, 'amount' => 10.00, 'currency' => 'USD', 'cycle' => 'monthly', 'days_ago' => 29, 'source' => self::SOURCE_RECURRING, 'fx' => 4.4500],
             ['name' => 'iCloud+', 'amount' => 44.90, 'currency' => 'MYR', 'cycle' => 'monthly', 'days_ago' => 9, 'source' => self::SOURCE_RECURRING, 'fx' => 1.0000],
             ['name' => 'Google One', 'amount' => 42.99, 'currency' => 'MYR', 'cycle' => 'monthly', 'days_ago' => 18, 'source' => self::SOURCE_RECURRING, 'fx' => 1.0000],
             ['name' => 'Disney+', 'amount' => 39.90, 'currency' => 'MYR', 'cycle' => 'monthly', 'days_ago' => 14, 'source' => self::SOURCE_RECURRING, 'fx' => 1.0000],
             ['name' => 'Strava Summit', 'amount' => 24.90, 'currency' => 'MYR', 'cycle' => 'monthly', 'days_ago' => 12, 'source' => self::SOURCE_RECURRING, 'fx' => 1.0000],
             ['name' => 'Netflix', 'amount' => 13.99, 'currency' => 'USD', 'cycle' => 'monthly', 'days_ago' => 58, 'source' => self::SOURCE_RECURRING, 'fx' => 4.4200],
             ['name' => 'Spotify', 'amount' => 9.99, 'currency' => 'EUR', 'cycle' => 'monthly', 'days_ago' => 55, 'source' => self::SOURCE_RECURRING, 'fx' => 4.6800],
-            ['name' => 'GitHub Copilot', 'amount' => 10.00, 'currency' => 'USD', 'cycle' => 'monthly', 'days_ago' => 59, 'source' => self::SOURCE_RECURRING, 'fx' => 4.4200],
+            ['name' => self::GITHUB_COPILOT_NAME, 'amount' => 10.00, 'currency' => 'USD', 'cycle' => 'monthly', 'days_ago' => 59, 'source' => self::SOURCE_RECURRING, 'fx' => 4.4200],
         ];
 
         foreach ($specs as $spec) {

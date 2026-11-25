@@ -75,7 +75,6 @@ class ExpenditureController extends Controller
     /** Stream yearly expenditure report as an arranged CSV spreadsheet */
     public function exportCsv(
         Request $request,
-        FxRateService $fx,
         SandboxSubscriptionStore $sandboxSubscriptions,
         SandboxService $sandbox
     ): StreamedResponse {
@@ -120,73 +119,123 @@ class ExpenditureController extends Controller
         return response()->stream(function () use ($year, $user, $baseCurrency, $yearlyTotal, $monthly, $categoryBreakdown, $activeSubscriptions, $billingEvents): void {
             $handle = fopen('php://output', 'w');
             fwrite($handle, "\xEF\xBB\xBF");
-
-            // Header metadata block
-            fputcsv($handle, ["SubShield - Annual Expenditure Report ({$year})"]);
-            fputcsv($handle, ['Exported Date', now()->format('Y-m-d H:i:s')]);
-            fputcsv($handle, ['Account', $this->sanitizeCsv($user->name.' ('.$user->email.')')]);
-            fputcsv($handle, ['Base Currency', $baseCurrency]);
-            fputcsv($handle, ['Selected Year', $year]);
-            fputcsv($handle, ["Total Annual Spend ({$baseCurrency})", number_format($yearlyTotal, 2, '.', '')]);
-            fputcsv($handle, ["Average Monthly Spend ({$baseCurrency})", number_format($yearlyTotal / 12, 2, '.', '')]);
-            fputcsv($handle, []);
-
-            // 1. Monthly Breakdown Table
-            fputcsv($handle, ['MONTHLY EXPENDITURE BREAKDOWN']);
-            fputcsv($handle, ['Month', "Spend ({$baseCurrency})", '% of Annual']);
-            foreach ($monthly as $m) {
-                $pct = $yearlyTotal > 0 ? round(($m['total'] / $yearlyTotal) * 100, 1) : 0.0;
-                fputcsv($handle, [$m['month'].' '.$year, number_format($m['total'], 2, '.', ''), $pct.'%']);
-            }
-            fputcsv($handle, ['TOTAL', number_format($yearlyTotal, 2, '.', ''), '100.0%']);
-            fputcsv($handle, []);
-
-            // 2. Category Breakdown Table
-            fputcsv($handle, ['CATEGORY EXPENDITURE BREAKDOWN']);
-            fputcsv($handle, ['Category', "Yearly Spend ({$baseCurrency})", '% of Annual']);
-            foreach ($categoryBreakdown as $catName => $catTotal) {
-                $pct = $yearlyTotal > 0 ? round(($catTotal / $yearlyTotal) * 100, 1) : 0.0;
-                fputcsv($handle, [$this->sanitizeCsv($catName), number_format($catTotal, 2, '.', ''), $pct.'%']);
-            }
-            fputcsv($handle, []);
-
-            // 3. Subscriptions Annual Cost
-            fputcsv($handle, ['ANNUAL SUBSCRIPTION COSTS']);
-            fputcsv($handle, ['#', 'Subscription', 'Category', 'Cycle', 'Original Price', 'Original Currency', "Monthly ({$baseCurrency})", "Yearly ({$baseCurrency})"]);
-            $idx = 1;
-            foreach ($activeSubscriptions->sortByDesc(fn ($s) => $s->yearlyAmountIn($baseCurrency)) as $sub) {
-                fputcsv($handle, [
-                    $idx++,
-                    $this->sanitizeCsv($sub->name),
-                    $this->sanitizeCsv($sub->category?->name ?? 'Uncategorised'),
-                    $sub->billingCycleLabel(),
-                    number_format((float) $sub->amount, 2, '.', ''),
-                    $sub->currency,
-                    number_format($sub->monthlyAmountIn($baseCurrency), 2, '.', ''),
-                    number_format($sub->yearlyAmountIn($baseCurrency), 2, '.', ''),
-                ]);
-            }
-            fputcsv($handle, []);
-
-            // 4. Billing Ledger Events
-            if ($billingEvents->isNotEmpty()) {
-                fputcsv($handle, ['BILLING LEDGER AUDIT TRAIL (FX SNAPSHOTS)']);
-                fputcsv($handle, ['Billed Date', 'Subscription', 'Original Amount', 'Currency', 'FX Rate Snapshot', "Recorded Base ({$baseCurrency})", 'Source']);
-                foreach ($billingEvents as $ev) {
-                    fputcsv($handle, [
-                        $ev->billed_at?->format('Y-m-d') ?? '',
-                        $this->sanitizeCsv($ev->subscription?->name ?? 'Subscription'),
-                        number_format((float) $ev->amount, 2, '.', ''),
-                        $ev->currency,
-                        number_format((float) $ev->fx_rate_snapshot, 6, '.', ''),
-                        number_format((float) $ev->amount_base, 2, '.', ''),
-                        $ev->source,
-                    ]);
-                }
-            }
-
+            $this->streamExpenditureCsvContent($handle, $year, $user, $baseCurrency, $yearlyTotal, $monthly, $categoryBreakdown, $activeSubscriptions, $billingEvents);
             fclose($handle);
         }, 200, $headers);
+    }
+
+    /**
+     * @param  resource  $handle
+     * @param  Collection<int, mixed>  $monthly
+     * @param  Collection<string, float>  $categoryBreakdown
+     * @param  Collection<int, mixed>  $activeSubscriptions
+     * @param  Collection<int, mixed>  $billingEvents
+     */
+    private function streamExpenditureCsvContent(
+        $handle,
+        int $year,
+        $user,
+        string $baseCurrency,
+        float $yearlyTotal,
+        $monthly,
+        $categoryBreakdown,
+        $activeSubscriptions,
+        $billingEvents
+    ): void {
+        // Header metadata block
+        fputcsv($handle, ["SubShield - Annual Expenditure Report ({$year})"]);
+        fputcsv($handle, ['Exported Date', now()->format('Y-m-d H:i:s')]);
+        fputcsv($handle, ['Account', $this->sanitizeCsv($user->name.' ('.$user->email.')')]);
+        fputcsv($handle, ['Base Currency', $baseCurrency]);
+        fputcsv($handle, ['Selected Year', $year]);
+        fputcsv($handle, ["Total Annual Spend ({$baseCurrency})", number_format($yearlyTotal, 2, '.', '')]);
+        fputcsv($handle, ["Average Monthly Spend ({$baseCurrency})", number_format($yearlyTotal / 12, 2, '.', '')]);
+        fputcsv($handle, []);
+
+        $this->writeExpenditureMonthlyBreakdown($handle, $monthly, $year, $yearlyTotal, $baseCurrency);
+        $this->writeExpenditureCategoryBreakdown($handle, $categoryBreakdown, $yearlyTotal, $baseCurrency);
+        $this->writeExpenditureSubscriptionsBreakdown($handle, $activeSubscriptions, $baseCurrency);
+        $this->writeExpenditureBillingEvents($handle, $billingEvents, $baseCurrency);
+    }
+
+    /**
+     * @param  resource  $handle
+     * @param  Collection<int, mixed>  $monthly
+     */
+    private function writeExpenditureMonthlyBreakdown($handle, $monthly, int $year, float $yearlyTotal, string $baseCurrency): void
+    {
+        fputcsv($handle, ['MONTHLY EXPENDITURE BREAKDOWN']);
+        fputcsv($handle, ['Month', "Spend ({$baseCurrency})", '% of Annual']);
+        foreach ($monthly as $m) {
+            $pct = $yearlyTotal > 0 ? round(($m['total'] / $yearlyTotal) * 100, 1) : 0.0;
+            fputcsv($handle, [$m['month'].' '.$year, number_format($m['total'], 2, '.', ''), $pct.'%']);
+        }
+        fputcsv($handle, ['TOTAL', number_format($yearlyTotal, 2, '.', ''), '100.0%']);
+        fputcsv($handle, []);
+    }
+
+    /**
+     * @param  resource  $handle
+     * @param  Collection<string, float>  $categoryBreakdown
+     */
+    private function writeExpenditureCategoryBreakdown($handle, $categoryBreakdown, float $yearlyTotal, string $baseCurrency): void
+    {
+        fputcsv($handle, ['CATEGORY EXPENDITURE BREAKDOWN']);
+        fputcsv($handle, ['Category', "Yearly Spend ({$baseCurrency})", '% of Annual']);
+        foreach ($categoryBreakdown as $catName => $catTotal) {
+            $pct = $yearlyTotal > 0 ? round(($catTotal / $yearlyTotal) * 100, 1) : 0.0;
+            fputcsv($handle, [$this->sanitizeCsv($catName), number_format($catTotal, 2, '.', ''), $pct.'%']);
+        }
+        fputcsv($handle, []);
+    }
+
+    /**
+     * @param  resource  $handle
+     * @param  Collection<int, mixed>  $activeSubscriptions
+     */
+    private function writeExpenditureSubscriptionsBreakdown($handle, $activeSubscriptions, string $baseCurrency): void
+    {
+        fputcsv($handle, ['ANNUAL SUBSCRIPTION COSTS']);
+        fputcsv($handle, ['#', 'Subscription', 'Category', 'Cycle', 'Original Price', 'Original Currency', "Monthly ({$baseCurrency})", "Yearly ({$baseCurrency})"]);
+        $idx = 1;
+        foreach ($activeSubscriptions->sortByDesc(fn ($s) => $s->yearlyAmountIn($baseCurrency)) as $sub) {
+            fputcsv($handle, [
+                $idx++,
+                $this->sanitizeCsv($sub->name),
+                $this->sanitizeCsv($sub->category?->name ?? 'Uncategorised'),
+                $sub->billingCycleLabel(),
+                number_format((float) $sub->amount, 2, '.', ''),
+                $sub->currency,
+                number_format($sub->monthlyAmountIn($baseCurrency), 2, '.', ''),
+                number_format($sub->yearlyAmountIn($baseCurrency), 2, '.', ''),
+            ]);
+        }
+        fputcsv($handle, []);
+    }
+
+    /**
+     * @param  resource  $handle
+     * @param  Collection<int, mixed>  $billingEvents
+     */
+    private function writeExpenditureBillingEvents($handle, $billingEvents, string $baseCurrency): void
+    {
+        if ($billingEvents->isEmpty()) {
+            return;
+        }
+
+        fputcsv($handle, ['BILLING LEDGER AUDIT TRAIL (FX SNAPSHOTS)']);
+        fputcsv($handle, ['Billed Date', 'Subscription', 'Original Amount', 'Currency', 'FX Rate Snapshot', "Recorded Base ({$baseCurrency})", 'Source']);
+        foreach ($billingEvents as $ev) {
+            fputcsv($handle, [
+                $ev->billed_at?->format('Y-m-d') ?? '',
+                $this->sanitizeCsv($ev->subscription?->name ?? 'Subscription'),
+                number_format((float) $ev->amount, 2, '.', ''),
+                $ev->currency,
+                number_format((float) $ev->fx_rate_snapshot, 6, '.', ''),
+                number_format((float) $ev->amount_base, 2, '.', ''),
+                $ev->source,
+            ]);
+        }
     }
 
     /** Generate printable PDF report view for annual expenditure */

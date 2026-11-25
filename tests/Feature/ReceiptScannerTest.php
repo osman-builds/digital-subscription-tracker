@@ -43,6 +43,8 @@ class ReceiptScannerTest extends TestCase
 
     private const MONTHLY_CYCLE = 'monthly';
 
+    private const AMOUNT_55 = '55.00';
+
     public function test_verified_user_can_scan_receipt_in_ram_and_save_verified_subscription(): void
     {
         config()->set(self::GEMINI_KEY_CONFIG, self::GEMINI_KEY);
@@ -93,7 +95,7 @@ class ReceiptScannerTest extends TestCase
                 'file_sha256' => $expectedSha,
                 'extracted' => [
                     'name' => self::NETFLIX_NAME,
-                    'amount' => '55.00',
+                    'amount' => self::AMOUNT_55,
                     'currency' => 'MYR',
                     'billing_cycle' => self::MONTHLY_CYCLE,
                 ],
@@ -115,7 +117,7 @@ class ReceiptScannerTest extends TestCase
         $this->actingAs($user)->post(route('subscriptions.store'), [
             'name' => self::NETFLIX_NAME,
             'website_url' => self::NETFLIX_URL,
-            'amount' => '55.00',
+            'amount' => self::AMOUNT_55,
             'currency' => 'MYR',
             'billing_cycle' => self::MONTHLY_CYCLE,
             'status' => 'active',
@@ -146,9 +148,9 @@ class ReceiptScannerTest extends TestCase
         $sub = Subscription::create([
             'user_id' => $user->id,
             'name' => self::NETFLIX_NAME,
-            'amount' => '55.00',
+            'amount' => self::AMOUNT_55,
             'currency' => 'MYR',
-            'amount_myr' => '55.00',
+            'amount_myr' => self::AMOUNT_55,
             'billing_cycle' => self::MONTHLY_CYCLE,
             'status' => 'active',
             'start_date' => self::START_DATE,
@@ -238,9 +240,9 @@ class ReceiptScannerTest extends TestCase
             'user_id' => $user->id,
             'name' => self::NETFLIX_NAME,
             'website_url' => self::NETFLIX_URL,
-            'amount' => '55.00',
+            'amount' => self::AMOUNT_55,
             'currency' => 'MYR',
-            'amount_myr' => '55.00',
+            'amount_myr' => self::AMOUNT_55,
             'billing_cycle' => self::MONTHLY_CYCLE,
             'status' => 'active',
             'start_date' => '2026-10-01',

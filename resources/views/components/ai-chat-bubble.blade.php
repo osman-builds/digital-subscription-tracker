@@ -34,7 +34,7 @@
     </button>
 
     {{-- Chat Window Pane --}}
-    <div id="ssAiWindow" class="ss-ai-window" style="display: none;" role="dialog" aria-modal="true" aria-label="{{ $title }}">
+    <div id="ssAiWindow" class="ss-ai-window" style="display: none;" aria-label="{{ $title }}">
         {{-- Header --}}
         <div class="ss-ai-header">
             <div class="d-flex align-items-center gap-2">
@@ -93,7 +93,8 @@
         <div class="ss-ai-footer">
             <form id="ssAiForm" class="ss-ai-input-form" onsubmit="return false;">
                 <div class="ss-ai-input-wrap">
-                    <input type="text" id="ssAiInput" class="ss-ai-input" placeholder="Ask about subscriptions or privacy..." maxlength="250" autocomplete="off">
+                    <label for="ssAiInput" class="visually-hidden">Ask SubShield AI</label>
+                    <input type="text" id="ssAiInput" class="ss-ai-input" placeholder="Ask about subscriptions or privacy..." maxlength="250" autocomplete="off" aria-label="Ask SubShield AI">
                     <button type="submit" id="ssAiSendBtn" class="ss-ai-send-btn" aria-label="Send message" disabled>
                         <i class="bi bi-arrow-up-circle-fill"></i>
                     </button>

@@ -97,8 +97,8 @@
                             <span class="fw-semibold">{{ $budgetInfo['utilization_percent'] }}%</span>
                         </div>
                         <div class="progress" style="height: 6px;">
-                            <div class="progress-bar {{ $barClass }}" role="progressbar" style="width: {{ $pct }}%"
-                                 aria-valuenow="{{ $pct }}" aria-valuemin="0" aria-valuemax="100"></div>
+                            <div class="progress-bar {{ $barClass }}" style="width: {{ $pct }}%"
+                                 aria-valuenow="{{ $pct }}" aria-valuemin="0" aria-valuemax="100" aria-label="Budget Utilization"></div>
                         </div>
                     </div>
                 @endif
@@ -165,8 +165,8 @@
                     <span class="text-muted small">/ 100</span>
                 </div>
                 <div class="progress mb-3" style="height: 8px;">
-                    <div class="progress-bar bg-{{ $healthColor }}" role="progressbar" style="width: {{ $healthScore }}%"
-                         aria-valuenow="{{ $healthScore }}" aria-valuemin="0" aria-valuemax="100"></div>
+                    <div class="progress-bar bg-{{ $healthColor }}" style="width: {{ $healthScore }}%"
+                         aria-valuenow="{{ $healthScore }}" aria-valuemin="0" aria-valuemax="100" aria-label="Health Score"></div>
                 </div>
                 @if(!empty($intelligence['score_factors']))
                     <ul class="list-unstyled small mb-2">
