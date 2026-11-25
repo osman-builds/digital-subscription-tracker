@@ -534,12 +534,28 @@
         scrollToBottom();
     }
 
-    function appendAiMessage(html) {
+    function renderSafeAiMessage(rawText) {
+        var temp = document.createElement('div');
+        temp.textContent = rawText;
+        var safe = temp.innerHTML;
+        safe = safe.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        safe = safe.replace(/&lt;b&gt;(.*?)&lt;\/b&gt;/gi, '<strong>$1</strong>');
+        safe = safe.replace(/&lt;strong&gt;(.*?)&lt;\/strong&gt;/gi, '<strong>$1</strong>');
+        safe = safe.replace(/&lt;i&gt;(.*?)&lt;\/i&gt;/gi, '<em>$1</em>');
+        safe = safe.replace(/&lt;em&gt;(.*?)&lt;\/em&gt;/gi, '<em>$1</em>');
+        safe = safe.replace(/&lt;li&gt;(.*?)&lt;\/li&gt;/gi, '<li>$1</li>');
+        safe = safe.replace(/&lt;ul&gt;(.*?)&lt;\/ul&gt;/gi, '<ul>$1</ul>');
+        safe = safe.replace(/&lt;ol&gt;(.*?)&lt;\/ol&gt;/gi, '<ol>$1</ol>');
+        safe = safe.replace(/&lt;br\s*\/?&gt;/gi, '<br>');
+        return safe;
+    }
+
+    function appendAiMessage(rawText) {
         var wrap = document.createElement('div');
         wrap.className = 'ss-ai-msg ss-ai-msg-ai';
         var bubble = document.createElement('div');
         bubble.className = 'ss-ai-bubble-ai';
-        bubble.innerHTML = html;
+        bubble.innerHTML = renderSafeAiMessage(rawText);
         wrap.appendChild(bubble);
         messagesBox.appendChild(wrap);
         scrollToBottom();
