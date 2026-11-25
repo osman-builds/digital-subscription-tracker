@@ -31,6 +31,49 @@
     </div>
 </div>
 
+@if($totalActive === 0)
+    {{-- New User Onboarding Welcome Card --}}
+    <div class="card border-0 shadow-sm mb-4" style="background: linear-gradient(135deg, #1e1b4b 0%, #0f172a 100%); color: #fff; border-radius: 16px;">
+        <div class="card-body p-4 p-md-5">
+            <div class="row align-items-center g-4">
+                <div class="col-12 col-lg-8">
+                    <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill mb-3" style="background: rgba(99, 102, 241, 0.2); border: 1px solid rgba(99, 102, 241, 0.4); font-size: 0.82rem; font-weight: 600; color: #c7d2fe;">
+                        <i class="bi bi-stars text-warning"></i> Quick-Start Onboarding Guide
+                    </div>
+                    <h2 class="h3 fw-bold text-white mb-2">Welcome to SubShield, {{ auth()->user()->name }}!</h2>
+                    <p class="text-white-50 mb-4" style="max-width: 620px;">
+                        Take full control of your recurring commitments in seconds. Upload an invoice to let AI extract the details, add your first subscription manually, or set your monthly budget threshold.
+                    </p>
+                    <div class="row g-3">
+                        <div class="col-12 col-sm-4">
+                            <a href="{{ route('subscriptions.create') }}#receiptScanner" class="btn btn-primary w-100 py-2 d-flex align-items-center justify-content-center gap-2 fw-semibold">
+                                <i class="bi bi-file-earmark-medical"></i> AI Receipt Scan
+                            </a>
+                        </div>
+                        <div class="col-12 col-sm-4">
+                            <a href="{{ route('subscriptions.create') }}" class="btn btn-outline-light w-100 py-2 d-flex align-items-center justify-content-center gap-2 fw-semibold">
+                                <i class="bi bi-plus-circle"></i> Add Manually
+                            </a>
+                        </div>
+                        <div class="col-12 col-sm-4">
+                            <a href="{{ route('settings.edit') }}" class="btn btn-outline-light w-100 py-2 d-flex align-items-center justify-content-center gap-2 fw-semibold">
+                                <i class="bi bi-sliders"></i> Set Budget Cap
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-lg-4 d-none d-lg-block text-center">
+                    <div class="p-4 rounded-4" style="background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.1);">
+                        <i class="bi bi-shield-check text-success display-4 mb-2 d-block"></i>
+                        <div class="fw-bold text-white">Zero Bank Logins</div>
+                        <small class="text-white-50">100% private &amp; client-controlled. Your financial credentials never leave your custody.</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+@endif
+
 {{-- Stats --}}
 <div class="row g-3 mb-4">
     <div class="col-12 col-sm-6 col-lg-3">
@@ -305,8 +348,20 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" class="text-center py-4 text-muted">
-                                No subscriptions yet. <a href="{{ route('subscriptions.create') }}">Add one!</a>
+                            <td colspan="5" class="text-center py-5">
+                                <div class="py-2">
+                                    <i class="bi bi-inbox text-muted display-6 d-block mb-2"></i>
+                                    <div class="fw-semibold text-secondary mb-1">No active subscriptions registered yet</div>
+                                    <p class="text-muted small mb-3">Add recurring services manually or drop an invoice for automated AI extraction.</p>
+                                    <div class="d-flex justify-content-center gap-2">
+                                        <a href="{{ route('subscriptions.create') }}#receiptScanner" class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-file-earmark-medical me-1"></i>Scan Receipt with AI
+                                        </a>
+                                        <a href="{{ route('subscriptions.create') }}" class="btn btn-sm btn-primary">
+                                            <i class="bi bi-plus-lg me-1"></i>Add Manually
+                                        </a>
+                                    </div>
+                                </div>
                             </td>
                         </tr>
                     @endforelse

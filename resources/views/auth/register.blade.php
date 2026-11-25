@@ -22,10 +22,20 @@
 <main class="container px-3">
     <div class="auth-card card mx-auto">
         <div class="card-body p-4 p-md-5">
-            <div class="text-center mb-4">
+            <div class="text-center mb-3">
                 <img src="/favicon.svg" width="56" height="56" alt="SubShield" class="mb-2">
-                <h4 class="fw-bold mb-0">SubShield</h4>
-                <p class="text-muted small">Create your free account</p>
+                <h4 class="fw-bold mb-1">SubShield</h4>
+                <p class="text-muted small mb-2">Create your free account</p>
+                <div class="d-inline-flex align-items-center gap-1 px-2 py-1 rounded-pill bg-success bg-opacity-10 text-success small" style="font-size: 0.78rem;">
+                    <i class="bi bi-shield-check"></i> Zero Bank Logins &bull; 100% Free
+                </div>
+            </div>
+
+            <div class="p-2 px-3 rounded-3 mb-3 text-center" style="background: rgba(99, 102, 241, 0.08); border: 1px solid rgba(99, 102, 241, 0.2);">
+                <span class="small text-muted">Just exploring? </span>
+                <a href="{{ route('demo.show') }}" class="small fw-semibold text-primary text-decoration-none">
+                    <i class="bi bi-play-circle me-1"></i>Try 1-Hour Sandbox
+                </a>
             </div>
 
             @if($errors->any())
