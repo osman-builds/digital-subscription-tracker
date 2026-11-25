@@ -21,6 +21,8 @@ class AiChatService
 
     private const JSON_MIME = 'application/json';
 
+    private const ENCODING_UTF8 = 'UTF-8';
+
     private const SAFE_CAN_REPLY = 'I am the SubShield AI assistant. I can only assist with digital subscription tracking, financial intelligence, and SubShield platform questions.';
 
     private const SAFE_CODE_REPLY = 'I am the SubShield Product Specialist. I can only answer questions about SubShield features, privacy, and subscription tracking. I cannot generate code, run scripts, or assist with programming.';
@@ -167,45 +169,36 @@ class AiChatService
             ];
         }
 
-        if ($this->isPromptInjection($query) || $this->isPromptInjection($sanitized)) {
-            Log::warning('Public AI Concierge prompt injection blocked', ['query' => $sanitized]);
+        $violation = $this->matchSecurityGuardrail($query, $sanitized);
+        if ($violation !== null) {
+            Log::warning("Public AI Concierge {$violation['reason']} blocked", ['query' => $sanitized]);
 
             return [
-                'reply' => self::SAFE_CAN_REPLY,
-                'cached' => false,
-                'flagged' => true,
-            ];
-        }
-
-        return $this->evaluateSecondaryGuardrails($query, $sanitized);
-    }
-
-    /**
-     * @return array{reply: string, cached: bool, flagged: bool}|null
-     */
-    private function evaluateSecondaryGuardrails(string $query, string $sanitized): ?array
-    {
-        if ($this->isMalwareOrCodeRequest($query) || $this->isMalwareOrCodeRequest($sanitized)) {
-            Log::warning('Public AI Concierge malware/script request blocked', ['query' => $sanitized]);
-
-            return [
-                'reply' => self::SAFE_CODE_REPLY,
-                'cached' => false,
-                'flagged' => true,
-            ];
-        }
-
-        if ($this->isAuthorityImpersonation($query) || $this->isAuthorityImpersonation($sanitized)) {
-            Log::warning('Public AI Concierge authority impersonation blocked', ['query' => $sanitized]);
-
-            return [
-                'reply' => self::SAFE_IMPERSONATION_REPLY,
+                'reply' => $violation['reply'],
                 'cached' => false,
                 'flagged' => true,
             ];
         }
 
         return null;
+    }
+
+    /**
+     * @return array{reason: string, reply: string}|null
+     */
+    private function matchSecurityGuardrail(string $query, string $sanitized): ?array
+    {
+        $matched = null;
+
+        if ($this->isPromptInjection($query) || $this->isPromptInjection($sanitized)) {
+            $matched = ['reason' => 'prompt injection', 'reply' => self::SAFE_CAN_REPLY];
+        } elseif ($this->isMalwareOrCodeRequest($query) || $this->isMalwareOrCodeRequest($sanitized)) {
+            $matched = ['reason' => 'malware/script request', 'reply' => self::SAFE_CODE_REPLY];
+        } elseif ($this->isAuthorityImpersonation($query) || $this->isAuthorityImpersonation($sanitized)) {
+            $matched = ['reason' => 'authority impersonation', 'reply' => self::SAFE_IMPERSONATION_REPLY];
+        }
+
+        return $matched;
     }
 
     /**
@@ -285,29 +278,12 @@ class AiChatService
             ];
         }
 
-        if ($this->isPromptInjection($query) || $this->isPromptInjection($sanitized)) {
-            Log::warning('User AI Copilot prompt injection blocked', ['user_id' => $user->id, 'query' => $sanitized]);
+        $violation = $this->matchSecurityGuardrail($query, $sanitized);
+        if ($violation !== null) {
+            Log::warning("User AI Copilot {$violation['reason']} blocked", ['user_id' => $user->id, 'query' => $sanitized]);
 
             return [
-                'reply' => self::SAFE_CAN_REPLY,
-                'flagged' => true,
-            ];
-        }
-
-        if ($this->isMalwareOrCodeRequest($query) || $this->isMalwareOrCodeRequest($sanitized)) {
-            Log::warning('User AI Copilot malware/script request blocked', ['user_id' => $user->id, 'query' => $sanitized]);
-
-            return [
-                'reply' => self::SAFE_CODE_REPLY,
-                'flagged' => true,
-            ];
-        }
-
-        if ($this->isAuthorityImpersonation($query) || $this->isAuthorityImpersonation($sanitized)) {
-            Log::warning('User AI Copilot authority impersonation blocked', ['user_id' => $user->id, 'query' => $sanitized]);
-
-            return [
-                'reply' => self::SAFE_IMPERSONATION_REPLY,
+                'reply' => $violation['reply'],
                 'flagged' => true,
             ];
         }
@@ -495,31 +471,32 @@ class AiChatService
         array $intelligence
     ): string {
         $baseCurrency = strtoupper((string) ($settings->base_currency ?? 'MYR'));
+        $escapedCurrency = htmlspecialchars($baseCurrency, ENT_QUOTES, self::ENCODING_UTF8);
         $healthScore = (int) ($intelligence['health_score'] ?? 100);
-        $healthGrade = (string) ($intelligence['health_grade'] ?? 'Excellent');
+        $healthGrade = htmlspecialchars((string) ($intelligence['health_grade'] ?? 'Excellent'), ENT_QUOTES, self::ENCODING_UTF8);
         $monthlyTotal = number_format((float) $subscriptions->sum(fn ($s) => $s->monthlyAmountIn($baseCurrency)), 2, '.', '');
         $yearlyTotal = number_format((float) $subscriptions->sum(fn ($s) => $s->yearlyAmountIn($baseCurrency)), 2, '.', '');
 
         $lines = [
             '<user_portfolio>',
-            "  <base_currency>{$baseCurrency}</base_currency>",
-            "  <monthly_spend>{$monthlyTotal} {$baseCurrency}</monthly_spend>",
-            "  <yearly_spend>{$yearlyTotal} {$baseCurrency}</yearly_spend>",
+            "  <base_currency>{$escapedCurrency}</base_currency>",
+            "  <monthly_spend>{$monthlyTotal} {$escapedCurrency}</monthly_spend>",
+            "  <yearly_spend>{$yearlyTotal} {$escapedCurrency}</yearly_spend>",
             "  <health_score grade=\"{$healthGrade}\">{$healthScore}/100</health_score>",
             '  <subscriptions count="'.$subscriptions->count().'">',
         ];
 
         foreach ($subscriptions->take(15) as $sub) {
-            $name = htmlspecialchars((string) $sub->name, ENT_QUOTES, 'UTF-8');
-            $cat = htmlspecialchars((string) ($sub->category->name ?? 'General'), ENT_QUOTES, 'UTF-8');
+            $name = htmlspecialchars((string) $sub->name, ENT_QUOTES, self::ENCODING_UTF8);
+            $cat = htmlspecialchars((string) ($sub->category->name ?? 'General'), ENT_QUOTES, self::ENCODING_UTF8);
             $cost = number_format((float) $sub->amount, 2, '.', '');
-            $curr = htmlspecialchars((string) $sub->currency, ENT_QUOTES, 'UTF-8');
+            $curr = htmlspecialchars((string) $sub->currency, ENT_QUOTES, self::ENCODING_UTF8);
             $norm = number_format((float) $sub->effectiveAmountIn($baseCurrency), 2, '.', '');
-            $cycle = htmlspecialchars((string) $sub->billing_cycle, ENT_QUOTES, 'UTF-8');
+            $cycle = htmlspecialchars((string) $sub->billing_cycle, ENT_QUOTES, self::ENCODING_UTF8);
             $due = $sub->next_billing_date ? $sub->next_billing_date->format('Y-m-d') : 'N/A';
             $trial = $sub->is_trial ? 'true' : 'false';
 
-            $lines[] = "    <sub name=\"{$name}\" category=\"{$cat}\" amount=\"{$cost} {$curr}\" base_cost=\"{$norm} {$baseCurrency}\" cycle=\"{$cycle}\" next_bill=\"{$due}\" trial=\"{$trial}\" />";
+            $lines[] = "    <sub name=\"{$name}\" category=\"{$cat}\" amount=\"{$cost} {$curr}\" base_cost=\"{$norm} {$escapedCurrency}\" cycle=\"{$cycle}\" next_bill=\"{$due}\" trial=\"{$trial}\" />";
         }
 
         $lines[] = '  </subscriptions>';
@@ -528,8 +505,8 @@ class AiChatService
         if (! empty($intelligence['score_factors'])) {
             $lines[] = '  <health_deductions>';
             foreach ($intelligence['score_factors'] as $factor) {
-                $lbl = htmlspecialchars((string) ($factor['label'] ?? ''), ENT_QUOTES, 'UTF-8');
-                $imp = htmlspecialchars((string) ($factor['impact'] ?? ''), ENT_QUOTES, 'UTF-8');
+                $lbl = htmlspecialchars((string) ($factor['label'] ?? ''), ENT_QUOTES, self::ENCODING_UTF8);
+                $imp = htmlspecialchars((string) ($factor['impact'] ?? ''), ENT_QUOTES, self::ENCODING_UTF8);
                 $lines[] = "    <deduction reason=\"{$lbl}\" impact=\"{$imp}\" />";
             }
             $lines[] = '  </health_deductions>';

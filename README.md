@@ -22,7 +22,7 @@
   <img src="https://img.shields.io/badge/Security-Zero%20Disk%20Storage-10B981?style=flat-square&logo=shield&logoColor=white" alt="Zero Disk Storage">
   <a href="https://sonarcloud.io/summary/new_code?id=osman-builds_digital-subscription-tracker"><img src="https://sonarcloud.io/api/project_badges/quality_gate?project=osman-builds_digital-subscription-tracker&token=790f61f35ee3a9c567797eba3cf53ff89e8fb186" alt="Quality Gate Status"></a>
   <img src="https://img.shields.io/badge/CI%2FCD-GitHub_Actions-2088FF?style=flat-square&logo=githubactions&logoColor=white" alt="CI/CD">
-  <img src="https://img.shields.io/badge/Tests-128%20Passed%20(709%20assertions)-success?style=flat-square" alt="Test Suite">
+  <img src="https://img.shields.io/badge/Tests-131%20Passed%20(726%20assertions)-success?style=flat-square" alt="Test Suite">
   <img src="https://img.shields.io/badge/Lighthouse-100%2F100-success?style=flat-square&logo=googlechrome&logoColor=white" alt="Lighthouse 100/100">
   <img src="https://img.shields.io/badge/License-MIT-blue?style=flat-square" alt="License MIT">
 </p>
@@ -176,7 +176,7 @@ php artisan test --compact
 
 ## Quality & Testing Metrics
 
-* **Automated Unit & Feature Tests:** 128 passed (709 assertions, 0 failures).
+* **Automated Unit & Feature Tests:** 131 passed (726 assertions, 0 failures).
 * **Code Style:** Formatted and validated against PSR-12 / Laravel standards via Laravel Pint.
 * **Chrome DevTools Lighthouse Audit:**
   - Accessibility: **100 / 100**

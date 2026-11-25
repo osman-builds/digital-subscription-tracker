@@ -99,7 +99,7 @@ class ReceiptScanController extends Controller
 
         $validated = $request->validate([
             'amount' => 'required|numeric|min:0',
-            'currency' => 'required|string|size:3',
+            'currency' => 'required|string|size:3|alpha:ascii',
             'billing_cycle' => 'required|in:weekly,monthly,quarterly,semi_annual,annual',
             'next_billing_date' => 'required|date',
             'ai_audit_id' => 'nullable|integer',

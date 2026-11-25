@@ -21,11 +21,21 @@ class SettingsTest extends TestCase
 
     private const NEW_NAME = 'New Name';
 
+    private const ROUTE_SETTINGS_INDEX = 'settings.index';
+
+    private const ROUTE_SETTINGS_ACCOUNT = 'settings.account';
+
+    private const ROUTE_SETTINGS_DELETE = 'settings.delete_account';
+
+    private const ROUTE_SETTINGS_PROFILE = 'settings.profile';
+
+    private const ROUTE_SETTINGS_SECURITY = 'settings.security';
+
     public function test_settings_page_can_be_rendered(): void
     {
         $user = User::factory()->create();
 
-        $response = $this->actingAs($user)->get(route('settings.index'));
+        $response = $this->actingAs($user)->get(route(self::ROUTE_SETTINGS_INDEX));
 
         $response->assertOk();
         $response->assertSee('Base Tracking Currency');
@@ -39,7 +49,7 @@ class SettingsTest extends TestCase
         $user = User::factory()->create();
 
         $this->actingAs($user)
-            ->patch(route('settings.account'), [
+            ->patch(route(self::ROUTE_SETTINGS_ACCOUNT), [
                 'name' => self::NEW_NAME,
                 'email' => 'new@example.com',
             ])
@@ -59,7 +69,7 @@ class SettingsTest extends TestCase
         $user = User::factory()->create();
 
         $this->actingAs($user)
-            ->patch(route('settings.account'), [
+            ->patch(route(self::ROUTE_SETTINGS_ACCOUNT), [
                 'name' => self::NEW_NAME,
                 'email' => $user->email,
             ])
@@ -192,7 +202,7 @@ class SettingsTest extends TestCase
         $user->getSettings()->update(['base_currency' => 'EUR']);
 
         $response = $this->actingAs($user)
-            ->delete(route('settings.delete_account'), [
+            ->delete(route(self::ROUTE_SETTINGS_DELETE), [
                 'password' => self::TEST_PASSWORD,
             ]);
 
@@ -213,12 +223,12 @@ class SettingsTest extends TestCase
         ]);
 
         $response = $this->actingAs($user)
-            ->from(route('settings.index'))
-            ->delete(route('settings.delete_account'), [
+            ->from(route(self::ROUTE_SETTINGS_INDEX))
+            ->delete(route(self::ROUTE_SETTINGS_DELETE), [
                 'password' => 'WrongPassword!',
             ]);
 
-        $response->assertRedirect(route('settings.index'))
+        $response->assertRedirect(route(self::ROUTE_SETTINGS_INDEX))
             ->assertSessionHasErrorsIn('userDeletion', ['password']);
 
         $this->assertAuthenticatedAs($user);
@@ -233,12 +243,12 @@ class SettingsTest extends TestCase
         ]);
 
         $response = $this->actingAs($demoUser)
-            ->from(route('settings.index'))
-            ->delete(route('settings.delete_account'), [
+            ->from(route(self::ROUTE_SETTINGS_INDEX))
+            ->delete(route(self::ROUTE_SETTINGS_DELETE), [
                 'password' => 'password',
             ]);
 
-        $response->assertRedirect(route('settings.index'))
+        $response->assertRedirect(route(self::ROUTE_SETTINGS_INDEX))
             ->assertSessionHas('error');
 
         $this->assertAuthenticatedAs($demoUser);
@@ -252,13 +262,13 @@ class SettingsTest extends TestCase
         ]);
 
         $response = $this->actingAs($demoUser)
-            ->from(route('settings.index'))
-            ->patch(route('settings.account'), [
+            ->from(route(self::ROUTE_SETTINGS_INDEX))
+            ->patch(route(self::ROUTE_SETTINGS_ACCOUNT), [
                 'name' => 'Attempted Change',
                 'email' => 'hacked@example.com',
             ]);
 
-        $response->assertRedirect(route('settings.index'))
+        $response->assertRedirect(route(self::ROUTE_SETTINGS_INDEX))
             ->assertSessionHas('error');
 
         $demoUser->refresh();
@@ -273,14 +283,14 @@ class SettingsTest extends TestCase
         ]);
 
         $response = $this->actingAs($demoUser)
-            ->from(route('settings.index'))
+            ->from(route(self::ROUTE_SETTINGS_INDEX))
             ->patch(route('settings.password'), [
                 'current_password' => 'password',
                 'password' => 'NewSecretPassword123!',
                 'password_confirmation' => 'NewSecretPassword123!',
             ]);
 
-        $response->assertRedirect(route('settings.index'))
+        $response->assertRedirect(route(self::ROUTE_SETTINGS_INDEX))
             ->assertSessionHas('error');
 
         $demoUser->refresh();
@@ -294,7 +304,7 @@ class SettingsTest extends TestCase
             'email' => 'alice@example.com',
         ]);
 
-        $response = $this->actingAs($user)->get(route('settings.profile'));
+        $response = $this->actingAs($user)->get(route(self::ROUTE_SETTINGS_PROFILE));
 
         $response->assertOk();
         $response->assertSee('Profile & Identity');
@@ -307,7 +317,7 @@ class SettingsTest extends TestCase
     {
         $user = User::factory()->create();
 
-        $response = $this->actingAs($user)->get(route('settings.security'));
+        $response = $this->actingAs($user)->get(route(self::ROUTE_SETTINGS_SECURITY));
 
         $response->assertOk();
         $response->assertSee('Change Password');
@@ -330,9 +340,73 @@ class SettingsTest extends TestCase
 
     public function test_guests_cannot_access_settings_subpages(): void
     {
-        $this->get(route('settings.index'))->assertRedirect(route('login'));
-        $this->get(route('settings.profile'))->assertRedirect(route('login'));
-        $this->get(route('settings.security'))->assertRedirect(route('login'));
+        $this->get(route(self::ROUTE_SETTINGS_INDEX))->assertRedirect(route('login'));
+        $this->get(route(self::ROUTE_SETTINGS_PROFILE))->assertRedirect(route('login'));
+        $this->get(route(self::ROUTE_SETTINGS_SECURITY))->assertRedirect(route('login'));
         $this->get(route('settings.about'))->assertRedirect(route('login'));
+    }
+
+    public function test_user_cannot_change_account_email_to_reserved_demo_or_non_routable_address(): void
+    {
+        $user = User::factory()->create([
+            'email' => 'realowner@gmail.com',
+        ]);
+
+        $this->actingAs($user)
+            ->from(route(self::ROUTE_SETTINGS_PROFILE))
+            ->patch(route(self::ROUTE_SETTINGS_ACCOUNT), [
+                'name' => $user->name,
+                'email' => self::DEMO_EMAIL,
+            ])
+            ->assertRedirect(route(self::ROUTE_SETTINGS_PROFILE))
+            ->assertSessionHasErrors('email');
+
+        $this->actingAs($user)
+            ->from(route(self::ROUTE_SETTINGS_PROFILE))
+            ->patch(route(self::ROUTE_SETTINGS_ACCOUNT), [
+                'name' => $user->name,
+                'email' => 'attacker@internal.local',
+            ])
+            ->assertRedirect(route(self::ROUTE_SETTINGS_PROFILE))
+            ->assertSessionHasErrors('email');
+
+        $user->refresh();
+        $this->assertSame('realowner@gmail.com', $user->email);
+        $this->assertFalse($user->isSandbox());
+    }
+
+    public function test_demo_account_cannot_update_password_via_auth_password_endpoint(): void
+    {
+        $demoUser = User::factory()->create([
+            'email' => self::DEMO_EMAIL,
+            'password' => Hash::make(self::TEST_PASSWORD),
+        ]);
+
+        $response = $this->actingAs($demoUser)
+            ->from(route(self::ROUTE_SETTINGS_SECURITY))
+            ->put(route('password.update'), [
+                'current_password' => self::TEST_PASSWORD,
+                'password' => 'ChangedDemoPass9!',
+                'password_confirmation' => 'ChangedDemoPass9!',
+            ]);
+
+        $response->assertRedirect(route(self::ROUTE_SETTINGS_SECURITY))
+            ->assertSessionHas('error');
+
+        $demoUser->refresh();
+        $this->assertTrue(Hash::check(self::TEST_PASSWORD, $demoUser->password));
+    }
+
+    public function test_dashboard_renders_onboarding_card_for_verified_user_with_zero_subscriptions(): void
+    {
+        $user = User::factory()->create([
+            'email' => 'newmember@gmail.com',
+        ]);
+
+        $response = $this->actingAs($user)->get(route('dashboard'));
+
+        $response->assertOk();
+        $response->assertSee('Quick-Start Onboarding Guide');
+        $response->assertSee(route(self::ROUTE_SETTINGS_INDEX), false);
     }
 }

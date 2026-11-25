@@ -360,7 +360,8 @@ class ReceiptScannerService
     {
         $cleaned = trim($rawText);
         if (str_starts_with($cleaned, '```')) {
-            $cleaned = (string) preg_replace('/(?:^```(?:json)?\s*)|(?:\s*```$)/i', '', $cleaned);
+            $cleaned = (string) preg_replace('/^```(?:json)?\s*/i', '', $cleaned);
+            $cleaned = (string) preg_replace('/\s*```$/', '', $cleaned);
         }
 
         $decoded = json_decode($cleaned, true);

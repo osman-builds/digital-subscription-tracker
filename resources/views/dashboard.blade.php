@@ -56,7 +56,7 @@
                             </a>
                         </div>
                         <div class="col-12 col-sm-4">
-                            <a href="{{ route('settings.edit') }}" class="btn btn-outline-light w-100 py-2 d-flex align-items-center justify-content-center gap-2 fw-semibold">
+                            <a href="{{ route('settings.index') }}" class="btn btn-outline-light w-100 py-2 d-flex align-items-center justify-content-center gap-2 fw-semibold">
                                 <i class="bi bi-sliders"></i> Set Budget Cap
                             </a>
                         </div>

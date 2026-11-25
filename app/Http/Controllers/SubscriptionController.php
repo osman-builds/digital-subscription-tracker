@@ -7,6 +7,7 @@ use App\Models\Subscription;
 use App\Rules\SecurePublicUrl;
 use App\Services\BrandIconService;
 use App\Services\FxRateService;
+use App\Services\ReportExportService;
 use App\Services\SandboxCategoryStore;
 use App\Services\SandboxService;
 use App\Services\SandboxSubscriptionStore;
@@ -15,13 +16,14 @@ use App\Services\SubscriptionUrlNormalizer;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
-use Illuminate\Support\Collection;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class SubscriptionController extends Controller
 {
+    private const ROUTE_SUBSCRIPTIONS_INDEX = 'subscriptions.index';
+
     public function __construct(
         private FxRateService $fx,
         private BrandIconService $brandIcons,
@@ -54,7 +56,7 @@ class SubscriptionController extends Controller
     }
 
     /** Stream subscriptions as an arranged CSV spreadsheet export */
-    public function export(): StreamedResponse
+    public function export(ReportExportService $exporter): StreamedResponse
     {
         $user = auth()->user();
         $baseCurrency = $user->getSettings()->base_currency ?? 'MYR';
@@ -65,142 +67,7 @@ class SubscriptionController extends Controller
                 ->orderBy('name')
                 ->get();
 
-        $filename = 'subshield-subscriptions-'.now()->format('Y-m-d').'.csv';
-
-        $headers = [
-            'Content-Type' => 'text/csv; charset=UTF-8',
-            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
-            'Pragma' => 'no-cache',
-            'Cache-Control' => 'must-revalidate, post-check=0, pre-check=0',
-            'Expires' => '0',
-        ];
-
-        return response()->stream(function () use ($subscriptions, $baseCurrency, $user): void {
-            $handle = fopen('php://output', 'w');
-            fwrite($handle, "\xEF\xBB\xBF");
-            $this->streamSubscriptionsCsvContent($handle, $subscriptions, $baseCurrency, $user);
-            fclose($handle);
-        }, 200, $headers);
-    }
-
-    /**
-     * Write subscriptions CSV content to output handle.
-     *
-     * @param  resource  $handle
-     * @param  Collection<int, mixed>  $subscriptions
-     */
-    private function streamSubscriptionsCsvContent($handle, $subscriptions, string $baseCurrency, $user): void
-    {
-        $activeSubs = $subscriptions->where('status', 'active');
-        $totalMonthly = (float) $activeSubs->sum(fn ($s) => $s->monthlyAmountIn($baseCurrency));
-        $totalYearly = (float) $activeSubs->sum(fn ($s) => $s->yearlyAmountIn($baseCurrency));
-        $activeCount = $activeSubs->count();
-
-        // Portfolio Metadata Header Block
-        fputcsv($handle, ['SubShield - Subscription Financial Portfolio Report']);
-        fputcsv($handle, ['Exported Date', now()->format('Y-m-d H:i:s')]);
-        fputcsv($handle, ['Account Name', $this->sanitizeCsv($user->name)]);
-        fputcsv($handle, ['Account Email', $this->sanitizeCsv($user->email)]);
-        fputcsv($handle, ['Base Currency', $baseCurrency]);
-        fputcsv($handle, ['Active Subscriptions', $activeCount]);
-        fputcsv($handle, ["Total Monthly Commitment ({$baseCurrency})", number_format($totalMonthly, 2, '.', '')]);
-        fputcsv($handle, ["Total Projected Annual ({$baseCurrency})", number_format($totalYearly, 2, '.', '')]);
-        fputcsv($handle, []);
-
-        // Main Subscriptions Table Headers
-        fputcsv($handle, [
-            '#',
-            'Service Name',
-            'Website URL',
-            'Category',
-            'Status',
-            'Original Amount',
-            'Currency',
-            'Billing Cycle',
-            "Monthly Equivalent ({$baseCurrency})",
-            "Yearly Equivalent ({$baseCurrency})",
-            'Start Date',
-            'Next Billing Date',
-            'Trial Status',
-            'Notes',
-        ]);
-
-        $index = 1;
-        foreach ($subscriptions as $sub) {
-            fputcsv($handle, [
-                $index++,
-                $this->sanitizeCsv($sub->name),
-                $this->sanitizeCsv($sub->website_url ?? ''),
-                $this->sanitizeCsv($sub->category?->name ?? 'Uncategorized'),
-                ucfirst((string) $sub->status),
-                number_format((float) $sub->amount, 2, '.', ''),
-                $sub->currency,
-                $sub->billingCycleLabel(),
-                number_format($sub->monthlyAmountIn($baseCurrency), 2, '.', ''),
-                number_format($sub->yearlyAmountIn($baseCurrency), 2, '.', ''),
-                $sub->start_date?->format('Y-m-d') ?? '',
-                $sub->next_billing_date?->format('Y-m-d') ?? '',
-                $this->formatTrialStatus($sub),
-                $this->sanitizeCsv($sub->notes ?? ''),
-            ]);
-        }
-
-        // Summary Totals Row
-        fputcsv($handle, [
-            'TOTAL',
-            "{$activeCount} Active Services",
-            '',
-            '',
-            '',
-            '',
-            '',
-            '',
-            number_format($totalMonthly, 2, '.', ''),
-            number_format($totalYearly, 2, '.', ''),
-            '',
-            '',
-            '',
-            '',
-        ]);
-
-        $this->writeSubscriptionsCategoryBreakdown($handle, $activeSubs, $baseCurrency, $totalMonthly);
-    }
-
-    /**
-     * @param  resource  $handle
-     * @param  Collection<int, mixed>  $activeSubs
-     */
-    private function writeSubscriptionsCategoryBreakdown($handle, $activeSubs, string $baseCurrency, float $totalMonthly): void
-    {
-        $categoryGroups = $activeSubs->groupBy(fn ($s) => $s->category?->name ?? 'Uncategorized');
-        if ($categoryGroups->isEmpty()) {
-            return;
-        }
-
-        fputcsv($handle, []);
-        fputcsv($handle, ['CATEGORY SPEND BREAKDOWN']);
-        fputcsv($handle, ['Category', 'Active Subscriptions', "Monthly Spend ({$baseCurrency})", "Yearly Spend ({$baseCurrency})", 'Share of Spend (%)']);
-        foreach ($categoryGroups as $catName => $group) {
-            $catMonthly = (float) $group->sum(fn ($s) => $s->monthlyAmountIn($baseCurrency));
-            $catYearly = (float) $group->sum(fn ($s) => $s->yearlyAmountIn($baseCurrency));
-            $share = $totalMonthly > 0 ? round(($catMonthly / $totalMonthly) * 100, 1) : 0.0;
-            fputcsv($handle, [
-                $this->sanitizeCsv($catName),
-                $group->count(),
-                number_format($catMonthly, 2, '.', ''),
-                number_format($catYearly, 2, '.', ''),
-                $share.'%',
-            ]);
-        }
-    }
-
-    private function formatTrialStatus(mixed $sub): string
-    {
-        if (! (bool) $sub->is_trial) {
-            return 'Standard';
-        }
-
-        return $sub->trial_ends_at ? 'Trial until '.$sub->trial_ends_at->format('Y-m-d') : 'Active Trial';
+        return $exporter->streamSubscriptionsCsv($user, $subscriptions, $baseCurrency);
     }
 
     /** Generate printable PDF report view for subscriptions portfolio */
@@ -248,20 +115,6 @@ class SubscriptionController extends Controller
         ));
     }
 
-    /** Neutralize CSV formula injection (CWE-1236 / OWASP) */
-    private function sanitizeCsv(?string $value): string
-    {
-        if ($value === null || $value === '') {
-            return '';
-        }
-
-        if (in_array($value[0], ['=', '+', '-', '@', "\t", "\r"], true)) {
-            return "'".$value;
-        }
-
-        return $value;
-    }
-
     public function index(Request $request)
     {
         $user = auth()->user();
@@ -273,7 +126,7 @@ class SubscriptionController extends Controller
             $subscriptions = $this->sandboxIndexSubscriptions($request, $user->id);
             $categories = $this->sandboxCategories->all($user->id);
 
-            return view('subscriptions.index', compact('subscriptions', 'categories', 'baseCurrency', 'currencySymbol'));
+            return view(self::ROUTE_SUBSCRIPTIONS_INDEX, compact('subscriptions', 'categories', 'baseCurrency', 'currencySymbol'));
         }
 
         $query = Subscription::with('category')->forUser($user->id);
@@ -292,7 +145,7 @@ class SubscriptionController extends Controller
         $subscriptions = $query->orderBy('next_billing_date')->paginate(12)->withQueryString();
         $categories = Category::forUser($user->id)->orderBy('name')->get();
 
-        return view('subscriptions.index', compact('subscriptions', 'categories', 'baseCurrency', 'currencySymbol'));
+        return view(self::ROUTE_SUBSCRIPTIONS_INDEX, compact('subscriptions', 'categories', 'baseCurrency', 'currencySymbol'));
     }
 
     public function create()
@@ -320,7 +173,7 @@ class SubscriptionController extends Controller
         if (auth()->user()->isSandbox()) {
             $this->sandboxSubscriptions->create(auth()->id(), $validated);
 
-            return redirect()->route('subscriptions.index')
+            return redirect()->route(self::ROUTE_SUBSCRIPTIONS_INDEX)
                 ->with('success', "Subscription \"{$validated['name']}\" added (sandbox session only)!");
         }
 
@@ -328,7 +181,7 @@ class SubscriptionController extends Controller
         $this->ledger->recordEvent($subscription, auth()->user(), $validated['input_source'], $validated['start_date']);
         $this->ledger->linkAudit(auth()->id(), $auditId, $subscription->id, 'applied_new');
 
-        return redirect()->route('subscriptions.index')
+        return redirect()->route(self::ROUTE_SUBSCRIPTIONS_INDEX)
             ->with('success', "Subscription \"{$validated['name']}\" added!");
     }
 
@@ -375,7 +228,7 @@ class SubscriptionController extends Controller
         if (auth()->user()->isSandbox()) {
             $this->sandboxSubscriptions->update(auth()->id(), $subscription, $validated);
 
-            return redirect()->route('subscriptions.index')
+            return redirect()->route(self::ROUTE_SUBSCRIPTIONS_INDEX)
                 ->with('success', "Subscription \"{$validated['name']}\" updated (sandbox session only)!");
         }
 
@@ -389,7 +242,7 @@ class SubscriptionController extends Controller
             'manual_edit'
         );
 
-        return redirect()->route('subscriptions.index')
+        return redirect()->route(self::ROUTE_SUBSCRIPTIONS_INDEX)
             ->with('success', "Subscription \"{$subscription->name}\" updated!");
     }
 
@@ -418,13 +271,13 @@ class SubscriptionController extends Controller
         if (auth()->user()->isSandbox()) {
             $this->sandboxSubscriptions->delete(auth()->id(), $subscription);
 
-            return redirect()->route('subscriptions.index')
+            return redirect()->route(self::ROUTE_SUBSCRIPTIONS_INDEX)
                 ->with('success', "Subscription \"{$name}\" deleted (sandbox session only).");
         }
 
         $subscription->delete();
 
-        return redirect()->route('subscriptions.index')
+        return redirect()->route(self::ROUTE_SUBSCRIPTIONS_INDEX)
             ->with('success', "Subscription \"{$name}\" deleted.");
     }
 
@@ -488,7 +341,7 @@ class SubscriptionController extends Controller
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'amount' => 'required|numeric|min:0',
-            'currency' => 'required|string|size:3',
+            'currency' => 'required|string|size:3|alpha:ascii',
             'billing_cycle' => 'required|in:weekly,monthly,quarterly,semi_annual,annual',
             'start_date' => 'required|date',
             'next_billing_date' => 'required|date',

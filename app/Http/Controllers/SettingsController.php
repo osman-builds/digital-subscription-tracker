@@ -2,11 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use App\Services\SandboxService;
+use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
 
 class SettingsController extends Controller
@@ -49,7 +52,7 @@ class SettingsController extends Controller
     public function updatePreferences(Request $request)
     {
         $validated = $request->validate([
-            'base_currency' => 'required|string|size:3',
+            'base_currency' => 'required|string|size:3|alpha:ascii',
             'monthly_budget' => 'nullable|numeric|min:0|max:999999.99',
             'budget_alert_percent' => 'nullable|integer|min:50|max:100',
             'alert_7_days' => 'nullable|boolean',
@@ -111,8 +114,20 @@ class SettingsController extends Controller
         }
 
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email,'.$user->id,
+            'name' => ['required', 'string', 'max:255'],
+            'email' => [
+                'required',
+                'string',
+                'lowercase',
+                'email',
+                'max:255',
+                Rule::unique('users', 'email')->ignore($user->id),
+                function (string $attribute, mixed $value, Closure $fail): void {
+                    if (User::isNonRoutableEmail((string) $value)) {
+                        $fail('Please use a real, deliverable email address.');
+                    }
+                },
+            ],
         ]);
 
         $user->fill($validated);
