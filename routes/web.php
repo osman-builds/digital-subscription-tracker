@@ -35,6 +35,7 @@ Route::middleware(['auth', 'verified', EnsureSandboxSessionValid::class])->group
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     Route::get('/subscriptions/export', [SubscriptionController::class, 'export'])->name('subscriptions.export');
+    Route::get('/subscriptions/export/pdf', [SubscriptionController::class, 'exportPdf'])->name('subscriptions.export_pdf');
     Route::get('/subscriptions/resolve-icon', [SubscriptionController::class, 'resolveIcon'])
         ->middleware('throttle:60,1')
         ->name('subscriptions.resolve_icon');
@@ -53,6 +54,8 @@ Route::middleware(['auth', 'verified', EnsureSandboxSessionValid::class])->group
     Route::resource('categories', CategoryController::class)->except(['show', 'create', 'edit']);
 
     Route::get('/expenditure', [ExpenditureController::class, 'index'])->name('expenditure.index');
+    Route::get('/expenditure/export/csv', [ExpenditureController::class, 'exportCsv'])->name('expenditure.export_csv');
+    Route::get('/expenditure/export/pdf', [ExpenditureController::class, 'exportPdf'])->name('expenditure.export_pdf');
 
     // Settings
     Route::get('/settings', [SettingsController::class, 'index'])->name('settings.index');

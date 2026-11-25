@@ -16,6 +16,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Validation\Rule;
+use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class SubscriptionController extends Controller
@@ -51,7 +52,7 @@ class SubscriptionController extends Controller
         return response()->json($resolved);
     }
 
-    /** Stream subscriptions as a CSV export */
+    /** Stream subscriptions as an arranged CSV spreadsheet export */
     public function export(): StreamedResponse
     {
         $user = auth()->user();
@@ -73,11 +74,29 @@ class SubscriptionController extends Controller
             'Expires' => '0',
         ];
 
-        return response()->stream(function () use ($subscriptions, $baseCurrency): void {
+        return response()->stream(function () use ($subscriptions, $baseCurrency, $user): void {
             $handle = fopen('php://output', 'w');
             fwrite($handle, "\xEF\xBB\xBF");
 
+            $activeSubs = $subscriptions->where('status', 'active');
+            $totalMonthly = (float) $activeSubs->sum(fn ($s) => $s->monthlyAmountIn($baseCurrency));
+            $totalYearly = (float) $activeSubs->sum(fn ($s) => $s->yearlyAmountIn($baseCurrency));
+            $activeCount = $activeSubs->count();
+
+            // Portfolio Metadata Header Block
+            fputcsv($handle, ['SubShield - Subscription Financial Portfolio Report']);
+            fputcsv($handle, ['Exported Date', now()->format('Y-m-d H:i:s')]);
+            fputcsv($handle, ['Account Name', $this->sanitizeCsv($user->name)]);
+            fputcsv($handle, ['Account Email', $this->sanitizeCsv($user->email)]);
+            fputcsv($handle, ['Base Currency', $baseCurrency]);
+            fputcsv($handle, ['Active Subscriptions', $activeCount]);
+            fputcsv($handle, ["Total Monthly Commitment ({$baseCurrency})", number_format($totalMonthly, 2, '.', '')]);
+            fputcsv($handle, ["Total Projected Annual ({$baseCurrency})", number_format($totalYearly, 2, '.', '')]);
+            fputcsv($handle, []);
+
+            // Main Subscriptions Table Headers
             fputcsv($handle, [
+                '#',
                 'Service Name',
                 'Website URL',
                 'Category',
@@ -89,11 +108,19 @@ class SubscriptionController extends Controller
                 "Yearly Equivalent ({$baseCurrency})",
                 'Start Date',
                 'Next Billing Date',
+                'Trial Status',
                 'Notes',
             ]);
 
+            $index = 1;
             foreach ($subscriptions as $sub) {
+                $isTrial = (bool) $sub->is_trial;
+                $trialInfo = $isTrial
+                    ? ($sub->trial_ends_at ? 'Trial until '.$sub->trial_ends_at->format('Y-m-d') : 'Active Trial')
+                    : 'Standard';
+
                 fputcsv($handle, [
+                    $index++,
                     $this->sanitizeCsv($sub->name),
                     $this->sanitizeCsv($sub->website_url ?? ''),
                     $this->sanitizeCsv($sub->category?->name ?? 'Uncategorized'),
@@ -105,12 +132,96 @@ class SubscriptionController extends Controller
                     number_format($sub->yearlyAmountIn($baseCurrency), 2, '.', ''),
                     $sub->start_date?->format('Y-m-d') ?? '',
                     $sub->next_billing_date?->format('Y-m-d') ?? '',
+                    $trialInfo,
                     $this->sanitizeCsv($sub->notes ?? ''),
                 ]);
             }
 
+            // Summary Totals Row
+            fputcsv($handle, [
+                'TOTAL',
+                "{$activeCount} Active Services",
+                '',
+                '',
+                '',
+                '',
+                '',
+                '',
+                number_format($totalMonthly, 2, '.', ''),
+                number_format($totalYearly, 2, '.', ''),
+                '',
+                '',
+                '',
+                '',
+            ]);
+
+            // Category Spend Summary Block
+            $categoryGroups = $activeSubs->groupBy(fn ($s) => $s->category?->name ?? 'Uncategorized');
+            if ($categoryGroups->isNotEmpty()) {
+                fputcsv($handle, []);
+                fputcsv($handle, ['CATEGORY SPEND BREAKDOWN']);
+                fputcsv($handle, ['Category', 'Active Subscriptions', "Monthly Spend ({$baseCurrency})", "Yearly Spend ({$baseCurrency})", 'Share of Spend (%)']);
+                foreach ($categoryGroups as $catName => $group) {
+                    $catMonthly = (float) $group->sum(fn ($s) => $s->monthlyAmountIn($baseCurrency));
+                    $catYearly = (float) $group->sum(fn ($s) => $s->yearlyAmountIn($baseCurrency));
+                    $share = $totalMonthly > 0 ? round(($catMonthly / $totalMonthly) * 100, 1) : 0.0;
+                    fputcsv($handle, [
+                        $this->sanitizeCsv($catName),
+                        $group->count(),
+                        number_format($catMonthly, 2, '.', ''),
+                        number_format($catYearly, 2, '.', ''),
+                        $share.'%',
+                    ]);
+                }
+            }
+
             fclose($handle);
         }, 200, $headers);
+    }
+
+    /** Generate printable PDF report view for subscriptions portfolio */
+    public function exportPdf(): View
+    {
+        $user = auth()->user();
+        $settings = $user->getSettings();
+        $baseCurrency = $settings->base_currency ?? 'MYR';
+        $currencySymbol = $this->fx->symbol($baseCurrency);
+
+        $subscriptions = $user->isSandbox()
+            ? $this->sandboxSubscriptions->all($user->id)->sortBy('name')->values()
+            : Subscription::with('category')
+                ->where('user_id', $user->id)
+                ->orderBy('name')
+                ->get();
+
+        $activeSubs = $subscriptions->where('status', 'active')->values();
+        $totalMonthly = (float) $activeSubs->sum(fn ($s) => $s->monthlyAmountIn($baseCurrency));
+        $totalYearly = (float) $activeSubs->sum(fn ($s) => $s->yearlyAmountIn($baseCurrency));
+        $activeCount = $activeSubs->count();
+        $avgMonthly = $activeCount > 0 ? round($totalMonthly / $activeCount, 2) : 0.0;
+
+        $categoryBreakdown = $activeSubs
+            ->groupBy(fn ($s) => $s->category?->name ?? 'Uncategorised')
+            ->map(function ($group) use ($baseCurrency, $totalMonthly) {
+                $monthly = (float) $group->sum(fn ($s) => $s->monthlyAmountIn($baseCurrency));
+                $yearly = (float) $group->sum(fn ($s) => $s->yearlyAmountIn($baseCurrency));
+                $share = $totalMonthly > 0 ? round(($monthly / $totalMonthly) * 100, 1) : 0.0;
+
+                return [
+                    'name' => $group->first()->category?->name ?? 'Uncategorised',
+                    'count' => $group->count(),
+                    'monthly' => $monthly,
+                    'yearly' => $yearly,
+                    'share' => $share,
+                    'color' => $group->first()->category?->color ?? '#64748b',
+                ];
+            })
+            ->sortByDesc('monthly');
+
+        return view('subscriptions.export_pdf', compact(
+            'user', 'subscriptions', 'activeSubs', 'baseCurrency', 'currencySymbol',
+            'totalMonthly', 'totalYearly', 'activeCount', 'avgMonthly', 'categoryBreakdown'
+        ));
     }
 
     /** Neutralize CSV formula injection (CWE-1236 / OWASP) */

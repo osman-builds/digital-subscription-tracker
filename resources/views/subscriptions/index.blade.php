@@ -6,9 +6,32 @@
 <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
     <h1 class="h4 mb-0 fw-bold">Subscriptions</h1>
     <div class="d-flex align-items-center gap-2">
-        <a href="{{ route('subscriptions.export') }}" class="btn btn-outline-secondary d-flex align-items-center gap-1 shadow-sm" title="Export subscriptions to CSV spreadsheet">
-            <i class="bi bi-download"></i>Export CSV
-        </a>
+        <div class="dropdown">
+            <button class="btn btn-outline-secondary dropdown-toggle d-flex align-items-center gap-1 shadow-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Export subscriptions data">
+                <i class="bi bi-download"></i>Export
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                <li>
+                    <a class="dropdown-item d-flex align-items-center gap-2" href="{{ route('subscriptions.export') }}">
+                        <i class="bi bi-filetype-csv text-success fs-6"></i>
+                        <div>
+                            <div class="fw-semibold small">Export CSV</div>
+                            <div class="text-muted" style="font-size: 0.72rem;">Arranged spreadsheet table</div>
+                        </div>
+                    </a>
+                </li>
+                <li><hr class="dropdown-divider my-1"></li>
+                <li>
+                    <a class="dropdown-item d-flex align-items-center gap-2" href="{{ route('subscriptions.export_pdf') }}" target="_blank">
+                        <i class="bi bi-file-earmark-pdf text-danger fs-6"></i>
+                        <div>
+                            <div class="fw-semibold small">Export PDF / Print</div>
+                            <div class="text-muted" style="font-size: 0.72rem;">Printable A4 landscape audit</div>
+                        </div>
+                    </a>
+                </li>
+            </ul>
+        </div>
         <a href="{{ route('subscriptions.create') }}" class="btn btn-primary d-flex align-items-center gap-1 shadow-sm">
             <i class="bi bi-plus-lg"></i>Add Subscription
         </a>

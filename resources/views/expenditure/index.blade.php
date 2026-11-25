@@ -13,6 +13,32 @@
         <small class="text-muted">All amounts normalised to {{ $baseCurrency ?? 'MYR' }}</small>
     </div>
     <div class="d-flex align-items-center gap-2">
+        <div class="dropdown">
+            <button class="btn btn-outline-secondary btn-sm dropdown-toggle d-flex align-items-center gap-1 shadow-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Export expenditure data">
+                <i class="bi bi-download"></i>Export
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                <li>
+                    <a class="dropdown-item d-flex align-items-center gap-2" href="{{ route('expenditure.export_csv', ['year' => $year]) }}">
+                        <i class="bi bi-filetype-csv text-success fs-6"></i>
+                        <div>
+                            <div class="fw-semibold small">Export CSV</div>
+                            <div class="text-muted" style="font-size: 0.72rem;">Arranged expenditure ledger</div>
+                        </div>
+                    </a>
+                </li>
+                <li><hr class="dropdown-divider my-1"></li>
+                <li>
+                    <a class="dropdown-item d-flex align-items-center gap-2" href="{{ route('expenditure.export_pdf', ['year' => $year]) }}" target="_blank">
+                        <i class="bi bi-file-earmark-pdf text-danger fs-6"></i>
+                        <div>
+                            <div class="fw-semibold small">Export PDF / Print</div>
+                            <div class="text-muted" style="font-size: 0.72rem;">Printable A4 landscape audit</div>
+                        </div>
+                    </a>
+                </li>
+            </ul>
+        </div>
         @if($fxUpdatedAt)
             <span class="badge bg-light text-muted border">
                 <i class="bi bi-currency-exchange me-1"></i>FX {{ \Carbon\Carbon::parse($fxUpdatedAt)->diffForHumans() }}
