@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Services\FxRateService;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Subscription extends Model
 {
@@ -26,6 +27,7 @@ class Subscription extends Model
         'cancellation_url',
         'logo_url',
         'notes',
+        'input_source',
     ];
 
     protected function casts(): array
@@ -50,6 +52,26 @@ class Subscription extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function billingEvents(): HasMany
+    {
+        return $this->hasMany(BillingEvent::class);
+    }
+
+    public function priceHistories(): HasMany
+    {
+        return $this->hasMany(SubscriptionPriceHistory::class);
+    }
+
+    public function insightAlerts(): HasMany
+    {
+        return $this->hasMany(InsightAlert::class);
+    }
+
+    public function aiExtractionAudits(): HasMany
+    {
+        return $this->hasMany(AiExtractionAudit::class);
     }
 
     // -------------------------------------------------------------------------

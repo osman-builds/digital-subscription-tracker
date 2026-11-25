@@ -89,6 +89,29 @@
                             <small class="text-muted mt-2 d-block">Theme preference saves automatically and syncs instantly across devices.</small>
                         </div>
                     </div>
+
+                    <div class="col-12 col-md-6">
+                        <label for="monthly_budget" class="form-label fw-semibold">Monthly Budget Guardrail ({{ $settings->base_currency ?? 'MYR' }})</label>
+                        <input type="number" step="0.01" min="0" max="999999.99" id="monthly_budget" name="monthly_budget"
+                               class="form-control @error('monthly_budget') is-invalid @enderror"
+                               value="{{ old('monthly_budget', $settings->monthly_budget) }}"
+                               placeholder="e.g. 250.00 (Optional)">
+                        <div class="form-text">Set a monthly ceiling to trigger budget burn alerts and trial-conversion shock warnings.</div>
+                        @error('monthly_budget')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+                    </div>
+
+                    <div class="col-12 col-md-6">
+                        <label for="budget_alert_percent" class="form-label fw-semibold">Early Budget Warning Threshold</label>
+                        <select id="budget_alert_percent" name="budget_alert_percent" class="form-select @error('budget_alert_percent') is-invalid @enderror">
+                            @foreach([70, 80, 90, 95] as $pct)
+                                <option value="{{ $pct }}" {{ (int) old('budget_alert_percent', $settings->budget_alert_percent ?? 80) === $pct ? 'selected' : '' }}>
+                                    Alert at {{ $pct }}% of monthly budget
+                                </option>
+                            @endforeach
+                        </select>
+                        <div class="form-text">Receive a proactive dashboard warning once recurring commitments reach this threshold.</div>
+                        @error('budget_alert_percent')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+                    </div>
                 </div>
 
                 <hr class="my-4">

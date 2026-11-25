@@ -12,6 +12,7 @@
 
 <div class="row justify-content-center">
     <div class="col-12 col-lg-8">
+        @include('subscriptions._receipt_scanner')
         <div class="card border-0 shadow-sm">
             <div class="card-body p-4">
                 <form action="{{ route('subscriptions.store') }}" method="POST">

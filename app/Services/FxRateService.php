@@ -110,6 +110,30 @@ class FxRateService
     }
 
     /**
+     * Get the exact conversion multiplier between two currencies without mutating external state.
+     */
+    public function rate(string $from, string $to): float
+    {
+        $from = strtoupper(trim($from));
+        $to = strtoupper(trim($to));
+        $result = 1.0;
+
+        if ($from !== $to) {
+            $rates = $this->getRates();
+            $fromToMyr = $from === self::TARGET ? 1.0 : (float) ($rates[$from] ?? 0.0);
+
+            if ($fromToMyr > 0) {
+                $toToMyr = (float) ($rates[$to] ?? 0.0);
+                $result = ($to === self::TARGET || $toToMyr <= 0)
+                    ? round($fromToMyr, 6)
+                    : round($fromToMyr / $toToMyr, 6);
+            }
+        }
+
+        return $result;
+    }
+
+    /**
      * Get a human-readable currency symbol or code.
      */
     public function symbol(string $currency): string

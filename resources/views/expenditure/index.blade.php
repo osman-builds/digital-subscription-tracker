@@ -168,6 +168,107 @@
         @endif
     </div>
 </div>
+
+{{-- Cashflow Spike Forecast & Price Creep Intelligence --}}
+@php
+    $spikes = $intelligence['renewal_spikes'] ?? collect();
+    $priceCreep = $intelligence['price_creep'] ?? ['items' => collect(), 'extra_yearly_cost' => 0];
+@endphp
+<div class="row g-3 mt-3">
+    <div class="col-12 col-lg-6">
+        <div class="card stat-card h-100">
+            <div class="card-header bg-white border-0 pt-3 pb-0">
+                <h6 class="fw-bold mb-0"><i class="bi bi-graph-up-arrow text-warning me-2"></i>12-Month Cashflow Spike Forecast</h6>
+            </div>
+            <div class="card-body">
+                @forelse($spikes as $spike)
+                    <div class="p-3 rounded-2 bg-body-tertiary border mb-2">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="fw-bold">{{ $spike['month_label'] }}</span>
+                            <span class="badge bg-warning text-dark">{{ $spike['ratio_to_average'] }}x monthly avg — {{ $currencySymbol ?? 'RM' }} {{ number_format($spike['projected_amount'], 2) }}</span>
+                        </div>
+                        <small class="text-muted">
+                            Driven by: {{ collect($spike['events'])->map(fn($e) => "{$e['name']} ({$e['cycle']})")->implode(', ') }}
+                        </small>
+                    </div>
+                @empty
+                    <p class="text-muted small mb-0">No abnormal multi-month renewal spikes forecasted over the next 12 months.</p>
+                @endforelse
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-lg-6">
+        <div class="card stat-card h-100">
+            <div class="card-header bg-white border-0 pt-3 pb-0 d-flex justify-content-between align-items-center">
+                <h6 class="fw-bold mb-0"><i class="bi bi-arrow-up-right-circle text-danger me-2"></i>Price Creep Tracker</h6>
+                @if(($priceCreep['extra_yearly_cost'] ?? 0) > 0)
+                    <span class="badge bg-danger bg-opacity-10 text-danger">+{{ $currencySymbol ?? 'RM' }} {{ number_format($priceCreep['extra_yearly_cost'], 2) }}/yr</span>
+                @endif
+            </div>
+            <div class="card-body">
+                @forelse($priceCreep['items'] as $hike)
+                    <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                        <div>
+                            <div class="fw-semibold small">{{ $hike['name'] }}</div>
+                            <small class="text-muted">
+                                {{ $hike['currency'] }} {{ number_format($hike['old_amount'], 2) }} &rarr; {{ number_format($hike['new_amount'], 2) }}
+                                <span class="badge bg-light text-dark border ms-1">{{ str_replace('_', ' ', $hike['detected_via']) }}</span>
+                            </small>
+                        </div>
+                        <span class="badge bg-danger">+{{ number_format($hike['change_percent'], 1) }}%</span>
+                    </div>
+                @empty
+                    <p class="text-muted small mb-0">No silent subscription price hikes detected yet. Price edits and AI receipt scans automatically track inflation here.</p>
+                @endforelse
+            </div>
+        </div>
+    </div>
+</div>
+
+{{-- Immutable Billing Ledger with FX Snapshots --}}
+<div class="card stat-card mt-4">
+    <div class="card-header bg-white border-0 pt-3 pb-0 d-flex justify-content-between align-items-center">
+        <div>
+            <h6 class="fw-bold mb-0"><i class="bi bi-journal-check text-primary me-2"></i>Recent Billing Ledger (FX Snapshots)</h6>
+            <small class="text-muted">Immutable historical charges preserving exact FX rates on each billing date</small>
+        </div>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th class="ps-4">Billed Date</th>
+                        <th>Subscription</th>
+                        <th>Original Amount</th>
+                        <th>FX Rate Snapshot</th>
+                        <th>Recorded Base</th>
+                        <th class="pe-4">Source</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse(($billingEvents ?? collect()) as $event)
+                        <tr>
+                            <td class="ps-4 text-muted">{{ $event->billed_at?->format('M d, Y') }}</td>
+                            <td class="fw-semibold">{{ $event->subscription?->name ?? 'Removed Subscription' }}</td>
+                            <td>{{ $event->currency }} {{ number_format((float) $event->amount, 2) }}</td>
+                            <td class="text-muted small font-monospace">{{ number_format((float) $event->fx_rate_snapshot, 4) }}</td>
+                            <td class="fw-semibold text-success">{{ $event->base_currency }} {{ number_format((float) $event->amount_base, 2) }}</td>
+                            <td class="pe-4"><span class="badge bg-light text-dark border">{{ str_replace('_', ' ', $event->source) }}</span></td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="6" class="text-center py-4 text-muted small">
+                                No billing ledger entries recorded yet. Creating, renewing, or scanning a subscription receipt records an FX-snapshotted ledger entry automatically.
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('scripts')

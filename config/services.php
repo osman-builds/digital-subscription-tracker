@@ -48,4 +48,13 @@ return [
         'hostnames' => array_values(array_filter(array_map('trim', explode(',', (string) env('TURNSTILE_HOSTNAMES', ''))))),
     ],
 
+    // Optional Google Gemini Vision AI (Receipt & PDF invoice extraction)
+    'gemini' => [
+        'key' => env('GEMINI_API_KEY', ''),
+        'model' => env('GEMINI_MODEL', 'gemini-flash-lite-latest'),
+        'fallback_model' => env('GEMINI_FALLBACK_MODEL', 'gemini-flash-latest'),
+        'base_url' => rtrim((string) env('GEMINI_BASE_URL', 'https://generativelanguage.googleapis.com/v1beta'), '/'),
+        'timeout' => (int) env('GEMINI_TIMEOUT', 25),
+    ],
+
 ];

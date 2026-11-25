@@ -27,6 +27,10 @@ class SandboxService
 
     private const KEY_BASE_CURRENCY = 'sandbox.settings.base_currency';
 
+    private const KEY_MONTHLY_BUDGET = 'sandbox.settings.monthly_budget';
+
+    private const KEY_BUDGET_ALERT_PERCENT = 'sandbox.settings.budget_alert_percent';
+
     private const KEY_DARK_MODE = 'sandbox.settings.dark_mode';
 
     private const KEY_ALERT_7 = 'sandbox.settings.alert_7_days';
@@ -38,6 +42,8 @@ class SandboxService
     private const VIRTUAL_ID_START = 100001;
 
     private const DEFAULT_CURRENCY = 'MYR';
+
+    private const DEFAULT_BUDGET_ALERT_PERCENT = 80;
 
     public function __construct(private FxRateService $fx) {}
 
@@ -69,6 +75,8 @@ class SandboxService
                 'settings' => [
                     'user_id' => $userId,
                     'base_currency' => self::DEFAULT_CURRENCY,
+                    'monthly_budget' => 250.00,
+                    'budget_alert_percent' => self::DEFAULT_BUDGET_ALERT_PERCENT,
                     'alert_7_days' => false,
                     'alert_3_days' => false,
                     'dark_mode' => false,
@@ -112,6 +120,8 @@ class SandboxService
         $setting->forceFill([
             'user_id' => $userId,
             'base_currency' => $raw['base_currency'] ?? self::DEFAULT_CURRENCY,
+            'monthly_budget' => $raw['monthly_budget'] ?? null,
+            'budget_alert_percent' => (int) ($raw['budget_alert_percent'] ?? self::DEFAULT_BUDGET_ALERT_PERCENT),
             'alert_7_days' => false,
             'alert_3_days' => false,
             'dark_mode' => (bool) ($raw['dark_mode'] ?? false),
@@ -120,11 +130,17 @@ class SandboxService
         return $setting;
     }
 
-    public function updatePreferences(int $userId, string $baseCurrency): void
-    {
+    public function updatePreferences(
+        int $userId,
+        string $baseCurrency,
+        ?float $monthlyBudget = null,
+        int $budgetAlertPercent = self::DEFAULT_BUDGET_ALERT_PERCENT
+    ): void {
         $this->ensureInitialized($userId);
         session([
             self::KEY_BASE_CURRENCY => strtoupper($baseCurrency),
+            self::KEY_MONTHLY_BUDGET => $monthlyBudget,
+            self::KEY_BUDGET_ALERT_PERCENT => max(50, min(100, $budgetAlertPercent)),
             self::KEY_ALERT_7 => false,
             self::KEY_ALERT_3 => false,
         ]);

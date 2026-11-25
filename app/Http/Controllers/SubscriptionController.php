@@ -9,6 +9,7 @@ use App\Services\BrandIconService;
 use App\Services\FxRateService;
 use App\Services\SandboxCategoryStore;
 use App\Services\SandboxSubscriptionStore;
+use App\Services\SubscriptionLedgerService;
 use App\Services\SubscriptionUrlNormalizer;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -24,6 +25,7 @@ class SubscriptionController extends Controller
         private SandboxCategoryStore $sandboxCategories,
         private SandboxSubscriptionStore $sandboxSubscriptions,
         private SubscriptionUrlNormalizer $urlNormalizer,
+        private SubscriptionLedgerService $ledger,
     ) {}
 
     /** Resolve the best available brand icon and metadata for a domain. */
@@ -170,8 +172,12 @@ class SubscriptionController extends Controller
         $this->urlNormalizer->normalize($request);
 
         $validated = $request->validate($this->subscriptionRules());
+        $auditId = isset($validated['ai_audit_id']) ? (int) $validated['ai_audit_id'] : null;
+        unset($validated['ai_audit_id']);
+
         $validated['user_id'] = auth()->id();
         $validated['is_trial'] = $request->boolean('is_trial');
+        $validated['input_source'] = $validated['input_source'] ?? 'manual';
         $validated['amount_myr'] = $this->fx->toMyr((float) $validated['amount'], $validated['currency']);
 
         if (auth()->user()->isSandbox()) {
@@ -181,7 +187,9 @@ class SubscriptionController extends Controller
                 ->with('success', "Subscription \"{$validated['name']}\" added (sandbox session only)!");
         }
 
-        Subscription::create($validated);
+        $subscription = Subscription::create($validated);
+        $this->ledger->recordEvent($subscription, auth()->user(), $validated['input_source'], $validated['start_date']);
+        $this->ledger->linkAudit(auth()->id(), $auditId, $subscription->id, 'applied_new');
 
         return redirect()->route('subscriptions.index')
             ->with('success', "Subscription \"{$validated['name']}\" added!");
@@ -191,7 +199,11 @@ class SubscriptionController extends Controller
     {
         $this->authorize($subscription);
         if (! auth()->user()->isSandbox()) {
-            $subscription->load('category');
+            $subscription->load([
+                'category',
+                'priceHistories' => fn ($query) => $query->latest('recorded_at')->limit(10),
+                'billingEvents' => fn ($query) => $query->latest('billed_at')->limit(10),
+            ]);
         }
 
         return view('subscriptions.show', compact('subscription'));
@@ -213,6 +225,11 @@ class SubscriptionController extends Controller
         $this->urlNormalizer->normalize($request);
 
         $validated = $request->validate($this->subscriptionRules());
+        unset($validated['ai_audit_id']);
+
+        $oldAmount = (float) $subscription->amount;
+        $oldCurrency = (string) $subscription->currency;
+
         $validated['is_trial'] = $request->boolean('is_trial');
         $validated['amount_myr'] = $this->fx->toMyr((float) $validated['amount'], $validated['currency']);
 
@@ -224,6 +241,14 @@ class SubscriptionController extends Controller
         }
 
         $subscription->update($validated);
+        $this->ledger->recordPriceChangeIfChanged(
+            $subscription,
+            $oldAmount,
+            $oldCurrency,
+            (float) $validated['amount'],
+            (string) $validated['currency'],
+            'manual_edit'
+        );
 
         return redirect()->route('subscriptions.index')
             ->with('success', "Subscription \"{$subscription->name}\" updated!");
@@ -239,7 +264,9 @@ class SubscriptionController extends Controller
             return back()->with('success', "Renewal cycle advanced for \"{$subscription->name}\" (sandbox session only)!");
         }
 
+        $billedDate = $subscription->next_billing_date?->toDateString() ?? now()->toDateString();
         $subscription->advanceBillingCycle();
+        $this->ledger->recordEvent($subscription, auth()->user(), 'auto_rollover', $billedDate);
 
         return back()->with('success', "Billing cycle advanced for \"{$subscription->name}\"! Next billing date is {$subscription->next_billing_date?->format('M d, Y')}.");
     }
@@ -334,6 +361,8 @@ class SubscriptionController extends Controller
             'cancellation_url' => ['nullable', 'max:255', new SecurePublicUrl],
             'logo_url' => ['nullable', 'max:255', new SecurePublicUrl],
             'notes' => 'nullable|string|max:500',
+            'input_source' => 'nullable|in:manual,ai_image,ai_pdf',
+            'ai_audit_id' => 'nullable|integer',
         ];
     }
 

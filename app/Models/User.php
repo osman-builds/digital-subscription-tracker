@@ -47,6 +47,21 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasOne(UserSetting::class);
     }
 
+    public function billingEvents(): HasMany
+    {
+        return $this->hasMany(BillingEvent::class);
+    }
+
+    public function insightAlerts(): HasMany
+    {
+        return $this->hasMany(InsightAlert::class);
+    }
+
+    public function aiExtractionAudits(): HasMany
+    {
+        return $this->hasMany(AiExtractionAudit::class);
+    }
+
     /**
      * Determine whether this account is the isolated demo/sandbox user.
      */

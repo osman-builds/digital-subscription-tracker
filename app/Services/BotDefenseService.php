@@ -5,6 +5,7 @@ namespace App\Services;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class BotDefenseService
 {
@@ -74,17 +75,37 @@ class BotDefenseService
         }
 
         try {
-            $response = Http::timeout(3)->asForm()->post(self::VERIFY_URL, [
-                'secret' => $secretKey,
-                'response' => $token,
-                'remoteip' => $request->ip(),
-            ]);
+            $response = Http::withOptions(['force_ip_resolve' => 'v4'])
+                ->connectTimeout(5)
+                ->timeout(8)
+                ->asForm()
+                ->post(self::VERIFY_URL, [
+                    'secret' => $secretKey,
+                    'response' => $token,
+                    'remoteip' => $request->ip(),
+                ]);
 
-            return $response->successful()
+            $verified = $response->successful()
                 && (bool) $response->json('success', false)
                 && $this->matchesAllowedHostnames((string) $response->json('hostname', ''))
                 && $this->matchesExpectedAction((string) $response->json('action', ''), $expectedAction);
-        } catch (\Throwable) {
+
+            if (! $verified) {
+                Log::warning('Turnstile verification rejected', [
+                    'status' => $response->status(),
+                    'error_codes' => $response->json('error-codes', []),
+                    'hostname' => (string) $response->json('hostname', ''),
+                    'action' => (string) $response->json('action', ''),
+                    'expected_action' => $expectedAction,
+                ]);
+            }
+
+            return $verified;
+        } catch (\Throwable $e) {
+            Log::warning('Turnstile siteverify request failed', [
+                'error' => $e->getMessage(),
+            ]);
+
             return false;
         }
     }

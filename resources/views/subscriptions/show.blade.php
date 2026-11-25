@@ -46,6 +46,11 @@
                         @endif
                     </div>
                     <div class="ms-auto d-flex align-items-center gap-2">
+                        @if($subscription->input_source && $subscription->input_source !== 'manual')
+                            <span class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25">
+                                <i class="bi bi-stars me-1"></i>{{ strtoupper(str_replace('_', ' ', $subscription->input_source)) }}
+                            </span>
+                        @endif
                         @if($subscription->is_trial)
                             <span class="badge bg-warning text-dark fs-6">
                                 <i class="bi bi-gift me-1"></i>Free Trial
@@ -70,7 +75,7 @@
                 <div class="row g-2">
                     <div class="col-6">
                         <div class="text-muted small fw-semibold">AMOUNT</div>
-                        <div class="fw-bold fs-5">${{ number_format($subscription->amount, 2) }}</div>
+                        <div class="fw-bold fs-5">{{ $subscription->currency ?? 'MYR' }} {{ number_format($subscription->amount, 2) }}</div>
                         <div class="text-muted small">{{ $subscription->billingCycleLabel() }}</div>
                     </div>
                     <div class="col-6">
@@ -134,25 +139,74 @@
                 <ul class="list-group list-group-flush">
                     <li class="list-group-item px-0 d-flex justify-content-between">
                         <span class="text-muted">Weekly</span>
-                        <strong>${{ number_format($subscription->amount * (match($subscription->billing_cycle) {
+                        <strong>{{ $subscription->currency ?? 'MYR' }} {{ number_format($subscription->amount * (match($subscription->billing_cycle) {
                             'weekly' => 1, 'monthly' => 12/52, 'quarterly' => 4/52, 'semi_annual' => 2/52, 'annual' => 1/52, default => 12/52
                         }), 2) }}</strong>
                     </li>
                     <li class="list-group-item px-0 d-flex justify-content-between">
                         <span class="text-muted">Monthly</span>
-                        <strong>${{ number_format($subscription->monthlyAmount(), 2) }}</strong>
+                        <strong>{{ $subscription->currency ?? 'MYR' }} {{ number_format($subscription->monthlyAmount(), 2) }}</strong>
                     </li>
                     <li class="list-group-item px-0 d-flex justify-content-between">
                         <span class="text-muted">Quarterly</span>
-                        <strong>${{ number_format($subscription->monthlyAmount() * 3, 2) }}</strong>
+                        <strong>{{ $subscription->currency ?? 'MYR' }} {{ number_format($subscription->monthlyAmount() * 3, 2) }}</strong>
                     </li>
                     <li class="list-group-item px-0 d-flex justify-content-between">
                         <span class="fw-semibold">Yearly</span>
-                        <strong class="text-primary">${{ number_format($subscription->yearlyAmount(), 2) }}</strong>
+                        <strong class="text-primary">{{ $subscription->currency ?? 'MYR' }} {{ number_format($subscription->yearlyAmount(), 2) }}</strong>
                     </li>
                 </ul>
             </div>
         </div>
     </div>
 </div>
+
+@if(! auth()->user()->isSandbox() && ($subscription->priceHistories->isNotEmpty() || $subscription->billingEvents->isNotEmpty()))
+<div class="row g-3 mt-1">
+    <div class="col-12 col-md-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white border-0 pt-3 pb-0">
+                <h6 class="fw-bold mb-0"><i class="bi bi-clock-history text-warning me-2"></i>Price Change History</h6>
+            </div>
+            <div class="card-body">
+                @forelse($subscription->priceHistories as $history)
+                    <div class="d-flex justify-content-between align-items-center py-2 border-bottom small">
+                        <div>
+                            <span class="fw-semibold">{{ $history->currency }} {{ number_format((float) $history->old_amount, 2) }} &rarr; {{ number_format((float) $history->new_amount, 2) }}</span>
+                            <div class="text-muted">{{ $history->recorded_at?->format('M d, Y') }} ({{ str_replace('_', ' ', $history->detected_via) }})</div>
+                        </div>
+                        <span class="badge bg-{{ $history->change_amount > 0 ? 'danger' : 'success' }}">
+                            {{ $history->change_amount > 0 ? '+' : '' }}{{ number_format((float) $history->change_percent, 1) }}%
+                        </span>
+                    </div>
+                @empty
+                    <p class="text-muted small mb-0">No price changes recorded for this subscription yet.</p>
+                @endforelse
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-md-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white border-0 pt-3 pb-0">
+                <h6 class="fw-bold mb-0"><i class="bi bi-receipt text-primary me-2"></i>Billing Ledger History</h6>
+            </div>
+            <div class="card-body">
+                @forelse($subscription->billingEvents as $event)
+                    <div class="d-flex justify-content-between align-items-center py-2 border-bottom small">
+                        <div>
+                            <span class="fw-semibold">{{ $event->currency }} {{ number_format((float) $event->amount, 2) }}</span>
+                            <span class="text-muted">({{ $event->base_currency }} {{ number_format((float) $event->amount_base, 2) }})</span>
+                            <div class="text-muted">{{ $event->billed_at?->format('M d, Y') }} &bull; {{ str_replace('_', ' ', $event->source) }}</div>
+                        </div>
+                        <span class="text-muted font-monospace">FX {{ number_format((float) $event->fx_rate_snapshot, 4) }}</span>
+                    </div>
+                @empty
+                    <p class="text-muted small mb-0">No billing events recorded yet.</p>
+                @endforelse
+            </div>
+        </div>
+    </div>
+</div>
+@endif
 @endsection

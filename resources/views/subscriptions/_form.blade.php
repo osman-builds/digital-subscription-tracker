@@ -1,4 +1,6 @@
 {{-- Shared form fields for create & edit with Intelligent URL, Fuzzy Typo Correction & Official Brand Logo Sync --}}
+<input type="hidden" id="sub_input_source" name="input_source" value="{{ old('input_source', $subscription->input_source ?? 'manual') }}">
+<input type="hidden" id="sub_ai_audit_id" name="ai_audit_id" value="{{ old('ai_audit_id', '') }}">
 
 {{-- ── Quick Brand Auto-Detect Bar ───────────────────────────────────── --}}
 <div class="card border-0 mb-4" style="background: rgba(99, 102, 241, 0.05); border: 1px dashed rgba(99, 102, 241, 0.3) !important; border-radius: 14px;">

@@ -45,26 +45,36 @@ class SettingsController extends Controller
         return view('settings.about', compact('user', 'settings'));
     }
 
-    /** Save preferences: base currency + alert toggles */
+    /** Save preferences: base currency, budget guardrail + alert toggles */
     public function updatePreferences(Request $request)
     {
         $validated = $request->validate([
             'base_currency' => 'required|string|size:3',
+            'monthly_budget' => 'nullable|numeric|min:0|max:999999.99',
+            'budget_alert_percent' => 'nullable|integer|min:50|max:100',
             'alert_7_days' => 'nullable|boolean',
             'alert_3_days' => 'nullable|boolean',
         ]);
 
         $user = auth()->user();
+        $settings = $user->getSettings();
+        $monthlyBudget = $request->exists('monthly_budget')
+            ? ($validated['monthly_budget'] !== null ? round((float) $validated['monthly_budget'], 2) : null)
+            : ($settings->monthly_budget !== null ? (float) $settings->monthly_budget : null);
+        $alertPercent = isset($validated['budget_alert_percent'])
+            ? (int) $validated['budget_alert_percent']
+            : (int) ($settings->budget_alert_percent ?? 80);
 
         if ($user->isSandbox()) {
-            $this->sandbox->updatePreferences($user->id, $validated['base_currency']);
+            $this->sandbox->updatePreferences($user->id, $validated['base_currency'], $monthlyBudget, $alertPercent);
 
             return back()->with('success', 'Currency preference updated for this sandbox session (email alerts remain disabled in sandbox mode).');
         }
 
-        $settings = $user->getSettings();
         $settings->update([
             'base_currency' => strtoupper($validated['base_currency']),
+            'monthly_budget' => $monthlyBudget,
+            'budget_alert_percent' => $alertPercent,
             'alert_7_days' => $request->boolean('alert_7_days'),
             'alert_3_days' => $request->boolean('alert_3_days'),
         ]);

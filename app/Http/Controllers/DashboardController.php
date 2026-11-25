@@ -3,13 +3,17 @@
 namespace App\Http\Controllers;
 
 use App\Models\Subscription;
+use App\Services\FinancialIntelligenceService;
 use App\Services\FxRateService;
 use App\Services\SandboxSubscriptionStore;
 
 class DashboardController extends Controller
 {
-    public function index(FxRateService $fx, SandboxSubscriptionStore $sandboxSubscriptions)
-    {
+    public function index(
+        FxRateService $fx,
+        SandboxSubscriptionStore $sandboxSubscriptions,
+        FinancialIntelligenceService $intelligenceService
+    ) {
         $user = auth()->user();
         $userId = $user->id;
         $settings = $user->getSettings();
@@ -45,11 +49,12 @@ class DashboardController extends Controller
 
         $totalMonthlyMyr = $subscriptions->sum(fn ($s) => $s->monthlyAmountMyr());
         $totalYearlyMyr = $subscriptions->sum(fn ($s) => $s->yearlyAmountMyr());
+        $intelligence = $intelligenceService->analyze($user, $subscriptions, $settings);
 
         return view('dashboard', compact(
             'totalMonthly', 'totalYearly', 'totalActive', 'baseCurrency', 'currencySymbol',
             'dueSoon', 'subscriptions', 'categoryBreakdown', 'fxUpdatedAt',
-            'totalMonthlyMyr', 'totalYearlyMyr'
+            'totalMonthlyMyr', 'totalYearlyMyr', 'intelligence'
         ));
     }
 }

@@ -22,3 +22,6 @@ Schedule::command('subscriptions:remind --days=3')->dailyAt('08:00');
 
 // Create daily database snapshot at 2am
 Schedule::command('app:backup')->dailyAt('02:00');
+
+// Prune 90-day old read/dismissed insights and AI extraction audits daily at 3am
+Schedule::command('model:prune')->dailyAt('03:00');

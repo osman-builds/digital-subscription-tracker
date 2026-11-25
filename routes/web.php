@@ -4,6 +4,8 @@ use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DemoSandboxController;
 use App\Http\Controllers\ExpenditureController;
+use App\Http\Controllers\InsightAlertController;
+use App\Http\Controllers\ReceiptScanController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\SubscriptionController;
 use App\Http\Middleware\EnsureSandboxSessionValid;
@@ -36,9 +38,17 @@ Route::middleware(['auth', 'verified', EnsureSandboxSessionValid::class])->group
     Route::get('/subscriptions/resolve-icon', [SubscriptionController::class, 'resolveIcon'])
         ->middleware('throttle:60,1')
         ->name('subscriptions.resolve_icon');
+    Route::post('/subscriptions/scan-receipt', [ReceiptScanController::class, 'scan'])
+        ->middleware('throttle:10,1')
+        ->name('subscriptions.scan_receipt');
+    Route::post('/subscriptions/{subscription}/apply-receipt', [ReceiptScanController::class, 'applyToExisting'])
+        ->name('subscriptions.apply_receipt');
     Route::post('/subscriptions/{subscription}/renew', [SubscriptionController::class, 'renew'])
         ->name('subscriptions.renew');
     Route::resource('subscriptions', SubscriptionController::class);
+
+    Route::post('/insights/{insightAlert}/read', [InsightAlertController::class, 'markRead'])->name('insights.read');
+    Route::post('/insights/{insightAlert}/dismiss', [InsightAlertController::class, 'dismiss'])->name('insights.dismiss');
 
     Route::resource('categories', CategoryController::class)->except(['show', 'create', 'edit']);
 

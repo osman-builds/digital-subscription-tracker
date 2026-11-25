@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\BillingEvent;
 use App\Models\Subscription;
+use App\Services\FinancialIntelligenceService;
 use App\Services\FxRateService;
 use App\Services\SandboxSubscriptionStore;
 use Carbon\Carbon;
@@ -10,8 +12,12 @@ use Illuminate\Http\Request;
 
 class ExpenditureController extends Controller
 {
-    public function index(Request $request, FxRateService $fx, SandboxSubscriptionStore $sandboxSubscriptions)
-    {
+    public function index(
+        Request $request,
+        FxRateService $fx,
+        SandboxSubscriptionStore $sandboxSubscriptions,
+        FinancialIntelligenceService $intelligenceService
+    ) {
         $year = (int) $request->get('year', now()->year);
         $user = auth()->user();
         $userId = $user->id;
@@ -65,11 +71,20 @@ class ExpenditureController extends Controller
         $years = range(now()->year - 2, now()->year + 1);
 
         $fxUpdatedAt = $fx->lastUpdated();
+        $intelligence = $intelligenceService->analyze($user, $activeSubscriptions, $settings, false);
+        $billingEvents = $user->isSandbox()
+            ? collect()
+            : BillingEvent::with('subscription')
+                ->where('user_id', $userId)
+                ->latest('billed_at')
+                ->latest('id')
+                ->limit(12)
+                ->get();
 
         return view('expenditure.index', compact(
             'monthly', 'yearlyTotal', 'categoryBreakdown',
             'subscriptionYearly', 'year', 'years', 'fxUpdatedAt',
-            'baseCurrency', 'currencySymbol'
+            'baseCurrency', 'currencySymbol', 'intelligence', 'billingEvents'
         ));
     }
 }
