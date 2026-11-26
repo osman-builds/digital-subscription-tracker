@@ -4,7 +4,20 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 
+/**
+ * @property int $id
+ * @property int $subscription_id
+ * @property numeric-string|float $old_amount
+ * @property numeric-string|float $new_amount
+ * @property string $currency
+ * @property numeric-string|float $change_amount
+ * @property numeric-string|float $change_percent
+ * @property string $detected_via
+ * @property Carbon|null $recorded_at
+ * @property-read Subscription|null $subscription
+ */
 class SubscriptionPriceHistory extends Model
 {
     protected $fillable = [
@@ -33,6 +46,9 @@ class SubscriptionPriceHistory extends Model
         ];
     }
 
+    /**
+     * @return BelongsTo<Subscription, $this>
+     */
     public function subscription(): BelongsTo
     {
         return $this->belongsTo(Subscription::class);

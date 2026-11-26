@@ -6,7 +6,23 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Prunable;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 
+/**
+ * @property int $id
+ * @property int $user_id
+ * @property int|null $subscription_id
+ * @property string $alert_type
+ * @property string $severity
+ * @property string $title
+ * @property string $message
+ * @property string $dedupe_key
+ * @property bool $is_read
+ * @property Carbon|null $dismissed_at
+ * @property Carbon|null $emailed_at
+ * @property-read User|null $user
+ * @property-read Subscription|null $subscription
+ */
 class InsightAlert extends Model
 {
     use Prunable;
@@ -55,11 +71,17 @@ class InsightAlert extends Model
         return $query->whereNull('dismissed_at');
     }
 
+    /**
+     * @return BelongsTo<User, $this>
+     */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
+    /**
+     * @return BelongsTo<Subscription, $this>
+     */
     public function subscription(): BelongsTo
     {
         return $this->belongsTo(Subscription::class);

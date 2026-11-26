@@ -4,12 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Models\InsightAlert;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Gate;
 
 class InsightAlertController extends Controller
 {
     public function markRead(InsightAlert $insightAlert): RedirectResponse
     {
-        abort_if($insightAlert->user_id !== auth()->id(), 403);
+        Gate::authorize('update', $insightAlert);
 
         $insightAlert->update(['is_read' => true]);
 
@@ -18,7 +19,7 @@ class InsightAlertController extends Controller
 
     public function dismiss(InsightAlert $insightAlert): RedirectResponse
     {
-        abort_if($insightAlert->user_id !== auth()->id(), 403);
+        Gate::authorize('update', $insightAlert);
 
         $insightAlert->update([
             'is_read' => true,

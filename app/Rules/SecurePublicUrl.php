@@ -85,7 +85,7 @@ class SecurePublicUrl implements ValidationRule
         }
 
         $lastTwo = implode('.', array_slice($parts, -2));
-        if (in_array($lastTwo, self::MULTI_PART_SUFFIXES, true) && count($parts) >= 3) {
+        if (in_array($lastTwo, self::MULTI_PART_SUFFIXES, true)) {
             return implode('.', array_slice($parts, -3));
         }
 

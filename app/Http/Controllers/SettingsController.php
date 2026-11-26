@@ -2,14 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
+use App\Http\Requests\UpdateAccountRequest;
+use App\Http\Requests\UpdatePreferencesRequest;
 use App\Services\SandboxService;
-use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
 
 class SettingsController extends Controller
@@ -49,17 +48,11 @@ class SettingsController extends Controller
     }
 
     /** Save preferences: base currency, budget guardrail + alert toggles */
-    public function updatePreferences(Request $request)
+    public function updatePreferences(UpdatePreferencesRequest $request)
     {
-        $validated = $request->validate([
-            'base_currency' => 'required|string|size:3|alpha:ascii',
-            'monthly_budget' => 'nullable|numeric|min:0|max:999999.99',
-            'budget_alert_percent' => 'nullable|integer|min:50|max:100',
-            'alert_7_days' => 'nullable|boolean',
-            'alert_3_days' => 'nullable|boolean',
-        ]);
+        $validated = $request->validated();
 
-        $user = auth()->user();
+        $user = $request->user();
         $settings = $user->getSettings();
         if ($request->exists('monthly_budget')) {
             $monthlyBudget = $validated['monthly_budget'] !== null ? round((float) $validated['monthly_budget'], 2) : null;
@@ -105,30 +98,15 @@ class SettingsController extends Controller
     }
 
     /** Update account name + email */
-    public function updateAccount(Request $request)
+    public function updateAccount(UpdateAccountRequest $request)
     {
-        $user = auth()->user();
+        $user = $request->user();
 
         if ($user->isSandbox()) {
             return back()->with('error', 'The demo evaluation account email cannot be modified.');
         }
 
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => [
-                'required',
-                'string',
-                'lowercase',
-                'email',
-                'max:255',
-                Rule::unique('users', 'email')->ignore($user->id),
-                function (string $attribute, mixed $value, Closure $fail): void {
-                    if (User::isNonRoutableEmail((string) $value)) {
-                        $fail('Please use a real, deliverable email address.');
-                    }
-                },
-            ],
-        ]);
+        $validated = $request->validated();
 
         $user->fill($validated);
 

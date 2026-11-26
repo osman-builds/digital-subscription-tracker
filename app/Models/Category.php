@@ -7,6 +7,13 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/**
+ * @property int $id
+ * @property int|null $user_id
+ * @property string $name
+ * @property string $color
+ * @property-read User|null $user
+ */
 class Category extends Model
 {
     protected $fillable = [
@@ -25,11 +32,17 @@ class Category extends Model
         ];
     }
 
+    /**
+     * @return BelongsTo<User, $this>
+     */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
+    /**
+     * @return HasMany<Subscription, $this>
+     */
     public function subscriptions(): HasMany
     {
         return $this->hasMany(Subscription::class);

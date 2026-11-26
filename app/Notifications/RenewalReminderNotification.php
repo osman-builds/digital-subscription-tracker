@@ -4,21 +4,36 @@ namespace App\Notifications;
 
 use App\Services\FxRateService;
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 use Illuminate\Support\Collection;
 
-class RenewalReminderNotification extends Notification
+class RenewalReminderNotification extends Notification implements ShouldQueue
 {
     use Queueable;
+
+    public int $tries = 3;
 
     public Collection $subscriptions;
 
     public function __construct(Collection $subscriptions)
     {
         $this->subscriptions = $subscriptions;
+        $this->afterCommit();
     }
 
+    /**
+     * @return array<int, int>
+     */
+    public function backoff(): array
+    {
+        return [10, 60, 300];
+    }
+
+    /**
+     * @return array<int, string>
+     */
     public function via(object $notifiable): array
     {
         return ['mail'];
@@ -27,7 +42,7 @@ class RenewalReminderNotification extends Notification
     public function toMail(object $notifiable): MailMessage
     {
         $settings = method_exists($notifiable, 'getSettings') ? $notifiable->getSettings() : null;
-        $baseCurrency = $settings?->base_currency ?? 'MYR';
+        $baseCurrency = $settings !== null ? $settings->base_currency : 'MYR';
         $fx = app(FxRateService::class);
         $symbol = $fx->symbol($baseCurrency);
 

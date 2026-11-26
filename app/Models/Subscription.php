@@ -3,10 +3,35 @@
 namespace App\Models;
 
 use App\Models\Concerns\HasSubscriptionFinancials;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Carbon;
 
+/**
+ * @property int $id
+ * @property int $user_id
+ * @property int|null $category_id
+ * @property string $name
+ * @property string|null $description
+ * @property numeric-string|float $amount
+ * @property string $currency
+ * @property numeric-string|float|null $amount_myr
+ * @property string $billing_cycle
+ * @property Carbon|null $start_date
+ * @property Carbon|null $next_billing_date
+ * @property string $status
+ * @property bool $is_trial
+ * @property Carbon|null $trial_ends_at
+ * @property string|null $website_url
+ * @property string|null $cancellation_url
+ * @property string|null $logo_url
+ * @property string|null $notes
+ * @property string|null $input_source
+ * @property-read Category|null $category
+ * @property-read User|null $user
+ */
 class Subscription extends Model
 {
     use HasSubscriptionFinancials;
@@ -32,6 +57,9 @@ class Subscription extends Model
         'input_source',
     ];
 
+    /**
+     * @return array<string, string>
+     */
     protected function casts(): array
     {
         return [
@@ -46,31 +74,49 @@ class Subscription extends Model
         ];
     }
 
+    /**
+     * @return BelongsTo<Category, $this>
+     */
     public function category(): BelongsTo
     {
         return $this->belongsTo(Category::class);
     }
 
+    /**
+     * @return BelongsTo<User, $this>
+     */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
+    /**
+     * @return HasMany<BillingEvent, $this>
+     */
     public function billingEvents(): HasMany
     {
         return $this->hasMany(BillingEvent::class);
     }
 
+    /**
+     * @return HasMany<SubscriptionPriceHistory, $this>
+     */
     public function priceHistories(): HasMany
     {
         return $this->hasMany(SubscriptionPriceHistory::class);
     }
 
+    /**
+     * @return HasMany<InsightAlert, $this>
+     */
     public function insightAlerts(): HasMany
     {
         return $this->hasMany(InsightAlert::class);
     }
 
+    /**
+     * @return HasMany<AiExtractionAudit, $this>
+     */
     public function aiExtractionAudits(): HasMany
     {
         return $this->hasMany(AiExtractionAudit::class);
@@ -136,17 +182,29 @@ class Subscription extends Model
     // Scopes
     // -------------------------------------------------------------------------
 
-    public function scopeActive($query)
+    /**
+     * @param  Builder<self>  $query
+     * @return Builder<self>
+     */
+    public function scopeActive(Builder $query): Builder
     {
         return $query->where('status', 'active');
     }
 
-    public function scopeForUser($query, int $userId)
+    /**
+     * @param  Builder<self>  $query
+     * @return Builder<self>
+     */
+    public function scopeForUser(Builder $query, int $userId): Builder
     {
         return $query->where('user_id', $userId);
     }
 
-    public function scopeDueSoon($query, int $days = 7)
+    /**
+     * @param  Builder<self>  $query
+     * @return Builder<self>
+     */
+    public function scopeDueSoon(Builder $query, int $days = 7): Builder
     {
         return $query->where('status', 'active')
             ->whereBetween('next_billing_date', [
@@ -155,7 +213,11 @@ class Subscription extends Model
             ]);
     }
 
-    public function scopeTrialExpiringSoon($query, int $days = 3)
+    /**
+     * @param  Builder<self>  $query
+     * @return Builder<self>
+     */
+    public function scopeTrialExpiringSoon(Builder $query, int $days = 3): Builder
     {
         return $query->where('status', 'active')
             ->where('is_trial', true)

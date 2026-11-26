@@ -6,7 +6,21 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Prunable;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 
+/**
+ * @property int $id
+ * @property int $user_id
+ * @property int|null $subscription_id
+ * @property string $input_type
+ * @property string $file_sha256
+ * @property string $model_used
+ * @property numeric-string|float $confidence_score
+ * @property string $status
+ * @property Carbon|null $verified_at
+ * @property-read User|null $user
+ * @property-read Subscription|null $subscription
+ */
 class AiExtractionAudit extends Model
 {
     use Prunable;
@@ -43,11 +57,17 @@ class AiExtractionAudit extends Model
         return static::where('created_at', '<=', now()->subDays(90));
     }
 
+    /**
+     * @return BelongsTo<User, $this>
+     */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
+    /**
+     * @return BelongsTo<Subscription, $this>
+     */
     public function subscription(): BelongsTo
     {
         return $this->belongsTo(Subscription::class);

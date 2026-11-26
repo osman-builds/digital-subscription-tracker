@@ -67,7 +67,7 @@ class SendRenewalReminders extends Command
                 };
 
                 return [
-                    $sub->user?->email ?? '(no user)',
+                    $sub->user !== null ? $sub->user->email : '(no user)',
                     $sub->name,
                     'RM '.number_format($sub->effectiveMyr(), 2),
                     $sub->next_billing_date->format('Y-m-d'),

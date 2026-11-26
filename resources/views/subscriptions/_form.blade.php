@@ -3,62 +3,7 @@
 <input type="hidden" id="sub_ai_audit_id" name="ai_audit_id" value="{{ old('ai_audit_id', '') }}">
 
 {{-- ── Quick Brand Auto-Detect Bar ───────────────────────────────────── --}}
-<div class="card border-0 mb-4" style="background: rgba(99, 102, 241, 0.05); border: 1px dashed rgba(99, 102, 241, 0.3) !important; border-radius: 14px;">
-    <div class="card-body p-3">
-        <div class="d-flex align-items-center justify-content-between mb-2 flex-wrap gap-2">
-            <span class="small fw-bold text-primary">
-                <i class="bi bi-magic me-1"></i>Quick Brand Auto-Fill
-            </span>
-            <small class="text-muted">Pick a popular service or type below — spelling typos are automatically detected and corrected</small>
-        </div>
-
-        {{-- One-click popular service pills --}}
-        <div class="d-flex flex-wrap gap-2 mb-1" id="quickPills">
-            <button type="button" class="btn btn-sm btn-outline-secondary py-1 px-2 border-opacity-25 quick-brand-btn" data-name="Netflix" data-url="https://netflix.com" data-category="Entertainment" data-cycle="monthly">
-                <img src="https://t2.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://netflix.com&size=32" width="14" height="14" class="me-1" alt="">Netflix
-            </button>
-            <button type="button" class="btn btn-sm btn-outline-secondary py-1 px-2 border-opacity-25 quick-brand-btn" data-name="Spotify" data-url="https://spotify.com" data-category="Music" data-cycle="monthly">
-                <img src="https://t2.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://spotify.com&size=32" width="14" height="14" class="me-1" alt="">Spotify
-            </button>
-            <button type="button" class="btn btn-sm btn-outline-secondary py-1 px-2 border-opacity-25 quick-brand-btn" data-name="YouTube Premium" data-url="https://youtube.com" data-category="Entertainment" data-cycle="monthly">
-                <img src="https://t2.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://youtube.com&size=32" width="14" height="14" class="me-1" alt="">YouTube
-            </button>
-            <button type="button" class="btn btn-sm btn-outline-secondary py-1 px-2 border-opacity-25 quick-brand-btn" data-name="GitHub Copilot" data-url="https://github.com" data-category="Software & Dev" data-cycle="monthly">
-                <img src="https://t2.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://github.com&size=32" width="14" height="14" class="me-1" alt="">GitHub
-            </button>
-            <button type="button" class="btn btn-sm btn-outline-secondary py-1 px-2 border-opacity-25 quick-brand-btn" data-name="ChatGPT Plus" data-url="https://openai.com" data-category="Productivity" data-cycle="monthly">
-                <img src="https://t2.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://openai.com&size=32" width="14" height="14" class="me-1" alt="">ChatGPT
-            </button>
-            <button type="button" class="btn btn-sm btn-outline-secondary py-1 px-2 border-opacity-25 quick-brand-btn" data-name="Claude Pro" data-url="https://anthropic.com" data-category="Productivity" data-cycle="monthly">
-                <img src="https://t2.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://anthropic.com&size=32" width="14" height="14" class="me-1" alt="">Claude
-            </button>
-            <button type="button" class="btn btn-sm btn-outline-secondary py-1 px-2 border-opacity-25 quick-brand-btn" data-name="Apple iCloud+" data-url="https://apple.com" data-category="Cloud Storage" data-cycle="monthly">
-                <img src="https://t2.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://apple.com&size=32" width="14" height="14" class="me-1" alt="">Apple
-            </button>
-            <button type="button" class="btn btn-sm btn-outline-secondary py-1 px-2 border-opacity-25 quick-brand-btn" data-name="Adobe Creative Cloud" data-url="https://adobe.com" data-category="Software & Dev" data-cycle="monthly">
-                <img src="https://t2.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://adobe.com&size=32" width="14" height="14" class="me-1" alt="">Adobe
-            </button>
-            <button type="button" class="btn btn-sm btn-outline-secondary py-1 px-2 border-opacity-25 quick-brand-btn" data-name="Canva Pro" data-url="https://canva.com" data-category="Software & Dev" data-cycle="annual">
-                <img src="https://t2.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://canva.com&size=32" width="14" height="14" class="me-1" alt="">Canva
-            </button>
-            <button type="button" class="btn btn-sm btn-outline-secondary py-1 px-2 border-opacity-25 quick-brand-btn" data-name="Figma Professional" data-url="https://figma.com" data-category="Software & Dev" data-cycle="monthly">
-                <img src="https://t2.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://figma.com&size=32" width="14" height="14" class="me-1" alt="">Figma
-            </button>
-            <button type="button" class="btn btn-sm btn-outline-secondary py-1 px-2 border-opacity-25 quick-brand-btn" data-name="Disney+" data-url="https://disneyplus.com" data-category="Entertainment" data-cycle="monthly">
-                <img src="https://t2.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://disneyplus.com&size=32" width="14" height="14" class="me-1" alt="">Disney+
-            </button>
-            <button type="button" class="btn btn-sm btn-outline-secondary py-1 px-2 border-opacity-25 quick-brand-btn" data-name="Notion Plus" data-url="https://notion.so" data-category="Productivity" data-cycle="monthly">
-                <img src="https://t2.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://notion.so&size=32" width="14" height="14" class="me-1" alt="">Notion
-            </button>
-            <button type="button" class="btn btn-sm btn-outline-secondary py-1 px-2 border-opacity-25 quick-brand-btn" data-name="Calm" data-url="https://calm.com" data-category="Health & Fitness" data-cycle="annual">
-                <img src="https://t2.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://calm.com&size=32" width="14" height="14" class="me-1" alt="">Calm
-            </button>
-            <button type="button" class="btn btn-sm btn-outline-secondary py-1 px-2 border-opacity-25 quick-brand-btn" data-name="Strava" data-url="https://strava.com" data-category="Health & Fitness" data-cycle="annual">
-                <img src="https://t2.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://strava.com&size=32" width="14" height="14" class="me-1" alt="">Strava
-            </button>
-        </div>
-    </div>
-</div>
+<x-brand-picker />
 
 <div class="row g-3">
     {{-- Service Website URL (Primary Auto-Detector) --}}
@@ -163,16 +108,7 @@
 
     {{-- Currency --}}
     <div class="col-12 col-md-4">
-        <label for="sub_currency" class="form-label fw-semibold">Original Currency <span class="text-danger">*</span></label>
-        <select id="sub_currency" name="currency" class="form-select @error('currency') is-invalid @enderror" required>
-            @foreach($currencies as $code => $label)
-                <option value="{{ $code }}" {{ old('currency', $subscription->currency ?? 'USD') === $code ? 'selected' : '' }}>
-                    {{ $label }}
-                </option>
-            @endforeach
-        </select>
-        <div class="form-text">Will be auto-converted to your base tracking currency.</div>
-        @error('currency')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+        <x-currency-select :currencies="$currencies" :selected="$subscription->currency ?? 'USD'" />
     </div>
 
     {{-- Billing Cycle --}}
@@ -256,36 +192,7 @@
 
     {{-- Free Trial & Cancellation Information --}}
     <div class="col-12">
-        <div class="card bg-light border-0 p-3 rounded-3">
-            <div class="form-check form-switch mb-2">
-                <input class="form-check-input" type="checkbox" id="sub_is_trial" name="is_trial" value="1"
-                       {{ old('is_trial', $subscription->is_trial ?? false) ? 'checked' : '' }}>
-                <label class="form-check-label fw-semibold" for="sub_is_trial">
-                    <i class="bi bi-gift text-warning me-1"></i>Currently on a Free Trial?
-                </label>
-            </div>
-            
-            <div id="trialEndDateWrapper" class="{{ old('is_trial', $subscription->is_trial ?? false) ? '' : 'd-none' }} mb-2">
-                <label for="sub_trial_ends_at" class="form-label small fw-semibold">Trial Expiration Date</label>
-                <input type="date" id="sub_trial_ends_at" name="trial_ends_at"
-                       class="form-control form-control-sm @error('trial_ends_at') is-invalid @enderror"
-                       value="{{ old('trial_ends_at', isset($subscription) && $subscription->trial_ends_at ? $subscription->trial_ends_at->format('Y-m-d') : '') }}">
-                <div class="form-text small">We will highlight this service so you can cancel before the trial converts to a paid subscription.</div>
-                @error('trial_ends_at')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
-            </div>
-
-            <div class="mt-2">
-                <label for="sub_cancellation_url" class="form-label small fw-semibold">
-                    <i class="bi bi-box-arrow-up-right me-1 text-muted"></i>Direct Cancellation Page URL <span class="text-muted fw-normal">(Optional)</span>
-                </label>
-                <input type="url" id="sub_cancellation_url" name="cancellation_url"
-                       class="form-control form-control-sm @error('cancellation_url') is-invalid @enderror"
-                       value="{{ old('cancellation_url', $subscription->cancellation_url ?? '') }}"
-                       placeholder="e.g. https://www.netflix.com/cancelplan">
-                <div class="form-text small">Save direct link to the service's cancellation page for 1-click access when you decide to stop.</div>
-                @error('cancellation_url')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
-            </div>
-        </div>
+        <x-trial-fields :subscription="$subscription ?? null" />
     </div>
 
     {{-- Notes --}}

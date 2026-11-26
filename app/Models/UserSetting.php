@@ -5,6 +5,17 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * @property int $id
+ * @property int $user_id
+ * @property string $base_currency
+ * @property numeric-string|float|null $monthly_budget
+ * @property int $budget_alert_percent
+ * @property bool $alert_7_days
+ * @property bool $alert_3_days
+ * @property bool $dark_mode
+ * @property-read User|null $user
+ */
 class UserSetting extends Model
 {
     protected $fillable = [
@@ -25,6 +36,9 @@ class UserSetting extends Model
         'dark_mode' => 'boolean',
     ];
 
+    /**
+     * @return BelongsTo<User, $this>
+     */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

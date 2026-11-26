@@ -3,9 +3,12 @@
 namespace App\Providers;
 
 use App\Auth\SandboxUserProvider;
+use App\Contracts\AiProviderInterface;
 use App\Models\Category;
 use App\Models\Subscription;
+use App\Models\User;
 use App\Notifications\WelcomeNotification;
+use App\Services\Ai\GeminiProvider;
 use App\Services\FxRateService;
 use App\Services\SandboxCategoryStore;
 use App\Services\SandboxSubscriptionStore;
@@ -30,6 +33,7 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->scoped(FxRateService::class);
+        $this->app->bind(AiProviderInterface::class, GeminiProvider::class);
     }
 
     /**
@@ -70,7 +74,7 @@ class AppServiceProvider extends ServiceProvider
         });
 
         Event::listen(Verified::class, function (Verified $event): void {
-            if ($event->user->hasRealVerifiedEmail()) {
+            if ($event->user instanceof User && $event->user->hasRealVerifiedEmail()) {
                 $event->user->notify(new WelcomeNotification);
             }
         });
@@ -91,7 +95,8 @@ class AppServiceProvider extends ServiceProvider
         });
 
         RateLimiter::for('ai-copilot', function (Request $request): array {
-            $identity = ($request->user()?->id ?? 'guest').'|'.$request->ip();
+            $user = $request->user();
+            $identity = ($user !== null ? $user->id : 'guest').'|'.$request->ip();
 
             return [
                 Limit::perMinute(20)->by($identity),
@@ -100,7 +105,8 @@ class AppServiceProvider extends ServiceProvider
         });
 
         RateLimiter::for('ai-receipt-scan', function (Request $request): array {
-            $identity = ($request->user()?->id ?? 'guest').'|'.$request->ip();
+            $user = $request->user();
+            $identity = ($user !== null ? $user->id : 'guest').'|'.$request->ip();
 
             return [
                 Limit::perMinute(10)->by($identity),

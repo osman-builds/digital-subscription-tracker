@@ -2,9 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreSubscriptionRequest;
+use App\Http\Requests\UpdateSubscriptionRequest;
 use App\Models\Category;
 use App\Models\Subscription;
-use App\Rules\SecurePublicUrl;
 use App\Services\BrandIconService;
 use App\Services\FxRateService;
 use App\Services\ReportExportService;
@@ -12,11 +13,10 @@ use App\Services\SandboxCategoryStore;
 use App\Services\SandboxService;
 use App\Services\SandboxSubscriptionStore;
 use App\Services\SubscriptionLedgerService;
-use App\Services\SubscriptionUrlNormalizer;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
-use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -30,7 +30,6 @@ class SubscriptionController extends Controller
         private SandboxCategoryStore $sandboxCategories,
         private SandboxSubscriptionStore $sandboxSubscriptions,
         private SandboxService $sandbox,
-        private SubscriptionUrlNormalizer $urlNormalizer,
         private SubscriptionLedgerService $ledger,
     ) {}
 
@@ -92,19 +91,20 @@ class SubscriptionController extends Controller
         $avgMonthly = $activeCount > 0 ? round($totalMonthly / $activeCount, 2) : 0.0;
 
         $categoryBreakdown = $activeSubs
-            ->groupBy(fn ($s) => $s->category?->name ?? 'Uncategorised')
-            ->map(function ($group) use ($baseCurrency, $totalMonthly) {
-                $monthly = (float) $group->sum(fn ($s) => $s->monthlyAmountIn($baseCurrency));
-                $yearly = (float) $group->sum(fn ($s) => $s->yearlyAmountIn($baseCurrency));
+            ->groupBy(fn (Subscription $s): string => $s->category !== null ? $s->category->name : 'Uncategorised')
+            ->map(function ($group) use ($baseCurrency, $totalMonthly): array {
+                $monthly = (float) $group->sum(fn (Subscription $s): float => $s->monthlyAmountIn($baseCurrency));
+                $yearly = (float) $group->sum(fn (Subscription $s): float => $s->yearlyAmountIn($baseCurrency));
                 $share = $totalMonthly > 0 ? round(($monthly / $totalMonthly) * 100, 1) : 0.0;
+                $category = $group->first()?->category;
 
                 return [
-                    'name' => $group->first()->category?->name ?? 'Uncategorised',
+                    'name' => $category !== null ? $category->name : 'Uncategorised',
                     'count' => $group->count(),
                     'monthly' => $monthly,
                     'yearly' => $yearly,
                     'share' => $share,
-                    'color' => $group->first()->category?->color ?? '#64748b',
+                    'color' => $category !== null ? $category->color : '#64748b',
                 ];
             })
             ->sortByDesc('monthly');
@@ -157,11 +157,9 @@ class SubscriptionController extends Controller
         return view('subscriptions.create', compact('categories', 'currencies', 'brandCatalog'));
     }
 
-    public function store(Request $request)
+    public function store(StoreSubscriptionRequest $request)
     {
-        $this->urlNormalizer->normalize($request);
-
-        $validated = $request->validate($this->subscriptionRules());
+        $validated = $request->validated();
         $auditId = isset($validated['ai_audit_id']) ? (int) $validated['ai_audit_id'] : null;
         unset($validated['ai_audit_id']);
 
@@ -187,7 +185,7 @@ class SubscriptionController extends Controller
 
     public function show(Subscription $subscription)
     {
-        $this->authorize($subscription);
+        Gate::authorize('view', $subscription);
         if (auth()->user()->isSandbox()) {
             $this->sandbox->hydrateRelations($subscription);
         } else {
@@ -203,7 +201,7 @@ class SubscriptionController extends Controller
 
     public function edit(Subscription $subscription)
     {
-        $this->authorize($subscription);
+        Gate::authorize('update', $subscription);
         $categories = $this->accessibleCategories();
         $currencies = $this->currencyList();
         $brandCatalog = $this->brandIcons->catalog();
@@ -211,12 +209,9 @@ class SubscriptionController extends Controller
         return view('subscriptions.edit', compact('subscription', 'categories', 'currencies', 'brandCatalog'));
     }
 
-    public function update(Request $request, Subscription $subscription)
+    public function update(UpdateSubscriptionRequest $request, Subscription $subscription)
     {
-        $this->authorize($subscription);
-        $this->urlNormalizer->normalize($request);
-
-        $validated = $request->validate($this->subscriptionRules());
+        $validated = $request->validated();
         unset($validated['ai_audit_id']);
 
         $oldAmount = (float) $subscription->amount;
@@ -248,7 +243,7 @@ class SubscriptionController extends Controller
 
     public function renew(Subscription $subscription)
     {
-        $this->authorize($subscription);
+        Gate::authorize('update', $subscription);
 
         if (auth()->user()->isSandbox()) {
             $this->sandboxSubscriptions->advanceCycle(auth()->id(), $subscription);
@@ -265,7 +260,7 @@ class SubscriptionController extends Controller
 
     public function destroy(Subscription $subscription)
     {
-        $this->authorize($subscription);
+        Gate::authorize('delete', $subscription);
         $name = $subscription->name;
 
         if (auth()->user()->isSandbox()) {
@@ -320,42 +315,6 @@ class SubscriptionController extends Controller
             $page,
             ['path' => $request->url()]
         ))->withQueryString();
-    }
-
-    /** Ensure subscription belongs to authenticated user */
-    private function authorize(Subscription $subscription): void
-    {
-        abort_if($subscription->user_id !== auth()->id(), 403);
-    }
-
-    /** Shared validation rules for creating and updating subscriptions */
-    private function subscriptionRules(): array
-    {
-        $categoryRule = auth()->user()->isSandbox()
-            ? Rule::in($this->sandboxCategories->all(auth()->id())->pluck('id')->all())
-            : Rule::exists('categories', 'id')->where(function ($query) {
-                $query->whereNull('user_id')->orWhere('user_id', auth()->id());
-            });
-
-        return [
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'amount' => 'required|numeric|min:0',
-            'currency' => 'required|string|size:3|alpha:ascii',
-            'billing_cycle' => 'required|in:weekly,monthly,quarterly,semi_annual,annual',
-            'start_date' => 'required|date',
-            'next_billing_date' => 'required|date',
-            'status' => 'required|in:active,inactive,cancelled',
-            'is_trial' => 'nullable|boolean',
-            'trial_ends_at' => 'nullable|date',
-            'category_id' => ['nullable', $categoryRule],
-            'website_url' => ['nullable', 'max:255', new SecurePublicUrl],
-            'cancellation_url' => ['nullable', 'max:255', new SecurePublicUrl],
-            'logo_url' => ['nullable', 'max:255', new SecurePublicUrl],
-            'notes' => 'nullable|string|max:500',
-            'input_source' => 'nullable|in:manual,ai_image,ai_pdf',
-            'ai_audit_id' => 'nullable|integer',
-        ];
     }
 
     /** Supported currencies for the dropdown */

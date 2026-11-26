@@ -88,7 +88,7 @@ class SubscriptionUrlNormalizer
         $host = parse_url((string) $request->input('website_url'), PHP_URL_HOST) ?? '';
         $cleanHost = preg_replace('/^www\./', '', (string) $host);
         $parts = explode('.', $cleanHost);
-        $derivedName = ucfirst($parts[0] ?? 'Subscription');
+        $derivedName = ucfirst($parts[0] !== '' ? $parts[0] : 'Subscription');
         $request->merge(['name' => $derivedName]);
     }
 }

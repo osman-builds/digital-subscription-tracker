@@ -24,6 +24,9 @@ class User extends Authenticatable implements MustVerifyEmail
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
 
+    /**
+     * @return array<string, string>
+     */
     protected function casts(): array
     {
         return [
@@ -32,31 +35,49 @@ class User extends Authenticatable implements MustVerifyEmail
         ];
     }
 
+    /**
+     * @return HasMany<Subscription, $this>
+     */
     public function subscriptions(): HasMany
     {
         return $this->hasMany(Subscription::class);
     }
 
+    /**
+     * @return HasMany<Category, $this>
+     */
     public function categories(): HasMany
     {
         return $this->hasMany(Category::class);
     }
 
+    /**
+     * @return HasOne<UserSetting, $this>
+     */
     public function settings(): HasOne
     {
         return $this->hasOne(UserSetting::class);
     }
 
+    /**
+     * @return HasMany<BillingEvent, $this>
+     */
     public function billingEvents(): HasMany
     {
         return $this->hasMany(BillingEvent::class);
     }
 
+    /**
+     * @return HasMany<InsightAlert, $this>
+     */
     public function insightAlerts(): HasMany
     {
         return $this->hasMany(InsightAlert::class);
     }
 
+    /**
+     * @return HasMany<AiExtractionAudit, $this>
+     */
     public function aiExtractionAudits(): HasMany
     {
         return $this->hasMany(AiExtractionAudit::class);

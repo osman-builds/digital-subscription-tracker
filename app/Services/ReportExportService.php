@@ -111,7 +111,7 @@ class ReportExportService
                 $index++,
                 $this->sanitizeCsv($sub->name),
                 $this->sanitizeCsv($sub->website_url ?? ''),
-                $this->sanitizeCsv($sub->category?->name ?? self::DEFAULT_SUB_CATEGORY),
+                $this->sanitizeCsv($sub->category !== null ? $sub->category->name : self::DEFAULT_SUB_CATEGORY),
                 ucfirst((string) $sub->status),
                 number_format((float) $sub->amount, 2, '.', ''),
                 $sub->currency,
@@ -152,7 +152,7 @@ class ReportExportService
      */
     private function writeSubscriptionsCategoryBreakdown($handle, Collection $activeSubs, string $baseCurrency, float $totalMonthly): void
     {
-        $categoryGroups = $activeSubs->groupBy(fn ($s) => $s->category?->name ?? self::DEFAULT_SUB_CATEGORY);
+        $categoryGroups = $activeSubs->groupBy(fn ($s) => $s->category !== null ? $s->category->name : self::DEFAULT_SUB_CATEGORY);
         if ($categoryGroups->isEmpty()) {
             return;
         }
@@ -257,7 +257,7 @@ class ReportExportService
             fputcsv($handle, [
                 $idx++,
                 $this->sanitizeCsv($sub->name),
-                $this->sanitizeCsv($sub->category?->name ?? self::DEFAULT_EXP_CATEGORY),
+                $this->sanitizeCsv($sub->category !== null ? $sub->category->name : self::DEFAULT_EXP_CATEGORY),
                 $sub->billingCycleLabel(),
                 number_format((float) $sub->amount, 2, '.', ''),
                 $sub->currency,
@@ -283,7 +283,7 @@ class ReportExportService
         foreach ($billingEvents as $ev) {
             fputcsv($handle, [
                 $ev->billed_at?->format(self::DATE_FORMAT) ?? '',
-                $this->sanitizeCsv($ev->subscription?->name ?? self::LABEL_SUBSCRIPTION),
+                $this->sanitizeCsv($ev->subscription !== null ? $ev->subscription->name : self::LABEL_SUBSCRIPTION),
                 number_format((float) $ev->amount, 2, '.', ''),
                 $ev->currency,
                 number_format((float) $ev->fx_rate_snapshot, 6, '.', ''),

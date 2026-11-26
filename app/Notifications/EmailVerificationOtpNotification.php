@@ -3,14 +3,42 @@
 namespace App\Notifications;
 
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class EmailVerificationOtpNotification extends Notification
+class EmailVerificationOtpNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
-    public function __construct(public string $otp) {}
+    public int $tries = 3;
+
+    public function __construct(public string $otp)
+    {
+        $this->afterCommit();
+    }
+
+    /**
+     * @return array<int, int>
+     */
+    public function backoff(): array
+    {
+        return [5, 30, 60];
+    }
+
+    /**
+     * Deliver OTP after HTTP response flushes in production (no cron delay), or sync in tests.
+     *
+     * @return array<string, string>
+     */
+    public function viaConnections(): array
+    {
+        $default = (string) config('queue.default', 'sync');
+
+        return [
+            'mail' => $default === 'sync' ? 'sync' : 'deferred',
+        ];
+    }
 
     /**
      * Get the notification's delivery channels.

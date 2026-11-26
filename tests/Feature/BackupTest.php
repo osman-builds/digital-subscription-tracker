@@ -2,10 +2,13 @@
 
 namespace Tests\Feature;
 
+use App\Jobs\RunEncryptedBackupJob;
 use App\Models\User;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Queue;
 use Tests\TestCase;
 
 class BackupTest extends TestCase
@@ -59,5 +62,15 @@ class BackupTest extends TestCase
         $this->assertTrue((bool) ($decrypted['meta']['encrypted'] ?? false));
 
         File::delete($latest);
+    }
+
+    public function test_encrypted_backup_job_can_be_dispatched_onto_queue(): void
+    {
+        Queue::fake();
+
+        RunEncryptedBackupJob::dispatch();
+
+        Queue::assertPushed(RunEncryptedBackupJob::class);
+        $this->assertInstanceOf(ShouldQueue::class, new RunEncryptedBackupJob);
     }
 }

@@ -1,5 +1,6 @@
 <?php
 
+use App\Jobs\RunEncryptedBackupJob;
 use Illuminate\Support\Facades\Schedule;
 
 /*
@@ -20,8 +21,13 @@ Schedule::command('fx:refresh')->everySixHours();
 // Send renewal reminders daily at 8am — checks 3 days ahead
 Schedule::command('subscriptions:remind --days=3')->dailyAt('08:00');
 
-// Create daily encrypted database snapshot at 2am
-Schedule::command('app:backup --encrypt')->dailyAt('02:00');
+// Dispatch daily encrypted database snapshot at 2am onto the background queue
+Schedule::job(new RunEncryptedBackupJob)->dailyAt('02:00');
 
 // Prune 90-day old read/dismissed insights and AI extraction audits daily at 3am
 Schedule::command('model:prune')->dailyAt('03:00');
+
+// Drain queued background jobs safely via cron when a dedicated Supervisor daemon is not running
+Schedule::command('queue:work --stop-when-empty --tries=3 --max-time=50')
+    ->everyMinute()
+    ->withoutOverlapping();

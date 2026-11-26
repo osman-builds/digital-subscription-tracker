@@ -44,6 +44,12 @@ jobs:
           cp .env.example .env
           php artisan key:generate
 
+      - name: Check Code Formatting (Pint)
+        run: vendor/bin/pint --test
+
+      - name: Static Analysis (Larastan)
+        run: vendor/bin/phpstan analyse --memory-limit=512M
+
       - name: Execute Tests (PHPUnit)
         run: php artisan test --compact
 
