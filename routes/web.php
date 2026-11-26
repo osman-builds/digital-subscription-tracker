@@ -71,8 +71,12 @@ Route::middleware(['auth', 'verified', EnsureSandboxSessionValid::class])->group
 
     Route::patch('/settings/preferences', [SettingsController::class, 'updatePreferences'])->name('settings.preferences');
     Route::patch('/settings/account', [SettingsController::class, 'updateAccount'])->name('settings.account');
-    Route::patch('/settings/password', [SettingsController::class, 'updatePassword'])->name('settings.password');
-    Route::delete('/settings/account', [SettingsController::class, 'deleteAccount'])->name('settings.delete_account');
+    Route::patch('/settings/password', [SettingsController::class, 'updatePassword'])
+        ->middleware('throttle:6,1')
+        ->name('settings.password');
+    Route::delete('/settings/account', [SettingsController::class, 'deleteAccount'])
+        ->middleware('throttle:6,1')
+        ->name('settings.delete_account');
     Route::post('/settings/dark-mode', [SettingsController::class, 'updateDarkMode'])->name('settings.dark_mode');
 
     // ── Personal Financial AI Copilot (user/session scoped: burst + hourly) ──

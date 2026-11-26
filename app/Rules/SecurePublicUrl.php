@@ -26,6 +26,13 @@ class SecurePublicUrl implements ValidationRule
     ];
 
     /**
+     * @param  (Closure(string): array<int, string>)|null  $ipResolver
+     */
+    public function __construct(
+        private readonly ?Closure $ipResolver = null,
+    ) {}
+
+    /**
      * Run the validation rule.
      *
      * @param  Closure(string, ?string=): PotentiallyTranslatedString  $fail
@@ -44,8 +51,37 @@ class SecurePublicUrl implements ValidationRule
             $fail("The {$attribute} must use a secure HTTPS connection.");
         } elseif (! $this->isValidPublicHost($host)) {
             $fail("The {$attribute} cannot point to a local, private, or internal network address.");
-        } elseif (! $this->domainExists($host)) {
+        } else {
+            $this->validateResolvedHost($attribute, $host, $fail);
+        }
+    }
+
+    /**
+     * @param  Closure(string, ?string=): PotentiallyTranslatedString  $fail
+     */
+    private function validateResolvedHost(string $attribute, string $host, Closure $fail): void
+    {
+        $resolvedIps = $this->resolveHostIps($host);
+
+        if ($resolvedIps === []) {
+            $root = $this->extractRootDomain($host);
+            if ($root !== '' && $root !== $host) {
+                $resolvedIps = $this->resolveHostIps($root);
+            }
+        }
+
+        if ($resolvedIps === []) {
             $fail("The {$attribute} must belong to an active, verified public domain.");
+
+            return;
+        }
+
+        foreach ($resolvedIps as $ip) {
+            if (! $this->isPublicIp($ip)) {
+                $fail("The {$attribute} cannot point to a local, private, or internal network address.");
+
+                return;
+            }
         }
     }
 
@@ -66,17 +102,6 @@ class SecurePublicUrl implements ValidationRule
             && (bool) preg_match('/^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$/', $host);
     }
 
-    private function domainExists(string $host): bool
-    {
-        if ($this->hasDnsRecord($host)) {
-            return true;
-        }
-
-        $root = $this->extractRootDomain($host);
-
-        return $root !== '' && $root !== $host && $this->hasDnsRecord($root);
-    }
-
     private function extractRootDomain(string $host): string
     {
         $parts = explode('.', $host);
@@ -92,14 +117,49 @@ class SecurePublicUrl implements ValidationRule
         return $lastTwo;
     }
 
-    private function hasDnsRecord(string $domain): bool
+    /**
+     * Resolve all A and AAAA IP addresses for a hostname.
+     *
+     * @return array<int, string>
+     */
+    private function resolveHostIps(string $domain): array
     {
-        try {
-            return checkdnsrr($domain, 'A')
-                || checkdnsrr($domain, 'AAAA')
-                || checkdnsrr($domain, 'CNAME');
-        } catch (Throwable) {
-            return false;
+        if ($this->ipResolver !== null) {
+            return ($this->ipResolver)($domain);
         }
+
+        $ips = [];
+
+        try {
+            $records = @dns_get_record($domain, DNS_A | DNS_AAAA);
+            if (is_array($records)) {
+                foreach ($records as $record) {
+                    $ip = $record['ip'] ?? $record['ipv6'] ?? null;
+                    if (is_string($ip) && $ip !== '') {
+                        $ips[] = $ip;
+                    }
+                }
+            }
+
+            if ($ips === []) {
+                $fallback = @gethostbynamel($domain);
+                if (is_array($fallback)) {
+                    $ips = array_values(array_filter($fallback, static fn (string $ip): bool => $ip !== ''));
+                }
+            }
+        } catch (Throwable) {
+            return [];
+        }
+
+        return array_values(array_unique($ips));
+    }
+
+    private function isPublicIp(string $ip): bool
+    {
+        return filter_var(
+            $ip,
+            FILTER_VALIDATE_IP,
+            FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE
+        ) !== false;
     }
 }

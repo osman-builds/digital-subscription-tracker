@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\UpdateAccountRequest;
 use App\Http\Requests\UpdatePreferencesRequest;
 use App\Services\SandboxService;
+use App\Support\SessionRevoker;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -131,7 +132,9 @@ class SettingsController extends Controller
     /** Change password */
     public function updatePassword(Request $request)
     {
-        if (auth()->user()->isSandbox()) {
+        $user = $request->user();
+
+        if ($user->isSandbox()) {
             return back()->with('error', 'The demo evaluation account password cannot be changed.');
         }
 
@@ -140,9 +143,11 @@ class SettingsController extends Controller
             'password' => ['required', 'confirmed', Password::min(8)->mixedCase()->numbers()],
         ]);
 
-        auth()->user()->update([
+        $user->update([
             'password' => Hash::make($request->password),
         ]);
+
+        SessionRevoker::revokeOtherSessions($user, $request);
 
         return back()->with('success', 'Password changed successfully.');
     }

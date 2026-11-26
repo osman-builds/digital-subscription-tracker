@@ -97,4 +97,28 @@ class SecurePublicUrlTest extends TestCase
 
         $response->assertSessionHasErrors(['website_url']);
     }
+
+    public function test_secure_public_url_rejects_public_domains_resolving_to_private_or_metadata_ips(): void
+    {
+        $dangerousIps = [
+            '127.0.0.1',
+            '169.254.169.254',
+            '10.0.0.5',
+            '172.16.0.10',
+            '192.168.1.50',
+            '::1',
+        ];
+
+        foreach ($dangerousIps as $ip) {
+            $rule = new SecurePublicUrl(static fn (): array => [$ip]);
+            $validator = Validator::make(['url' => 'https://rebind-attacker.example'], ['url' => [$rule]]);
+
+            $this->assertTrue($validator->fails(), "Expected DNS resolution to {$ip} to be rejected.");
+            $this->assertStringContainsString('local, private, or internal', (string) $validator->errors()->first('url'));
+        }
+
+        $publicRule = new SecurePublicUrl(static fn (): array => ['93.184.216.34']);
+        $publicValidator = Validator::make(['url' => 'https://verified-public.example'], ['url' => [$publicRule]]);
+        $this->assertTrue($publicValidator->passes());
+    }
 }

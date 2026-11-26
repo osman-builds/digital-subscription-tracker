@@ -13,9 +13,11 @@ class SecurityHeadersTest extends TestCase
         $response->assertOk();
         $response->assertHeader('X-Frame-Options', 'SAMEORIGIN');
         $response->assertHeader('X-Content-Type-Options', 'nosniff');
-        $response->assertHeader('X-XSS-Protection', '1; mode=block');
+        $response->assertHeader('X-XSS-Protection', '0');
         $response->assertHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
         $response->assertHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+        $response->assertHeader('Cross-Origin-Opener-Policy', 'same-origin');
+        $response->assertHeader('Cross-Origin-Resource-Policy', 'same-origin');
         $response->assertHeader('Content-Security-Policy');
 
         $csp = (string) $response->headers->get('Content-Security-Policy');
@@ -38,5 +40,29 @@ class SecurityHeadersTest extends TestCase
         $response = $this->get('https://mysubshield.me/');
 
         $response->assertHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+    }
+
+    public function test_hsts_header_is_attached_when_forwarded_https_from_trusted_cloudflare_proxy(): void
+    {
+        $response = $this->withServerVariables([
+            'REMOTE_ADDR' => '173.245.48.10',
+            'HTTP_X_FORWARDED_PROTO' => 'https',
+            'HTTP_X_FORWARDED_FOR' => '203.0.113.42',
+        ])->get(route('splash'));
+
+        $response->assertOk();
+        $response->assertHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+    }
+
+    public function test_untrusted_proxy_cannot_spoof_forwarded_https_or_client_ip(): void
+    {
+        $response = $this->withServerVariables([
+            'REMOTE_ADDR' => '198.51.100.77',
+            'HTTP_X_FORWARDED_PROTO' => 'https',
+            'HTTP_X_FORWARDED_FOR' => '203.0.113.99',
+        ])->get(route('splash'));
+
+        $response->assertOk();
+        $response->assertHeaderMissing('Strict-Transport-Security');
     }
 }

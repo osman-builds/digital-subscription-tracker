@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Support\SessionRevoker;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -15,7 +16,9 @@ class PasswordController extends Controller
      */
     public function update(Request $request): RedirectResponse
     {
-        if ($request->user()->isSandbox()) {
+        $user = $request->user();
+
+        if ($user->isSandbox()) {
             return back()->with('error', 'The demo evaluation account password cannot be changed.');
         }
 
@@ -24,9 +27,11 @@ class PasswordController extends Controller
             'password' => ['required', Password::defaults(), 'confirmed'],
         ]);
 
-        $request->user()->update([
+        $user->update([
             'password' => Hash::make($validated['password']),
         ]);
+
+        SessionRevoker::revokeOtherSessions($user, $request);
 
         return back()->with('status', 'password-updated');
     }

@@ -7,6 +7,7 @@ use App\Models\Subscription;
 use App\Models\User;
 use App\Notifications\EmailVerificationOtpNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
 use Tests\TestCase;
@@ -408,5 +409,62 @@ class SettingsTest extends TestCase
         $response->assertOk();
         $response->assertSee('Quick-Start Onboarding Guide');
         $response->assertSee(route(self::ROUTE_SETTINGS_INDEX), false);
+    }
+
+    public function test_changing_password_rotates_remember_token_and_revokes_other_database_sessions(): void
+    {
+        config()->set('session.driver', 'database');
+
+        $user = User::factory()->create([
+            'password' => Hash::make('OldPassword123'),
+            'remember_token' => 'initial-token-value',
+        ]);
+
+        DB::table('sessions')->insert([
+            'id' => 'hijacked-device-session-id',
+            'user_id' => $user->id,
+            'ip_address' => '203.0.113.55',
+            'user_agent' => 'AttackerBrowser/1.0',
+            'payload' => base64_encode('payload'),
+            'last_activity' => now()->timestamp,
+        ]);
+
+        $this->actingAs($user)
+            ->patch(route('settings.password'), [
+                'current_password' => 'OldPassword123',
+                'password' => 'NewStrongPass9',
+                'password_confirmation' => 'NewStrongPass9',
+            ])
+            ->assertSessionHasNoErrors()
+            ->assertRedirect();
+
+        $user->refresh();
+        $this->assertNotSame('initial-token-value', $user->remember_token);
+        $this->assertDatabaseMissing('sessions', ['id' => 'hijacked-device-session-id']);
+    }
+
+    public function test_settings_password_endpoint_is_rate_limited_against_brute_force(): void
+    {
+        $user = User::factory()->create([
+            'password' => Hash::make('CorrectPass123'),
+        ]);
+
+        for ($i = 0; $i < 6; $i++) {
+            $this->actingAs($user)
+                ->patch(route('settings.password'), [
+                    'current_password' => 'WrongPass123',
+                    'password' => 'NewStrongPass9',
+                    'password_confirmation' => 'NewStrongPass9',
+                ])
+                ->assertRedirect();
+        }
+
+        $this->actingAs($user)
+            ->patch(route('settings.password'), [
+                'current_password' => 'WrongPass123',
+                'password' => 'NewStrongPass9',
+                'password_confirmation' => 'NewStrongPass9',
+            ])
+            ->assertStatus(429);
     }
 }

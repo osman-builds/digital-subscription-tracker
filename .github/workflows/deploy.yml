@@ -44,6 +44,9 @@ jobs:
           cp .env.example .env
           php artisan key:generate
 
+      - name: Security Vulnerability Audit (Composer)
+        run: composer audit --locked
+
       - name: Check Code Formatting (Pint)
         run: vendor/bin/pint --test
 
@@ -71,6 +74,8 @@ jobs:
           script: |
             export HOME=/root
             cd /var/www/subscription-tracker
+            trap 'php artisan up || true' EXIT
+            php artisan down --refresh=5 || true
             git config --system --add safe.directory '*'
             git fetch origin main
             git reset --hard origin/main
@@ -81,7 +86,9 @@ jobs:
             php artisan config:cache
             php artisan route:cache
             php artisan view:cache
+            php artisan queue:restart || true
             (crontab -l 2>/dev/null | grep -F "schedule:run") || (crontab -l 2>/dev/null; echo "* * * * * cd /var/www/subscription-tracker && php artisan schedule:run >> /dev/null 2>&1") | crontab -
             chown -R www-data:www-data /var/www/subscription-tracker
             chmod -R 775 storage bootstrap/cache
+            php artisan up
             echo "Deployment to mysubshield.me completed successfully."
