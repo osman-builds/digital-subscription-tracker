@@ -171,7 +171,7 @@
                                 </a>
                                 <form action="{{ route('subscriptions.destroy', $sub) }}" method="POST"
                                       class="d-inline"
-                                      onsubmit="return confirm('Delete {{ addslashes($sub->name) }}?')">
+                                      data-confirm="Delete {{ $sub->name }}?">
                                     @csrf @method('DELETE')
                                     <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete">
                                         <i class="bi bi-trash"></i>

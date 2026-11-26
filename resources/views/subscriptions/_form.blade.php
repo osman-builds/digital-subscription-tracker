@@ -298,7 +298,7 @@
 </div>
 
 @push('scripts')
-<script>
+<script nonce="{{ Vite::cspNonce() }}">
 document.addEventListener('DOMContentLoaded', function() {
     const urlInput = document.getElementById('sub_website_url');
     const nameInput = document.getElementById('sub_name');

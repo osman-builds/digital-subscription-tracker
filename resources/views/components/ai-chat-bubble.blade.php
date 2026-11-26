@@ -91,7 +91,7 @@
 
         {{-- Input Footer --}}
         <div class="ss-ai-footer">
-            <form id="ssAiForm" class="ss-ai-input-form" onsubmit="return false;">
+            <form id="ssAiForm" class="ss-ai-input-form">
                 <div class="ss-ai-input-wrap">
                     <label for="ssAiInput" class="visually-hidden">Ask SubShield AI</label>
                     <input type="text" id="ssAiInput" class="ss-ai-input" placeholder="Ask about subscriptions or privacy..." maxlength="250" autocomplete="off" aria-label="Ask SubShield AI">
@@ -474,7 +474,7 @@
 }
 </style>
 
-<script>
+<script nonce="{{ Vite::cspNonce() }}">
 (function() {
     var CSRF_TOKEN = '{{ csrf_token() }}';
     var widget = document.getElementById('subshieldAiWidget');

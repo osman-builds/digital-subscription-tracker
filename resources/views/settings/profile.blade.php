@@ -176,7 +176,7 @@
 
 @push('scripts')
 @if($errors->userDeletion->isNotEmpty())
-<script>
+<script nonce="{{ Vite::cspNonce() }}">
     document.addEventListener('DOMContentLoaded', function () {
         var modal = new bootstrap.Modal(document.getElementById('deleteAccountModal'));
         modal.show();

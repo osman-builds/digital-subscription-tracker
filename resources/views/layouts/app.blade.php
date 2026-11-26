@@ -8,12 +8,11 @@
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
     <link rel="preconnect" href="https://t2.gstatic.com" crossorigin>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-    <link rel="alternate icon" href="/favicon.ico">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" integrity="sha384-tViUnnbYAV00FLIhhi3v/dWt3Jxw4gZQcNoSCxCIFNJVCx7/D55/wXsrNIRANwdD" crossorigin="anonymous">
 
     {{-- ▸ Anti-flash: apply stored theme BEFORE first paint ─────────── --}}
-    <script>
+    <script nonce="{{ Vite::cspNonce() }}">
         (function () {
             var stored = localStorage.getItem('subshield_dark');
             var serverPref = {{ (auth()->check() && auth()->user()->getSettings()->dark_mode) ? 'true' : 'false' }};
@@ -396,8 +395,8 @@
     </main>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
-<script>
+<script nonce="{{ Vite::cspNonce() }}" src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+<script nonce="{{ Vite::cspNonce() }}">
 /* ── Dark-mode controller ────────────────────────────────────────────────── */
 (function () {
     var CSRF = '{{ csrf_token() }}';
@@ -476,6 +475,24 @@
             }
         }
     }, true);
+
+    // CSP-safe delegated confirmation dialogs on forms
+    document.addEventListener('submit', function (event) {
+        var form = event.target;
+        if (form && form.hasAttribute && form.hasAttribute('data-confirm')) {
+            if (!window.confirm(form.getAttribute('data-confirm'))) {
+                event.preventDefault();
+            }
+        }
+    });
+
+    // CSP-safe delegated auto-submit for filter dropdowns
+    document.addEventListener('change', function (event) {
+        var el = event.target;
+        if (el && el.hasAttribute && el.hasAttribute('data-auto-submit') && el.form) {
+            el.form.submit();
+        }
+    });
 })();
 </script>
 @stack('scripts')

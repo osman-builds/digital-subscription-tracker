@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Vite;
 use Symfony\Component\HttpFoundation\Response;
 
 class SecurityHeaders
@@ -15,6 +16,7 @@ class SecurityHeaders
      */
     public function handle(Request $request, Closure $next): Response
     {
+        $nonce = Vite::useCspNonce();
         $response = $next($request);
 
         $response->headers->set('X-Frame-Options', 'SAMEORIGIN');
@@ -28,7 +30,7 @@ class SecurityHeaders
         }
 
         $csp = "default-src 'self'; "
-            ."script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://challenges.cloudflare.com; "
+            ."script-src 'self' 'nonce-{$nonce}' https://cdn.jsdelivr.net https://challenges.cloudflare.com; "
             ."style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://challenges.cloudflare.com; "
             ."font-src 'self' https://cdn.jsdelivr.net data:; "
             ."img-src 'self' data: https:; "

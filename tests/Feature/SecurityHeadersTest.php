@@ -24,6 +24,13 @@ class SecurityHeadersTest extends TestCase
         $this->assertStringContainsString('https://challenges.cloudflare.com', $csp);
         $this->assertStringContainsString("worker-src 'self' blob:", $csp);
         $this->assertStringContainsString("child-src 'self' https://challenges.cloudflare.com blob:", $csp);
+        $this->assertMatchesRegularExpression("/script-src 'self' 'nonce-([^']+)'/", $csp);
+
+        preg_match("/script-src 'self' 'nonce-([^']+)'/", $csp, $matches);
+        $nonce = $matches[1] ?? '';
+        $this->assertNotSame('', $nonce);
+        $this->assertStringNotContainsString("script-src 'self' 'unsafe-inline'", $csp);
+        $response->assertSee('nonce="'.$nonce.'"', false);
     }
 
     public function test_hsts_header_is_attached_on_https_requests(): void

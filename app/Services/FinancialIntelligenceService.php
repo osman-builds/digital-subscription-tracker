@@ -629,30 +629,46 @@ class FinancialIntelligenceService
         }
 
         $keys = array_column($candidates, 'dedupe_key');
-        $dismissedKeys = InsightAlert::where('user_id', $userId)
+        $existingByKey = InsightAlert::where('user_id', $userId)
             ->whereIn('dedupe_key', $keys)
-            ->whereNotNull('dismissed_at')
-            ->pluck('dedupe_key')
-            ->all();
+            ->get()
+            ->keyBy('dedupe_key');
 
         foreach ($candidates as $spec) {
-            if (in_array($spec['dedupe_key'], $dismissedKeys, true)) {
+            $existing = $existingByKey->get($spec['dedupe_key']);
+            if ($existing !== null && $existing->dismissed_at !== null) {
                 continue;
             }
 
-            InsightAlert::updateOrCreate(
-                [
-                    'user_id' => $userId,
-                    'dedupe_key' => $spec['dedupe_key'],
-                ],
-                [
-                    'subscription_id' => $spec['subscription_id'],
-                    'alert_type' => $spec['alert_type'],
-                    'severity' => $spec['severity'],
-                    'title' => $spec['title'],
-                    'message' => $spec['message'],
-                ]
-            );
+            $this->upsertAlertIfChanged($userId, $spec, $existing);
+        }
+    }
+
+    /**
+     * @param  array<string, mixed>  $spec
+     */
+    private function upsertAlertIfChanged(int $userId, array $spec, ?InsightAlert $existing): void
+    {
+        $attributes = [
+            'subscription_id' => $spec['subscription_id'],
+            'alert_type' => $spec['alert_type'],
+            'severity' => $spec['severity'],
+            'title' => $spec['title'],
+            'message' => $spec['message'],
+        ];
+
+        if ($existing === null) {
+            InsightAlert::create(array_merge($attributes, [
+                'user_id' => $userId,
+                'dedupe_key' => $spec['dedupe_key'],
+            ]));
+
+            return;
+        }
+
+        $existing->fill($attributes);
+        if ($existing->isDirty()) {
+            $existing->save();
         }
     }
 }

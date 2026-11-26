@@ -45,7 +45,7 @@
                                 <i class="bi bi-pencil"></i>
                             </button>
                             <form action="{{ route('categories.destroy', $category) }}" method="POST"
-                                  onsubmit="return confirm('Delete category {{ addslashes($category->name) }}? Your subscriptions in this category will become uncategorised.')">
+                                  data-confirm="Delete category {{ $category->name }}? Your subscriptions in this category will become uncategorised.">
                                 @csrf @method('DELETE')
                                 <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete category">
                                     <i class="bi bi-trash"></i>
@@ -135,7 +135,7 @@
 </div>
 
 @push('scripts')
-<script>
+<script nonce="{{ Vite::cspNonce() }}">
     // Re-open add modal if there were validation errors
     @if($errors->any())
         document.addEventListener('DOMContentLoaded', function() {

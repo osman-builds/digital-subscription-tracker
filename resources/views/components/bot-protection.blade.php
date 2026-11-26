@@ -17,12 +17,12 @@
         <div class="cf-turnstile" data-sitekey="{{ $turnstileSiteKey }}" data-action="{{ $action }}" data-theme="light"></div>
     </div>
     @once
-        <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+        <script nonce="{{ Vite::cspNonce() }}" src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
     @endonce
 @endif
 
 @once
-<script>
+<script nonce="{{ Vite::cspNonce() }}">
     document.addEventListener('DOMContentLoaded', function () {
         try {
             var token = btoa(JSON.stringify({

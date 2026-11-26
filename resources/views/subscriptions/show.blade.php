@@ -21,7 +21,7 @@
             <i class="bi bi-pencil me-1"></i>Edit
         </a>
         <form action="{{ route('subscriptions.destroy', $subscription) }}" method="POST"
-              onsubmit="return confirm('Delete this subscription?')">
+              data-confirm="Delete this subscription?">
             @csrf @method('DELETE')
             <button type="submit" class="btn btn-outline-danger btn-sm">
                 <i class="bi bi-trash me-1"></i>Delete

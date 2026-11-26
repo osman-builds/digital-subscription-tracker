@@ -14,10 +14,12 @@ class FxRateTest extends TestCase
 {
     use RefreshDatabase;
 
+    private const CONFIG_FX_KEY = 'services.exchangerate.key';
+
     public function test_fx_service_uses_keyed_api_when_available(): void
     {
         config([
-            'services.exchangerate.key' => 'test-api-key',
+            self::CONFIG_FX_KEY => 'test-api-key',
             'services.exchangerate.base_url' => 'https://v6.exchangerate-api.com/v6',
         ]);
 
@@ -45,7 +47,7 @@ class FxRateTest extends TestCase
 
     public function test_fx_service_falls_back_to_open_public_endpoint_when_no_key_is_set(): void
     {
-        config(['services.exchangerate.key' => '']);
+        config([self::CONFIG_FX_KEY => '']);
 
         Http::fake([
             'https://open.er-api.com/v6/latest/USD' => Http::response([
@@ -70,7 +72,7 @@ class FxRateTest extends TestCase
 
     public function test_fx_service_drops_to_hardcoded_rates_when_all_network_requests_fail(): void
     {
-        config(['services.exchangerate.key' => '']);
+        config([self::CONFIG_FX_KEY => '']);
 
         Http::fake([
             '*' => Http::response('Server Error', 500),
@@ -116,5 +118,19 @@ class FxRateTest extends TestCase
 
         $sub->refresh();
         $this->assertEquals(45.00, (float) $sub->amount_myr);
+    }
+
+    public function test_fx_service_memoizes_rates_within_a_single_request(): void
+    {
+        Cache::put('fx_rates_myr', ['USD' => 4.50, 'EUR' => 4.95, 'MYR' => 1.00], 3600);
+
+        $first = app(FxRateService::class);
+        $second = app(FxRateService::class);
+        $this->assertSame($first, $second);
+
+        $this->assertEquals(45.00, $first->convert(10.00, 'USD', 'MYR'));
+        Cache::forget('fx_rates_myr');
+        // Still served from request-scoped in-memory cache without re-querying cache backend
+        $this->assertEquals(45.00, $second->convert(10.00, 'USD', 'MYR'));
     }
 }

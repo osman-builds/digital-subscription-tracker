@@ -76,7 +76,7 @@
             </div>
             <div class="d-flex align-items-center gap-2">
                 <span class="text-white-50 small d-none d-md-inline">Tip: In the print dialog, select <strong>"Save as PDF"</strong> as Destination.</span>
-                <button type="button" class="btn btn-primary btn-sm px-3" onclick="window.print()">
+                <button type="button" id="printReportBtn" class="btn btn-primary btn-sm px-3">
                     <i class="bi bi-printer-fill me-1"></i>Print / Save as PDF
                 </button>
                 <a href="{{ route('expenditure.index', ['year' => $year]) }}" class="btn btn-outline-light btn-sm">
@@ -287,5 +287,10 @@
         </div>
     </div>
 
+    <script nonce="{{ Vite::cspNonce() }}">
+        document.getElementById('printReportBtn')?.addEventListener('click', function () {
+            window.print();
+        });
+    </script>
 </body>
 </html>

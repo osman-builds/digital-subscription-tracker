@@ -30,9 +30,9 @@ Route::middleware('guest')->group(function () {
         ->name('demo.start');
 });
 
-// ── Public AI Concierge (rate-limited per IP) ──────────────────────────────
+// ── Public AI Concierge (rate-limited per IP: burst + hourly quota) ───────
 Route::post('/api/ai/concierge', [AiChatController::class, 'concierge'])
-    ->middleware('throttle:10,1')
+    ->middleware('throttle:ai-concierge')
     ->name('ai.concierge');
 
 // ── Protected routes (require login) ─────────────────────────────────────
@@ -46,7 +46,7 @@ Route::middleware(['auth', 'verified', EnsureSandboxSessionValid::class])->group
         ->middleware('throttle:60,1')
         ->name('subscriptions.resolve_icon');
     Route::post('/subscriptions/scan-receipt', [ReceiptScanController::class, 'scan'])
-        ->middleware('throttle:10,1')
+        ->middleware('throttle:ai-receipt-scan')
         ->name('subscriptions.scan_receipt');
     Route::post('/subscriptions/{subscription}/apply-receipt', [ReceiptScanController::class, 'applyToExisting'])
         ->name('subscriptions.apply_receipt');
@@ -75,9 +75,9 @@ Route::middleware(['auth', 'verified', EnsureSandboxSessionValid::class])->group
     Route::delete('/settings/account', [SettingsController::class, 'deleteAccount'])->name('settings.delete_account');
     Route::post('/settings/dark-mode', [SettingsController::class, 'updateDarkMode'])->name('settings.dark_mode');
 
-    // ── Personal Financial AI Copilot (user/session scoped) ─────────────────
+    // ── Personal Financial AI Copilot (user/session scoped: burst + hourly) ──
     Route::post('/api/ai/copilot', [AiChatController::class, 'copilot'])
-        ->middleware('throttle:20,1')
+        ->middleware('throttle:ai-copilot')
         ->name('ai.copilot');
 });
 

@@ -2,10 +2,6 @@
 
 @section('title', 'Expenditure – SubShield')
 
-@push('styles')
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js" integrity="sha384-JUh163oCRItcbPme8pYnROHQMC6fNKTBWtRG3I3I0erJkzNgL7uxKlNwcrcFKeqF" crossorigin="anonymous"></script>
-@endpush
-
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
     <div>
@@ -47,7 +43,7 @@
         {{-- Year selector --}}
         <form method="GET" action="{{ route('expenditure.index') }}" class="d-flex gap-2">
             <label for="expenditure_year" class="visually-hidden">Select Year</label>
-            <select id="expenditure_year" name="year" class="form-select form-select-sm" style="width:100px" onchange="this.form.submit()">
+            <select id="expenditure_year" name="year" class="form-select form-select-sm" style="width:100px" data-auto-submit="true">
                 @foreach($years as $y)
                     <option value="{{ $y }}" {{ $y == $year ? 'selected' : '' }}>{{ $y }}</option>
                 @endforeach
@@ -298,7 +294,8 @@
 @endsection
 
 @push('scripts')
-<script>
+<script nonce="{{ Vite::cspNonce() }}" src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js" integrity="sha384-JUh163oCRItcbPme8pYnROHQMC6fNKTBWtRG3I3I0erJkzNgL7uxKlNwcrcFKeqF" crossorigin="anonymous"></script>
+<script nonce="{{ Vite::cspNonce() }}">
 (function () {
     const palette = ['#6366f1','#ef4444','#f97316','#eab308','#22c55e','#06b6d4','#a855f7','#ec4899','#10b981','#3b82f6'];
 

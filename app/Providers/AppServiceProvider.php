@@ -6,24 +6,30 @@ use App\Auth\SandboxUserProvider;
 use App\Models\Category;
 use App\Models\Subscription;
 use App\Notifications\WelcomeNotification;
+use App\Services\FxRateService;
 use App\Services\SandboxCategoryStore;
 use App\Services\SandboxSubscriptionStore;
 use Illuminate\Auth\Events\Verified;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Request;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 
 class AppServiceProvider extends ServiceProvider
 {
+    private const HOURLY_KEY_PREFIX = 'hourly:';
+
     /**
      * Register any application services.
      */
     public function register(): void
     {
-        //
+        $this->app->scoped(FxRateService::class);
     }
 
     /**
@@ -31,6 +37,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        $this->configureRateLimiters();
+
         Auth::provider('sandbox-eloquent', function ($app, array $config): SandboxUserProvider {
             return new SandboxUserProvider($app['hash'], $config['model']);
         });
@@ -65,6 +73,39 @@ class AppServiceProvider extends ServiceProvider
             if ($event->user->hasRealVerifiedEmail()) {
                 $event->user->notify(new WelcomeNotification);
             }
+        });
+    }
+
+    /**
+     * Configure composite burst + hourly rate limiters for cost-sensitive AI endpoints.
+     */
+    private function configureRateLimiters(): void
+    {
+        RateLimiter::for('ai-concierge', function (Request $request): array {
+            $ip = (string) $request->ip();
+
+            return [
+                Limit::perMinute(10)->by($ip),
+                Limit::perHour(60)->by(self::HOURLY_KEY_PREFIX.$ip),
+            ];
+        });
+
+        RateLimiter::for('ai-copilot', function (Request $request): array {
+            $identity = ($request->user()?->id ?? 'guest').'|'.$request->ip();
+
+            return [
+                Limit::perMinute(20)->by($identity),
+                Limit::perHour(120)->by(self::HOURLY_KEY_PREFIX.$identity),
+            ];
+        });
+
+        RateLimiter::for('ai-receipt-scan', function (Request $request): array {
+            $identity = ($request->user()?->id ?? 'guest').'|'.$request->ip();
+
+            return [
+                Limit::perMinute(10)->by($identity),
+                Limit::perHour(40)->by(self::HOURLY_KEY_PREFIX.$identity),
+            ];
         });
     }
 }

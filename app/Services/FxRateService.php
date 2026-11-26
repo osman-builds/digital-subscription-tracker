@@ -17,6 +17,17 @@ class FxRateService
 
     private const TARGET = 'MYR';
 
+    private const BUCKET_RESTRICTED = 'restricted';
+
+    private const BUCKET_STANDARD = 'standard';
+
+    /** @var array<string, array<string, float>> */
+    private array $memoizedRates = [];
+
+    private ?string $memoizedLastUpdated = null;
+
+    private bool $lastUpdatedLoaded = false;
+
     /**
      * Get exchange rates with MYR as the base (how many MYR per 1 foreign unit).
      * Falls back to hardcoded approximates if API is unavailable.
@@ -25,15 +36,20 @@ class FxRateService
      */
     public function getRates(): array
     {
-        if (auth()->check() && (auth()->user()->isSandbox() || ! auth()->user()->hasRealVerifiedEmail())) {
-            $cached = Cache::get(self::CACHE_KEY);
+        $restricted = auth()->check() && (auth()->user()->isSandbox() || ! auth()->user()->hasRealVerifiedEmail());
+        $bucket = $restricted ? self::BUCKET_RESTRICTED : self::BUCKET_STANDARD;
 
-            return is_array($cached) && $cached !== [] ? $cached : $this->fallbackRates();
+        if (isset($this->memoizedRates[$bucket])) {
+            return $this->memoizedRates[$bucket];
         }
 
-        return Cache::remember(self::CACHE_KEY, self::CACHE_TTL_SECONDS, function () {
-            return $this->fetchFromApi();
-        });
+        $rates = $restricted
+            ? $this->loadCachedOrFallbackRates()
+            : Cache::remember(self::CACHE_KEY, self::CACHE_TTL_SECONDS, fn (): array => $this->fetchFromApi());
+
+        $this->memoizedRates[$bucket] = $rates;
+
+        return $rates;
     }
 
     /**
@@ -48,8 +64,7 @@ class FxRateService
             return round($amount, 2);
         }
 
-        $cached = Cache::get(self::CACHE_KEY);
-        $rates = is_array($cached) && $cached !== [] ? $cached : $this->fallbackRates();
+        $rates = $this->memoizedRates[self::BUCKET_RESTRICTED] ??= $this->loadCachedOrFallbackRates();
 
         $myr = $from === self::TARGET ? $amount : $amount * ($rates[$from] ?? 1.0);
         if ($to === self::TARGET) {
@@ -160,6 +175,9 @@ class FxRateService
      */
     public function refresh(): array
     {
+        $this->memoizedRates = [];
+        $this->memoizedLastUpdated = null;
+        $this->lastUpdatedLoaded = false;
         Cache::forget(self::CACHE_KEY);
 
         return $this->getRates();
@@ -170,6 +188,10 @@ class FxRateService
      */
     public function lastUpdated(): ?string
     {
+        if ($this->lastUpdatedLoaded) {
+            return $this->memoizedLastUpdated;
+        }
+
         $timestamp = Cache::get(self::CACHE_KEY.'_updated_at');
 
         if ($timestamp === null) {
@@ -177,7 +199,20 @@ class FxRateService
             $timestamp = Cache::get(self::CACHE_KEY.'_updated_at');
         }
 
-        return $timestamp;
+        $this->memoizedLastUpdated = is_string($timestamp) ? $timestamp : null;
+        $this->lastUpdatedLoaded = true;
+
+        return $this->memoizedLastUpdated;
+    }
+
+    /**
+     * @return array<string, float>
+     */
+    private function loadCachedOrFallbackRates(): array
+    {
+        $cached = Cache::get(self::CACHE_KEY);
+
+        return is_array($cached) && $cached !== [] ? $cached : $this->fallbackRates();
     }
 
     /**

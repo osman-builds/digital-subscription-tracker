@@ -20,8 +20,8 @@ Schedule::command('fx:refresh')->everySixHours();
 // Send renewal reminders daily at 8am — checks 3 days ahead
 Schedule::command('subscriptions:remind --days=3')->dailyAt('08:00');
 
-// Create daily database snapshot at 2am
-Schedule::command('app:backup')->dailyAt('02:00');
+// Create daily encrypted database snapshot at 2am
+Schedule::command('app:backup --encrypt')->dailyAt('02:00');
 
 // Prune 90-day old read/dismissed insights and AI extraction audits daily at 3am
 Schedule::command('model:prune')->dailyAt('03:00');

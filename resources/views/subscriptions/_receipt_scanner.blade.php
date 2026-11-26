@@ -87,7 +87,7 @@
 </div>
 
 @push('scripts')
-<script>
+<script nonce="{{ Vite::cspNonce() }}">
 document.addEventListener('DOMContentLoaded', function () {
     const fileInput = document.getElementById('receiptFileInput');
     const btnScan = document.getElementById('btnScanReceipt');

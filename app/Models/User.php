@@ -113,7 +113,14 @@ class User extends Authenticatable implements MustVerifyEmail
             return app(SandboxService::class)->getSettings($this->id);
         }
 
-        return UserSetting::forUser($this->id);
+        if ($this->relationLoaded('settings') && $this->getRelation('settings') instanceof UserSetting) {
+            return $this->getRelation('settings');
+        }
+
+        $setting = UserSetting::forUser($this->id);
+        $this->setRelation('settings', $setting);
+
+        return $setting;
     }
 
     /**
