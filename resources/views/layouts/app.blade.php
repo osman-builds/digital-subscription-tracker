@@ -65,9 +65,15 @@
         /* ──────────────────────────────────────────────────────────────
            BASE
         ────────────────────────────────────────────────────────────── */
+        html, body {
+            overflow-x: clip;
+        }
         body {
             background-color: var(--ss-body-bg);
             transition: background-color .25s, color .25s;
+        }
+        .table-responsive {
+            -webkit-overflow-scrolling: touch;
         }
 
         /* ──────────────────────────────────────────────────────────────
@@ -214,11 +220,22 @@
         /* ──────────────────────────────────────────────────────────────
            LAYOUT
         ────────────────────────────────────────────────────────────── */
-        .main-content { margin-left: 250px; padding: 2rem; }
+        .main-content {
+            margin-left: 250px;
+            padding: 2rem;
+            min-width: 0;
+            width: 100%;
+            overflow-x: clip;
+        }
 
-        @media (max-width: 768px) {
+        @media (min-width: 768px) and (max-width: 991.98px) {
+            .sidebar { width: 220px; }
+            .main-content { margin-left: 220px; padding: 1.5rem; }
+        }
+
+        @media (max-width: 767.98px) {
             .sidebar { position: relative; width: 100%; min-height: auto; }
-            .main-content { margin-left: 0; padding: 1rem; }
+            .main-content { margin-left: 0; padding: 1rem 0.875rem 5.5rem; }
         }
 
         /* ──────────────────────────────────────────────────────────────

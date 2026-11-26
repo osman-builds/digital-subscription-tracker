@@ -33,6 +33,7 @@
 
         html {
             scroll-behavior: smooth;
+            overflow-x: clip;
         }
 
         .section-wrap {
@@ -43,7 +44,7 @@
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             background-color: var(--bg-base);
             color: var(--text-high);
-            overflow-x: hidden;
+            overflow-x: clip;
             letter-spacing: -0.01em;
         }
 
@@ -202,6 +203,21 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 0.65rem;
+        }
+        @media (max-width: 767.98px) {
+            .hero {
+                padding-top: 96px;
+                padding-bottom: 56px;
+            }
+            .hero-glow,
+            .cta-glow {
+                max-width: 100vw;
+            }
+            .stat-card-saas .stat-val {
+                font-size: 1.3rem;
+            }
         }
         .window-dots {
             display: flex;
@@ -456,13 +472,13 @@
             <i class="bi bi-list fs-2"></i>
         </button>
         <div class="collapse navbar-collapse" id="splashNav">
-            <ul class="navbar-nav mx-auto gap-4">
+            <ul class="navbar-nav mx-auto gap-2 gap-lg-4 my-2 my-lg-0">
                 <li class="nav-item"><a class="nav-link" href="#features">Features</a></li>
                 <li class="nav-item"><a class="nav-link" href="#intelligence">AI Intelligence</a></li>
                 <li class="nav-item"><a class="nav-link" href="#how-it-works">Fast Onboarding</a></li>
                 <li class="nav-item"><a class="nav-link" href="{{ route('demo.show') }}">Try Demo</a></li>
             </ul>
-            <div class="d-flex align-items-center gap-2">
+            <div class="d-flex align-items-center flex-wrap gap-2 mt-2 mt-lg-0">
                 <a href="{{ route('demo.show') }}" class="btn btn-outline-light btn-sm px-3 py-2 d-none d-sm-inline-flex align-items-center gap-1">
                     <i class="bi bi-play-circle text-primary"></i>Demo Sandbox
                 </a>
@@ -535,7 +551,7 @@
                             <span class="window-dot" style="background: #27c93f;"></span>
                             <span class="ms-2 text-white small fw-bold">SubShield · Intelligence Dashboard</span>
                         </div>
-                        <div class="d-flex align-items-center gap-1">
+                        <div class="d-flex align-items-center flex-wrap gap-1">
                             <button type="button" class="currency-pill-btn active" data-curr="MYR">RM MYR</button>
                             <button type="button" class="currency-pill-btn" data-curr="USD">$ USD</button>
                             <button type="button" class="currency-pill-btn" data-curr="EUR">€ EUR</button>
@@ -546,14 +562,14 @@
                     <div class="p-3 p-sm-4">
                         {{-- Top KPI Cards with Health Score --}}
                         <div class="row g-2 g-sm-3 mb-3">
-                            <div class="col-6">
+                            <div class="col-12 col-sm-6">
                                 <div class="stat-card-saas">
                                     <div class="stat-label">Monthly Commitment</div>
                                     <div class="stat-val text-success" id="stat-monthly">RM 460.54</div>
                                     <small class="text-white-50" style="font-size:0.75rem;">Cap: <span id="stat-budget">RM 520.00</span> (88.6%)</small>
                                 </div>
                             </div>
-                            <div class="col-6">
+                            <div class="col-12 col-sm-6">
                                 <div class="stat-card-saas">
                                     <div class="stat-label">Optimization Score</div>
                                     <div class="stat-val text-primary d-flex align-items-baseline gap-1">
@@ -565,17 +581,17 @@
                         </div>
 
                         {{-- Proactive Intelligence Insight Banner --}}
-                        <div class="p-2 px-3 rounded-3 mb-3 d-flex align-items-center justify-content-between" style="background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.3);">
-                            <div class="d-flex align-items-center gap-2 small">
+                        <div class="p-2 px-3 rounded-3 mb-3 d-flex align-items-center justify-content-between flex-wrap gap-2" style="background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.3);">
+                            <div class="d-flex align-items-center flex-wrap gap-2 small min-w-0">
                                 <span class="badge bg-danger text-uppercase py-1" style="font-size: 0.65rem;">Price Creep</span>
                                 <span class="text-white" style="font-size: 0.78rem;">Netflix increased +10.7% (+$2.50 USD) detected via AI Scan</span>
                             </div>
-                            <span class="badge bg-dark text-white-50 small border border-secondary" style="font-size: 0.65rem;">+RM 80.10/yr</span>
+                            <span class="badge bg-dark text-white-50 small border border-secondary flex-shrink-0" style="font-size: 0.65rem;">+RM 80.10/yr</span>
                         </div>
 
                         {{-- Subscriptions Rows --}}
                         <div class="p-3 rounded-3" style="background: #0d1322; border: 1px solid var(--border-subtle);">
-                            <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
                                 <span class="text-white small fw-bold text-uppercase" style="font-size:0.75rem; letter-spacing:0.05em;">
                                     <i class="bi bi-shield-check text-success me-1"></i>Active Portfolio
                                 </span>

@@ -49,6 +49,27 @@
     .settings-nav-profile-card {
         background: linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, rgba(14, 165, 233, 0.05) 100%);
     }
+    @media (max-width: 991.98px) {
+        .settings-nav {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 0.4rem;
+        }
+        .settings-nav .nav-link {
+            margin-bottom: 0;
+            padding: 0.65rem 0.75rem;
+            gap: 0.6rem;
+        }
+        .settings-nav .nav-icon {
+            width: 32px;
+            height: 32px;
+        }
+    }
+    @media (max-width: 420px) {
+        .settings-nav .nav-link small {
+            display: none !important;
+        }
+    }
 </style>
 @endpush
 
@@ -151,7 +172,7 @@
                     </div>
                 </div>
                 <hr class="my-2">
-                <div class="d-flex justify-content-between align-items-center">
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
                     <small class="text-muted">Account Status</small>
                     @if(auth()->user()->hasVerifiedEmail())
                         <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 small">

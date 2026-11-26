@@ -3,7 +3,7 @@
 @section('title', 'Categories — SubShield')
 
 @section('content')
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
     <div>
         <h4 class="mb-0 fw-bold">Categories</h4>
         <small class="text-muted">Manage system default categories and your personal tags.</small>
@@ -24,9 +24,9 @@
                             {{ strtoupper(substr($category->name, 0, 1)) }}
                         </span>
                     </div>
-                    <div class="flex-grow-1">
-                        <div class="d-flex align-items-center gap-2">
-                            <h6 class="mb-0 fw-bold">{{ $category->name }}</h6>
+                    <div class="flex-grow-1 min-w-0">
+                        <div class="d-flex align-items-center flex-wrap gap-2">
+                            <h6 class="mb-0 fw-bold text-truncate">{{ $category->name }}</h6>
                             @if($category->isSystem())
                                 <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle py-1" style="font-size: 0.7rem;">Default</span>
                             @else
@@ -37,7 +37,7 @@
                     </div>
 
                     @if(! $category->isSystem())
-                        <div class="d-flex gap-1">
+                        <div class="d-flex gap-1 flex-shrink-0">
                             <button class="btn btn-sm btn-outline-primary"
                                     data-bs-toggle="modal"
                                     data-bs-target="#editCategoryModal{{ $category->id }}"

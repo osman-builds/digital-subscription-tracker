@@ -5,7 +5,7 @@
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
     <h1 class="h4 mb-0 fw-bold">Subscriptions</h1>
-    <div class="d-flex align-items-center gap-2">
+    <div class="d-flex align-items-center flex-wrap gap-2">
         <div class="dropdown">
             <button class="btn btn-outline-secondary dropdown-toggle d-flex align-items-center gap-1 shadow-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Export subscriptions data">
                 <i class="bi bi-download"></i>Export
@@ -96,8 +96,10 @@
                         <tr>
                             <td class="ps-4">
                                 <div class="d-flex align-items-center gap-2">
-                                    <x-brand-logo :subscription="$sub" :size="34" rounded="rounded-2" />
-                                    <div>
+                                    <div class="flex-shrink-0">
+                                        <x-brand-logo :subscription="$sub" :size="34" rounded="rounded-2" />
+                                    </div>
+                                    <div class="min-w-0">
                                         <div class="fw-semibold">
                                             {{ $sub->name }}
                                             @if($sub->is_trial)

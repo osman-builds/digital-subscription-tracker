@@ -56,6 +56,10 @@
             tr {
                 page-break-inside: avoid !important;
             }
+            .stat-kpi-col {
+                flex: 0 0 auto !important;
+                width: 25% !important;
+            }
             .table-striped > tbody > tr:nth-of-type(odd) > * {
                 background-color: #f8fafc !important;
             }
@@ -107,26 +111,26 @@
 
         {{-- Executive KPI summary cards --}}
         <div class="row g-2 mb-4">
-            <div class="col-3">
-                <div class="stat-badge">
+            <div class="col-6 col-md-3 stat-kpi-col">
+                <div class="stat-badge h-100">
                     <div class="text-muted small text-uppercase fw-semibold" style="font-size: 0.7rem;">Yearly Spend Total</div>
                     <div class="h5 fw-bold mb-0 text-primary mt-1">{{ $currencySymbol }} {{ number_format($yearlyTotal, 2) }}</div>
                 </div>
             </div>
-            <div class="col-3">
-                <div class="stat-badge">
+            <div class="col-6 col-md-3 stat-kpi-col">
+                <div class="stat-badge h-100">
                     <div class="text-muted small text-uppercase fw-semibold" style="font-size: 0.7rem;">Average Monthly</div>
                     <div class="h5 fw-bold mb-0 text-dark mt-1">{{ $currencySymbol }} {{ number_format($yearlyTotal / 12, 2) }} <span class="text-muted small fw-normal">/mo</span></div>
                 </div>
             </div>
-            <div class="col-3">
-                <div class="stat-badge">
+            <div class="col-6 col-md-3 stat-kpi-col">
+                <div class="stat-badge h-100">
                     <div class="text-muted small text-uppercase fw-semibold" style="font-size: 0.7rem;">Average Weekly</div>
                     <div class="h5 fw-bold mb-0 text-dark mt-1">{{ $currencySymbol }} {{ number_format($yearlyTotal / 52, 2) }} <span class="text-muted small fw-normal">/wk</span></div>
                 </div>
             </div>
-            <div class="col-3">
-                <div class="stat-badge">
+            <div class="col-6 col-md-3 stat-kpi-col">
+                <div class="stat-badge h-100">
                     <div class="text-muted small text-uppercase fw-semibold" style="font-size: 0.7rem;">Average Daily</div>
                     <div class="h5 fw-bold mb-0 text-dark mt-1">{{ $currencySymbol }} {{ number_format($yearlyTotal / 365, 2) }} <span class="text-muted small fw-normal">/day</span></div>
                 </div>

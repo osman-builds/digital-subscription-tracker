@@ -124,7 +124,7 @@
                         <i class="bi bi-phone fs-5"></i>
                     </span>
                     <div>
-                        <div class="d-flex align-items-center gap-2 mb-1">
+                        <div class="d-flex align-items-center flex-wrap gap-2 mb-1">
                             <h6 class="fw-bold mb-0">Two-Factor Authentication (2FA)</h6>
                             <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 small">Roadmap</span>
                         </div>

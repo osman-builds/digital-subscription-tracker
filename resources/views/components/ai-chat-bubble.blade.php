@@ -462,14 +462,16 @@
 /* Mobile Responsive */
 @media (max-width: 480px) {
     .ss-ai-root {
-        bottom: 16px;
-        right: 16px;
+        bottom: 14px;
+        right: 14px;
     }
     .ss-ai-window {
         right: 0;
-        bottom: 68px;
-        width: calc(100vw - 32px);
-        height: 75vh;
+        bottom: 66px;
+        width: calc(100vw - 28px);
+        max-width: 380px;
+        height: min(72dvh, 500px);
+        max-height: calc(100dvh - 100px);
     }
 }
 </style>

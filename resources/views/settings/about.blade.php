@@ -6,8 +6,8 @@
     {{-- 1. SUBSHIELD IDENTITY & OVERVIEW BANNER --}}
     <div class="card border-0 shadow-sm overflow-hidden">
         <div class="card-body p-0">
-            <div class="d-flex align-items-center justify-content-between p-4 about-banner">
-                <div class="d-flex align-items-center gap-3">
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 p-4 about-banner">
+                <div class="d-flex align-items-center flex-wrap gap-2">
                     <img src="/favicon.svg" width="52" height="52" alt="SubShield icon">
                     <div>
                         <h4 class="mb-0 fw-bold text-white">SubShield</h4>
@@ -142,7 +142,7 @@
                         SubShield adheres to strict vulnerability disclosure practices under RFC 9116.
                     </p>
                 </div>
-                <div class="d-flex align-items-center gap-3">
+                <div class="d-flex align-items-center flex-wrap gap-2">
                     <a href="mailto:support@mysubshield.me" class="btn btn-outline-primary px-3 py-2 fw-semibold">
                         <i class="bi bi-envelope me-1"></i>support@mysubshield.me
                     </a>

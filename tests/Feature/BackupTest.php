@@ -33,6 +33,8 @@ class BackupTest extends TestCase
         $this->assertSame('SubShield', $content['meta']['app'] ?? null);
         $this->assertArrayHasKey('users', $content['data'] ?? []);
         $this->assertArrayHasKey('subscriptions', $content['data'] ?? []);
+
+        File::delete($latest);
     }
 
     public function test_backup_command_can_create_encrypted_snapshot(): void
@@ -55,5 +57,7 @@ class BackupTest extends TestCase
         $this->assertIsArray($decrypted);
         $this->assertSame('SubShield', $decrypted['meta']['app'] ?? null);
         $this->assertTrue((bool) ($decrypted['meta']['encrypted'] ?? false));
+
+        File::delete($latest);
     }
 }

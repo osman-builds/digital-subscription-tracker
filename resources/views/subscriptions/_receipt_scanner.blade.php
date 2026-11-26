@@ -1,6 +1,6 @@
 {{-- Ephemeral In-Memory Multimodal Vision AI Receipt & PDF Scanner (Zero Disk / Zero DB Blob) --}}
 <div id="receiptScanner" class="card border-0 shadow-sm mb-4" style="border-left: 4px solid #6366f1 !important;">
-    <div class="card-body p-4">
+    <div class="card-body p-3 p-sm-4">
         <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
             <div>
                 <h5 class="fw-bold mb-1">
@@ -16,7 +16,7 @@
         </div>
 
         <div class="d-flex flex-wrap align-items-center gap-2">
-            <input type="file" id="receiptFileInput" class="form-control form-control-sm" style="max-width: 340px;"
+            <input type="file" id="receiptFileInput" class="form-control form-control-sm" style="max-width: 340px; width: 100%;"
                    accept="image/jpeg,image/png,image/webp,application/pdf"
                    aria-label="Upload subscription receipt image or PDF">
             <button type="button" id="btnScanReceipt" class="btn btn-primary btn-sm px-3">

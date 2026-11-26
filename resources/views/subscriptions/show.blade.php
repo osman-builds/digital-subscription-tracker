@@ -3,12 +3,14 @@
 @section('title', '{{ $subscription->name }} – SubShield')
 
 @section('content')
-<div class="d-flex align-items-center gap-2 mb-4">
-    <a href="{{ route('subscriptions.index') }}" class="btn btn-sm btn-outline-secondary">
-        <i class="bi bi-arrow-left"></i>
-    </a>
-    <h4 class="mb-0 fw-bold">{{ $subscription->name }}</h4>
-    <div class="ms-auto d-flex gap-2">
+<div class="d-flex align-items-center flex-wrap gap-2 mb-4">
+    <div class="d-flex align-items-center gap-2 min-w-0 me-auto">
+        <a href="{{ route('subscriptions.index') }}" class="btn btn-sm btn-outline-secondary flex-shrink-0">
+            <i class="bi bi-arrow-left"></i>
+        </a>
+        <h4 class="mb-0 fw-bold text-break">{{ $subscription->name }}</h4>
+    </div>
+    <div class="d-flex flex-wrap gap-2">
         @if($subscription->status === 'active')
             <form action="{{ route('subscriptions.renew', $subscription) }}" method="POST" class="d-inline">
                 @csrf
@@ -35,17 +37,19 @@
     <div class="col-12 col-md-7">
         <div class="card border-0 shadow-sm h-100">
             <div class="card-body">
-                <div class="d-flex align-items-center mb-3 gap-3">
-                    <x-brand-logo :subscription="$subscription" :size="52" rounded="rounded-3" />
-                    <div>
-                        <h5 class="mb-0 fw-bold">{{ $subscription->name }}</h5>
+                <div class="d-flex align-items-center flex-wrap mb-3 gap-3">
+                    <div class="flex-shrink-0">
+                        <x-brand-logo :subscription="$subscription" :size="52" rounded="rounded-3" />
+                    </div>
+                    <div class="min-w-0">
+                        <h5 class="mb-0 fw-bold text-break">{{ $subscription->name }}</h5>
                         @if($subscription->category)
                             <span class="badge rounded-pill" style="background: {{ $subscription->category->color }}25; color: #f8fafc; border: 1px solid {{ $subscription->category->color }}55; font-weight: 600;">
                                 {{ $subscription->category->name }}
                             </span>
                         @endif
                     </div>
-                    <div class="ms-auto d-flex align-items-center gap-2">
+                    <div class="ms-sm-auto d-flex align-items-center flex-wrap gap-2">
                         @if($subscription->input_source && $subscription->input_source !== 'manual')
                             <span class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25">
                                 <i class="bi bi-stars me-1"></i>{{ strtoupper(str_replace('_', ' ', $subscription->input_source)) }}
@@ -170,8 +174,8 @@
             </div>
             <div class="card-body">
                 @forelse($subscription->priceHistories as $history)
-                    <div class="d-flex justify-content-between align-items-center py-2 border-bottom small">
-                        <div>
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 py-2 border-bottom small">
+                        <div class="min-w-0">
                             <span class="fw-semibold">{{ $history->currency }} {{ number_format((float) $history->old_amount, 2) }} &rarr; {{ number_format((float) $history->new_amount, 2) }}</span>
                             <div class="text-muted">{{ $history->recorded_at?->format('M d, Y') }} ({{ str_replace('_', ' ', $history->detected_via) }})</div>
                         </div>
@@ -193,8 +197,8 @@
             </div>
             <div class="card-body">
                 @forelse($subscription->billingEvents as $event)
-                    <div class="d-flex justify-content-between align-items-center py-2 border-bottom small">
-                        <div>
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 py-2 border-bottom small">
+                        <div class="min-w-0">
                             <span class="fw-semibold">{{ $event->currency }} {{ number_format((float) $event->amount, 2) }}</span>
                             <span class="text-muted">({{ $event->base_currency }} {{ number_format((float) $event->amount_base, 2) }})</span>
                             <div class="text-muted">{{ $event->billed_at?->format('M d, Y') }} &bull; {{ str_replace('_', ' ', $event->source) }}</div>

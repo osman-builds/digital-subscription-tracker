@@ -8,7 +8,7 @@
         <h4 class="mb-0 fw-bold">Expenditure Tracker</h4>
         <small class="text-muted">All amounts normalised to {{ $baseCurrency ?? 'MYR' }}</small>
     </div>
-    <div class="d-flex align-items-center gap-2">
+    <div class="d-flex align-items-center flex-wrap gap-2">
         <div class="dropdown">
             <button class="btn btn-outline-secondary btn-sm dropdown-toggle d-flex align-items-center gap-1 shadow-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Export expenditure data">
                 <i class="bi bi-download"></i>Export
@@ -112,7 +112,9 @@
                 <h6 class="fw-bold mb-0"><i class="bi bi-bar-chart-fill text-primary me-2"></i>Monthly Spend — {{ $year }}</h6>
             </div>
             <div class="card-body">
-                <canvas id="monthlyChart" style="height:280px;"></canvas>
+                <div style="position: relative; height: 260px; width: 100%;">
+                    <canvas id="monthlyChart"></canvas>
+                </div>
             </div>
         </div>
     </div>
@@ -222,7 +224,7 @@
 
     <div class="col-12 col-lg-6">
         <div class="card stat-card h-100">
-            <div class="card-header bg-white border-0 pt-3 pb-0 d-flex justify-content-between align-items-center">
+            <div class="card-header bg-white border-0 pt-3 pb-0 d-flex justify-content-between align-items-center flex-wrap gap-2">
                 <h6 class="fw-bold mb-0"><i class="bi bi-arrow-up-right-circle text-danger me-2"></i>Price Creep Tracker</h6>
                 @if(($priceCreep['extra_yearly_cost'] ?? 0) > 0)
                     <span class="badge bg-danger bg-opacity-10 text-danger">+{{ $currencySymbol ?? 'RM' }} {{ number_format($priceCreep['extra_yearly_cost'], 2) }}/yr</span>
@@ -230,8 +232,8 @@
             </div>
             <div class="card-body">
                 @forelse($priceCreep['items'] as $hike)
-                    <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
-                        <div>
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 py-2 border-bottom">
+                        <div class="min-w-0">
                             <div class="fw-semibold small">{{ $hike['name'] }}</div>
                             <small class="text-muted">
                                 {{ $hike['currency'] }} {{ number_format($hike['old_amount'], 2) }} &rarr; {{ number_format($hike['new_amount'], 2) }}
@@ -250,7 +252,7 @@
 
 {{-- Immutable Billing Ledger with FX Snapshots --}}
 <div class="card stat-card mt-4">
-    <div class="card-header bg-white border-0 pt-3 pb-0 d-flex justify-content-between align-items-center">
+    <div class="card-header bg-white border-0 pt-3 pb-0 d-flex justify-content-between align-items-center flex-wrap gap-2">
         <div>
             <h6 class="fw-bold mb-0"><i class="bi bi-journal-check text-primary me-2"></i>Recent Billing Ledger (FX Snapshots)</h6>
             <small class="text-muted">Immutable historical charges preserving exact FX rates on each billing date</small>

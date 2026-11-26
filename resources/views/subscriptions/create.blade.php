@@ -14,11 +14,11 @@
     <div class="col-12 col-lg-8">
         @include('subscriptions._receipt_scanner')
         <div class="card border-0 shadow-sm">
-            <div class="card-body p-4">
+            <div class="card-body p-3 p-sm-4">
                 <form action="{{ route('subscriptions.store') }}" method="POST">
                     @csrf
                     @include('subscriptions._form')
-                    <div class="d-flex gap-2 mt-4">
+                    <div class="d-flex flex-wrap gap-2 mt-4">
                         <button type="submit" class="btn btn-primary px-4">
                             <i class="bi bi-check-lg me-1"></i>Save Subscription
                         </button>

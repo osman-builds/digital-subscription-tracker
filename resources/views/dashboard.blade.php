@@ -8,7 +8,7 @@
         <h1 class="h4 mb-0 fw-bold">Dashboard</h1>
         <small class="text-muted">{{ now()->format('l, F j, Y') }}</small>
     </div>
-    <div class="d-flex align-items-center gap-2">
+    <div class="d-flex align-items-center flex-wrap gap-2">
         @if($fxUpdatedAt)
             <span class="badge bg-light text-muted border">
                 <i class="bi bi-currency-exchange me-1"></i>FX updated {{ \Carbon\Carbon::parse($fxUpdatedAt)->diffForHumans() }}
@@ -18,10 +18,10 @@
                 <i class="bi bi-exclamation-triangle me-1"></i>Using fallback FX rates
             </span>
         @endif
-        <a href="{{ route('subscriptions.create') }}#receiptScanner" class="btn btn-outline-primary">
+        <a href="{{ route('subscriptions.create') }}#receiptScanner" class="btn btn-outline-primary btn-sm">
             <i class="bi bi-file-earmark-medical me-1"></i>Scan Receipt / PDF
         </a>
-        <a href="{{ route('subscriptions.create') }}" class="btn btn-primary">
+        <a href="{{ route('subscriptions.create') }}" class="btn btn-primary btn-sm">
             <i class="bi bi-plus-lg me-1"></i>Add Subscription
         </a>
     </div>
@@ -151,7 +151,7 @@
 <div class="row g-3 mb-3">
     <div class="col-12 col-lg-4">
         <div class="card stat-card h-100">
-            <div class="card-header bg-white border-0 pt-3 pb-0 d-flex justify-content-between align-items-center">
+            <div class="card-header bg-white border-0 pt-3 pb-0 d-flex justify-content-between align-items-center flex-wrap gap-2">
                 <h2 class="h6 fw-bold mb-0"><i class="bi bi-shield-check text-primary me-2"></i>Optimization Score</h2>
                 <span class="badge bg-{{ $healthColor }}">{{ $healthGrade }}</span>
             </div>
@@ -176,7 +176,7 @@
                 @else
                     <p class="small text-muted mb-2"><i class="bi bi-check-circle text-success me-1"></i>Zero budget breaches, trial shocks, or redundant plans detected.</p>
                 @endif
-                <div class="d-flex justify-content-between align-items-center pt-2 border-top small">
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 pt-2 border-top small">
                     <a href="{{ route('settings.index') }}" class="text-decoration-none">Configure Budget Cap</a>
                     <a href="{{ route('expenditure.index') }}" class="text-decoration-none">Spike Forecast <i class="bi bi-arrow-right"></i></a>
                 </div>
@@ -186,9 +186,9 @@
 
     <div class="col-12 col-lg-8">
         <div class="card stat-card h-100">
-            <div class="card-header bg-white border-0 pt-3 pb-0 d-flex justify-content-between align-items-center">
+            <div class="card-header bg-white border-0 pt-3 pb-0 d-flex justify-content-between align-items-center flex-wrap gap-2">
                 <h2 class="h6 fw-bold mb-0"><i class="bi bi-lightbulb text-warning me-2"></i>Proactive Financial Insights</h2>
-                <div class="d-flex gap-2">
+                <div class="d-flex flex-wrap gap-2">
                     @if($overlaps->isNotEmpty())
                         <span class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25">{{ $overlaps->count() }} Overlap(s)</span>
                     @endif
@@ -207,8 +207,8 @@
                         };
                     @endphp
                     <div class="d-flex align-items-start justify-content-between gap-2 px-3 py-2 border-bottom">
-                        <div class="flex-grow-1">
-                            <div class="d-flex align-items-center gap-2 mb-1">
+                        <div class="flex-grow-1 min-w-0">
+                            <div class="d-flex align-items-center flex-wrap gap-2 mb-1">
                                 <span class="badge bg-{{ $sevClass }} bg-opacity-10 text-{{ $sevClass }} border border-{{ $sevClass }} border-opacity-25 text-uppercase" style="font-size: 0.65rem;">
                                     {{ $alert->severity }}
                                 </span>
@@ -247,7 +247,9 @@
             </div>
             <div class="card-body d-flex align-items-center justify-content-center">
                 @if($categoryBreakdown->isNotEmpty())
-                    <canvas id="categoryChart" style="max-height:230px;"></canvas>
+                    <div style="position: relative; width: 100%; max-width: 260px; margin: 0 auto;">
+                        <canvas id="categoryChart" style="max-height:230px;"></canvas>
+                    </div>
                 @else
                     <p class="text-muted text-center py-4">No data yet</p>
                 @endif
@@ -263,12 +265,12 @@
             </div>
             <div class="card-body p-0">
                 @forelse($dueSoon as $sub)
-                    <div class="d-flex align-items-center px-3 py-3 border-bottom">
-                        <div class="me-3">
+                    <div class="d-flex align-items-center flex-wrap flex-sm-nowrap gap-2 px-3 py-3 border-bottom">
+                        <div class="flex-shrink-0 me-1">
                             <x-brand-logo :subscription="$sub" :size="38" rounded="rounded-2" />
                         </div>
-                        <div class="flex-grow-1">
-                            <div class="fw-semibold">
+                        <div class="flex-grow-1 min-w-0">
+                            <div class="fw-semibold text-truncate">
                                 {{ $sub->name }}
                                 @if($sub->is_trial)
                                     <span class="badge bg-warning text-dark ms-1" style="font-size: 0.7rem;"><i class="bi bi-gift me-1"></i>Trial</span>
@@ -276,22 +278,24 @@
                             </div>
                             <small class="text-muted">{{ $sub->next_billing_date->format('M d, Y') }}</small>
                         </div>
-                        <div class="text-end">
-                            <div class="fw-semibold text-success">{{ $currencySymbol ?? 'RM' }} {{ number_format($sub->effectiveAmountIn($baseCurrency ?? 'MYR'), 2) }}</div>
-                            @if($sub->currency !== ($baseCurrency ?? 'MYR'))
-                                <small class="text-muted">{{ $sub->currency }} {{ number_format($sub->amount, 2) }}</small>
-                            @endif
-                            @php $days = $sub->daysUntilRenewal(); @endphp
-                            <div><small class="{{ $days <= 1 ? 'text-danger fw-semibold' : 'text-muted' }}">
-                                {{ $days === 0 ? 'Today!' : ($days === 1 ? 'Tomorrow' : "in {$days} days") }}
-                            </small></div>
+                        <div class="d-flex align-items-center gap-2 ms-auto flex-shrink-0">
+                            <div class="text-end">
+                                <div class="fw-semibold text-success text-nowrap">{{ $currencySymbol ?? 'RM' }} {{ number_format($sub->effectiveAmountIn($baseCurrency ?? 'MYR'), 2) }}</div>
+                                @if($sub->currency !== ($baseCurrency ?? 'MYR'))
+                                    <small class="text-muted text-nowrap">{{ $sub->currency }} {{ number_format($sub->amount, 2) }}</small>
+                                @endif
+                                @php $days = $sub->daysUntilRenewal(); @endphp
+                                <div><small class="{{ $days <= 1 ? 'text-danger fw-semibold' : 'text-muted' }} text-nowrap">
+                                    {{ $days === 0 ? 'Today!' : ($days === 1 ? 'Tomorrow' : "in {$days} days") }}
+                                </small></div>
+                            </div>
+                            <form action="{{ route('subscriptions.renew', $sub) }}" method="POST" class="m-0">
+                                @csrf
+                                <button type="submit" class="btn btn-sm btn-outline-success py-1 px-2 text-nowrap" title="Mark as Paid & Advance Cycle">
+                                    <i class="bi bi-check2"></i> <span class="d-none d-sm-inline">Paid</span>
+                                </button>
+                            </form>
                         </div>
-                        <form action="{{ route('subscriptions.renew', $sub) }}" method="POST" class="ms-3">
-                            @csrf
-                            <button type="submit" class="btn btn-sm btn-outline-success py-1 px-2" title="Mark as Paid & Advance Cycle">
-                                <i class="bi bi-check2"></i> <span class="d-none d-sm-inline">Paid</span>
-                            </button>
-                        </form>
                     </div>
                 @empty
                     <div class="text-center py-5 text-muted">
@@ -305,7 +309,7 @@
 
 {{-- Active subscriptions table --}}
 <div class="card stat-card">
-    <div class="card-header bg-white border-0 pt-3 pb-0 d-flex justify-content-between align-items-start">
+    <div class="card-header bg-white border-0 pt-3 pb-0 d-flex justify-content-between align-items-start flex-wrap gap-2">
         <div>
             <h2 class="h6 fw-bold mb-0"><i class="bi bi-list-check text-primary me-2"></i>Active Subscriptions</h2>
             <small class="text-muted">All amounts normalised to {{ $baseCurrency ?? 'MYR' }}</small>
