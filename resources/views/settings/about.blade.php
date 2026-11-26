@@ -10,7 +10,10 @@
                 <div class="d-flex align-items-center gap-3">
                     <img src="/favicon.svg" width="52" height="52" alt="SubShield icon">
                     <div>
-                        <h4 class="mb-0 fw-bold text-white">SubShield</h4>
+                        <div class="d-flex align-items-center gap-2">
+                            <h4 class="mb-0 fw-bold text-white">SubShield</h4>
+                            <span class="badge bg-white bg-opacity-10 text-white border border-white border-opacity-25 small">v{{ config('app.version', '1.0.0') }}</span>
+                        </div>
                         <span class="text-white-50 small">Digital Subscription &amp; Renewal Manager</span>
                     </div>
                 </div>

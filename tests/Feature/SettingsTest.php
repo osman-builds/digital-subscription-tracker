@@ -333,6 +333,7 @@ class SettingsTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('SubShield');
+        $response->assertSee('v1.0.0');
         $response->assertSee('No Bank Logins Required');
         $response->assertSee('Automatic Multi-Currency Conversion');
         $response->assertSee('support@mysubshield.me');
@@ -406,7 +407,8 @@ class SettingsTest extends TestCase
         $response = $this->actingAs($user)->get(route('dashboard'));
 
         $response->assertOk();
-        $response->assertSee('Quick-Start Onboarding Guide');
+        $response->assertSee('Welcome to SubShield,');
+        $response->assertDontSee('Zero Bank Logins');
         $response->assertSee(route(self::ROUTE_SETTINGS_INDEX), false);
     }
 

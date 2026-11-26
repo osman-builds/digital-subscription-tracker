@@ -28,43 +28,25 @@
 </div>
 
 @if($totalActive === 0)
-    {{-- New User Onboarding Welcome Card --}}
-    <div class="card border-0 shadow-sm mb-4" style="background: linear-gradient(135deg, #1e1b4b 0%, #0f172a 100%); color: #fff; border-radius: 16px;">
-        <div class="card-body p-4 p-md-5">
-            <div class="row align-items-center g-4">
-                <div class="col-12 col-lg-8">
-                    <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill mb-3" style="background: rgba(99, 102, 241, 0.2); border: 1px solid rgba(99, 102, 241, 0.4); font-size: 0.82rem; font-weight: 600; color: #c7d2fe;">
-                        <i class="bi bi-stars text-warning"></i> Quick-Start Onboarding Guide
-                    </div>
-                    <h2 class="h3 fw-bold text-white mb-2">Welcome to SubShield, {{ auth()->user()->name }}!</h2>
-                    <p class="text-white-50 mb-4" style="max-width: 620px;">
-                        Take full control of your recurring commitments in seconds. Upload an invoice to let AI extract the details, add your first subscription manually, or set your monthly budget threshold.
-                    </p>
-                    <div class="row g-3">
-                        <div class="col-12 col-sm-4">
-                            <a href="{{ route('subscriptions.create') }}#receiptScanner" class="btn btn-primary w-100 py-2 d-flex align-items-center justify-content-center gap-2 fw-semibold">
-                                <i class="bi bi-file-earmark-medical"></i> AI Receipt Scan
-                            </a>
-                        </div>
-                        <div class="col-12 col-sm-4">
-                            <a href="{{ route('subscriptions.create') }}" class="btn btn-outline-light w-100 py-2 d-flex align-items-center justify-content-center gap-2 fw-semibold">
-                                <i class="bi bi-plus-circle"></i> Add Manually
-                            </a>
-                        </div>
-                        <div class="col-12 col-sm-4">
-                            <a href="{{ route('settings.index') }}" class="btn btn-outline-light w-100 py-2 d-flex align-items-center justify-content-center gap-2 fw-semibold">
-                                <i class="bi bi-sliders"></i> Set Budget Cap
-                            </a>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-12 col-lg-4 d-none d-lg-block text-center">
-                    <div class="p-4 rounded-4" style="background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.1);">
-                        <i class="bi bi-shield-check text-success display-4 mb-2 d-block"></i>
-                        <div class="fw-bold text-white">Zero Bank Logins</div>
-                        <small class="text-white-50">100% private &amp; client-controlled. Your financial credentials never leave your custody.</small>
-                    </div>
-                </div>
+    {{-- Compact New User Welcome Strip --}}
+    <div class="card border-0 shadow-sm mb-3" style="background: linear-gradient(135deg, #1e1b4b 0%, #0f172a 100%); color: #fff; border-radius: 12px;">
+        <div class="card-body py-3 px-3 px-md-4 d-flex flex-column flex-lg-row align-items-start align-items-lg-center justify-content-between gap-3">
+            <div class="min-w-0">
+                <h2 class="h6 fw-bold text-white mb-1">Welcome to SubShield, {{ auth()->user()->name }}!</h2>
+                <p class="text-white-50 small mb-0">
+                    Scan a receipt, add your first subscription, or set a monthly budget to get started.
+                </p>
+            </div>
+            <div class="d-flex flex-wrap gap-2 flex-shrink-0">
+                <a href="{{ route('subscriptions.create') }}#receiptScanner" class="btn btn-primary btn-sm px-3 fw-semibold">
+                    <i class="bi bi-file-earmark-medical me-1"></i>Scan Receipt
+                </a>
+                <a href="{{ route('subscriptions.create') }}" class="btn btn-outline-light btn-sm px-3 fw-semibold">
+                    <i class="bi bi-plus-circle me-1"></i>Add Manually
+                </a>
+                <a href="{{ route('settings.index') }}" class="btn btn-outline-light btn-sm px-3 fw-semibold">
+                    <i class="bi bi-sliders me-1"></i>Set Budget
+                </a>
             </div>
         </div>
     </div>
