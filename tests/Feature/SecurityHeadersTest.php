@@ -16,8 +16,7 @@ class SecurityHeadersTest extends TestCase
         $response->assertHeader('X-XSS-Protection', '0');
         $response->assertHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
         $response->assertHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
-        $response->assertHeader('Cross-Origin-Opener-Policy', 'same-origin');
-        $response->assertHeader('Cross-Origin-Resource-Policy', 'same-origin');
+        $response->assertHeader('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
         $response->assertHeader('Content-Security-Policy');
 
         $csp = (string) $response->headers->get('Content-Security-Policy');

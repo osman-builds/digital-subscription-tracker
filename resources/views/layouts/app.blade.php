@@ -319,7 +319,7 @@
             <form method="POST" action="{{ route('logout') }}">
                 @csrf
                 <button type="submit" class="btn btn-sm btn-outline-light w-100">
-                    <i class="bi bi-box-arrow-right me-1"></i>Logout
+                    <i class="bi bi-box-arrow-right me-1"></i>{{ auth()->user()->isSandbox() ? 'Exit Demo' : 'Logout' }}
                 </button>
             </form>
         </div>
@@ -369,7 +369,7 @@
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
                     <button type="submit" class="btn btn-outline-light btn-sm w-100">
-                        <i class="bi bi-box-arrow-right me-1"></i>Logout
+                        <i class="bi bi-box-arrow-right me-1"></i>{{ auth()->user()->isSandbox() ? 'Exit Demo' : 'Logout' }}
                     </button>
                 </form>
             </div>
@@ -379,21 +379,6 @@
     {{-- ── Main content ──────────────────────────────────────────────── --}}
     <main class="main-content flex-grow-1">
         <div class="d-md-none" style="height:56px;"></div>
-
-        @if(auth()->user()->isSandbox())
-            @php $sandboxRemaining = app(\App\Services\SandboxService::class)->remainingMinutes(); @endphp
-            <div class="alert alert-warning d-flex align-items-center justify-content-between flex-wrap gap-2 py-2 px-3 mb-3 small">
-                <div>
-                    <i class="bi bi-hourglass-split me-1"></i>
-                    <strong>Isolated Sandbox ({{ $sandboxRemaining }} min left):</strong>
-                    Changes stay in your session only and are never saved to the database. Live icon API and email alerts are reserved for verified accounts.
-                </div>
-                <form method="POST" action="{{ route('logout') }}" class="m-0">
-                    @csrf
-                    <button type="submit" class="btn btn-sm btn-outline-dark py-0 px-2">Exit Sandbox</button>
-                </form>
-            </div>
-        @endif
 
         @if(session('success'))
             <div class="alert alert-success alert-dismissible fade show" role="alert">

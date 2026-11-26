@@ -322,7 +322,6 @@ class SettingsTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('Change Password');
-        $response->assertSee('Active Security Controls');
         $response->assertSee('Two-Factor Authentication');
     }
 
@@ -334,8 +333,8 @@ class SettingsTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('SubShield');
-        $response->assertSee('Zero Credential Scraping');
-        $response->assertSee('End-to-End Edge Encryption');
+        $response->assertSee('No Bank Logins Required');
+        $response->assertSee('Automatic Multi-Currency Conversion');
         $response->assertSee('support@mysubshield.me');
     }
 

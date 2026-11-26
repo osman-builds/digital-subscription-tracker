@@ -14,10 +14,7 @@
             <div class="col-12 col-md-6 text-md-end">
                 <div class="d-flex flex-column align-items-md-end gap-1">
                     <span class="text-white-50 small">
-                        <i class="bi bi-shield-check text-success me-1"></i>Cloudflare Edge SSL/TLS Active
-                    </span>
-                    <span class="text-white-50 small">
-                        Security Contact: <a href="mailto:security@mysubshield.me" class="text-white text-decoration-none">security@mysubshield.me</a>
+                        Support: <a href="mailto:support@mysubshield.me" class="text-white text-decoration-none">support@mysubshield.me</a>
                     </span>
                 </div>
             </div>

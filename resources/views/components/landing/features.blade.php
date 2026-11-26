@@ -7,7 +7,7 @@
             </span>
             <h2 class="section-title">Up and Running in 60 Seconds</h2>
             <p class="section-lead mx-auto" style="max-width: 600px;">
-                Experience the fastest, most respectful setup in fintech. Zero financial permissions, zero OAuth scopes, zero bank passwords.
+                Get started in seconds with zero bank logins, zero card details, and zero setup friction.
             </p>
         </div>
 
@@ -17,7 +17,7 @@
                     <div class="step-pill">1</div>
                     <h3 class="fw-bold text-white mb-2 fs-5">Start Instantly</h3>
                     <p class="bento-desc mb-0" style="font-size: 0.95rem;">
-                        Test with 1-click in our <strong>Interactive Demo Sandbox</strong> with pre-populated multi-tier data, or register a private account with secure bcrypt hashing.
+                        Explore the <strong>Interactive Demo</strong> in one click with sample subscriptions, or create your own free account in seconds.
                     </p>
                 </div>
             </div>
@@ -25,9 +25,9 @@
             <div class="col-12 col-md-6 col-lg-3">
                 <div class="step-card">
                     <div class="step-pill">2</div>
-                    <h3 class="fw-bold text-white mb-2 fs-5">AI Scan or Add</h3>
+                    <h3 class="fw-bold text-white mb-2 fs-5">Scan or Add</h3>
                     <p class="bento-desc mb-0" style="font-size: 0.95rem;">
-                        Upload a receipt image or PDF invoice for instant Gemini vision extraction in RAM, or enter your subscriptions in their native currencies.
+                        Upload a receipt image or PDF invoice for instant auto-fill, or enter your subscriptions in their original currencies.
                     </p>
                 </div>
             </div>

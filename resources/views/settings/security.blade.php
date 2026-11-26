@@ -12,14 +12,14 @@
                 </span>
                 <div>
                     <h5 class="fw-bold mb-0">Change Password</h5>
-                    <small class="text-muted">Ensure your account is protected with a strong, distinct password</small>
+                    <small class="text-muted">Updating your password automatically signs out other active devices.</small>
                 </div>
             </div>
         </div>
         <div class="card-body p-4">
             @if($user->isSandbox())
                 <div class="alert alert-info py-3 mb-4">
-                    <i class="bi bi-info-circle-fill me-2"></i><strong>Sandbox Mode:</strong> Credential changes are disabled in the isolated demo sandbox. Create a verified account to manage your own password.
+                    <i class="bi bi-info-circle-fill me-2"></i>Password changes are disabled in demo mode. Create a free account to manage your own credentials.
                 </div>
             @endif
 
@@ -60,78 +60,21 @@
         </div>
     </div>
 
-    {{-- 2. ACTIVE SESSION & ENVIRONMENT PROTECTIONS --}}
-    <div class="card border-0 shadow-sm">
-        <div class="card-header bg-white border-0 pt-4 pb-0 px-4">
-            <div class="d-flex align-items-center gap-2">
-                <span class="p-2 rounded-2 bg-success bg-opacity-10 text-success">
-                    <i class="bi bi-shield-check fs-5"></i>
-                </span>
-                <div>
-                    <h6 class="fw-bold mb-0">Active Security Controls</h6>
-                    <small class="text-muted">Built-in protections defending your session and data in real time</small>
-                </div>
-            </div>
-        </div>
-        <div class="card-body p-4">
-            <div class="row g-3">
-                <div class="col-12 col-md-6">
-                    <div class="p-3 rounded-3 bg-body-tertiary h-100">
-                        <div class="d-flex align-items-center justify-content-between mb-2">
-                            <span class="fw-semibold small"><i class="bi bi-cookie text-primary me-2"></i>HTTP-Only Cookies</span>
-                            <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 small">Active</span>
-                        </div>
-                        <p class="text-muted small mb-0">Authentication cookies are strictly restricted to HTTP transmission, preventing browser scripts from reading your session token.</p>
-                    </div>
-                </div>
-                <div class="col-12 col-md-6">
-                    <div class="p-3 rounded-3 bg-body-tertiary h-100">
-                        <div class="d-flex align-items-center justify-content-between mb-2">
-                            <span class="fw-semibold small"><i class="bi bi-fingerprint text-info me-2"></i>CSRF Protection</span>
-                            <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 small">Active</span>
-                        </div>
-                        <p class="text-muted small mb-0">Every state-altering request is signed with a cryptographic token verified by the backend kernel.</p>
-                    </div>
-                </div>
-                <div class="col-12 col-md-6">
-                    <div class="p-3 rounded-3 bg-body-tertiary h-100">
-                        <div class="d-flex align-items-center justify-content-between mb-2">
-                            <span class="fw-semibold small"><i class="bi bi-shield-shaded text-warning me-2"></i>Strict SameSite Policy</span>
-                            <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 small">Active</span>
-                        </div>
-                        <p class="text-muted small mb-0">Cookies are isolated to first-party requests to block third-party cross-site request forgery attacks.</p>
-                    </div>
-                </div>
-                <div class="col-12 col-md-6">
-                    <div class="p-3 rounded-3 bg-body-tertiary h-100">
-                        <div class="d-flex align-items-center justify-content-between mb-2">
-                            <span class="fw-semibold small"><i class="bi bi-cloud-check text-primary me-2"></i>Cloudflare Anycast WAF</span>
-                            <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 small">Active</span>
-                        </div>
-                        <p class="text-muted small mb-0">Traffic is filtered at the global edge with Bot Fight Mode and automated scanner blocking before reaching origin.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    {{-- 3. TWO-FACTOR AUTHENTICATION (TOTP) ROADMAP --}}
+    {{-- 2. TWO-FACTOR AUTHENTICATION --}}
     <div class="card border-0 shadow-sm bg-body-tertiary">
         <div class="card-body p-4">
-            <div class="d-flex align-items-start justify-content-between flex-wrap gap-3">
-                <div class="d-flex align-items-start gap-3">
-                    <span class="p-2 rounded-2 bg-secondary bg-opacity-10 text-secondary flex-shrink-0">
-                        <i class="bi bi-phone fs-5"></i>
-                    </span>
-                    <div>
-                        <div class="d-flex align-items-center flex-wrap gap-2 mb-1">
-                            <h6 class="fw-bold mb-0">Two-Factor Authentication (2FA)</h6>
-                            <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 small">Roadmap</span>
-                        </div>
-                        <p class="text-muted small mb-0">
-                            Support for authenticator apps (Google Authenticator, Microsoft Authenticator, 1Password) using time-based one-time passwords (TOTP) will be introduced in the next security milestone.
-                        </p>
+            <div class="d-flex align-items-start gap-3">
+                <span class="p-2 rounded-2 bg-secondary bg-opacity-10 text-secondary flex-shrink-0">
+                    <i class="bi bi-phone fs-5"></i>
+                </span>
+                <div>
+                    <div class="d-flex align-items-center flex-wrap gap-2 mb-1">
+                        <h6 class="fw-bold mb-0">Two-Factor Authentication (2FA)</h6>
+                        <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 small">Coming Soon</span>
                     </div>
+                    <p class="text-muted small mb-0">
+                        Authenticator app verification (Google Authenticator, Microsoft Authenticator, 1Password) is planned for an upcoming release.
+                    </p>
                 </div>
             </div>
         </div>

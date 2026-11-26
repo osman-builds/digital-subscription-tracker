@@ -117,6 +117,10 @@ class BotDefenseService
             return true;
         }
 
+        if (app()->environment('local')) {
+            $allowedHostnames = array_merge($allowedHostnames, ['localhost', '127.0.0.1']);
+        }
+
         return in_array(strtolower($hostname), array_map('strtolower', $allowedHostnames), true);
     }
 

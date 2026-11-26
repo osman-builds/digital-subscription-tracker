@@ -7,11 +7,11 @@
                     <i class="bi bi-file-earmark-medical text-primary me-2"></i>AI Receipt &amp; PDF Auto-Scanner
                 </h5>
                 <p class="text-muted small mb-0">
-                    Upload a billing screenshot, photo, or PDF invoice. SubShield reads fields in RAM, checks for existing price hikes, lets you verify everything, and discards the file immediately.
+                    Upload a billing screenshot, photo, or PDF invoice to auto-fill your subscription details and check for price changes. Files are never stored.
                 </p>
             </div>
             <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25">
-                <i class="bi bi-shield-lock me-1"></i>Zero-Disk Policy (0 bytes saved)
+                <i class="bi bi-shield-check me-1"></i>Private · Not Stored
             </span>
         </div>
 
@@ -24,11 +24,11 @@
             </button>
             @if(auth()->user()?->isSandbox())
                 <button type="button" id="btnSandboxDemoScan" class="btn btn-outline-primary btn-sm px-3">
-                    <i class="bi bi-play-circle me-1"></i>Try Simulated Demo Scan
+                    <i class="bi bi-play-circle me-1"></i>Try Sample Receipt
                 </button>
             @endif
             <span id="scannerSpinner" class="small text-primary d-none">
-                <span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>Analyzing receipt in RAM...
+                <span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>Analyzing receipt...
             </span>
         </div>
         <div class="form-text mt-1">Allowed: JPG, PNG, WebP, or PDF up to 4 MB. Personal card numbers and addresses are automatically excluded.</div>
@@ -39,7 +39,7 @@
         {{-- Duplicate Receipt Guard Alert --}}
         <div id="scanDuplicateAlert" class="alert alert-warning py-2 px-3 mt-3 mb-0 small d-none" role="alert">
             <i class="bi bi-exclamation-triangle-fill me-1"></i>
-            <strong>Duplicate Receipt Detected (SHA-256 Match):</strong>
+            <strong>Duplicate Receipt Detected:</strong>
             <span id="scanDuplicateText"></span>
         </div>
 

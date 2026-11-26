@@ -20,17 +20,16 @@
                         <i class="bi bi-camera-fill"></i>
                     </div>
                     <div class="d-flex align-items-center flex-wrap gap-2 mb-2">
-                        <h3 class="fw-bold text-white mb-0 fs-5">Multimodal AI Receipt &amp; Invoice Scanner</h3>
-                        <span class="badge bg-success bg-opacity-25 text-success border border-success border-opacity-25 small">Gemini Powered</span>
+                        <h3 class="fw-bold text-white mb-0 fs-5">AI Receipt &amp; Invoice Scanner</h3>
                     </div>
                     <p class="bento-desc mb-3">
-                        Snap a photo or upload a PDF invoice. Our multimodal AI extracts service name, billing frequency, currency, and renewal dates in volatile RAM—never persisting your receipt images or personal card details to disk.
+                        Snap a photo or upload a PDF invoice to auto-fill service name, billing cycle, currency, and renewal dates in seconds — your files are never stored.
                     </p>
                     <div class="p-3 rounded-3" style="background: rgba(99, 102, 241, 0.08); border: 1px solid rgba(99, 102, 241, 0.25);">
                         <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 small">
-                            <span class="text-white"><i class="bi bi-cpu text-primary me-1"></i>Zero-Disk Memory Processing</span>
-                            <span class="text-white"><i class="bi bi-fingerprint text-info me-1"></i>SHA-256 Duplicate Protection</span>
-                            <span class="text-white"><i class="bi bi-person-check text-success me-1"></i>Human-in-the-Loop Audit</span>
+                            <span class="text-white"><i class="bi bi-shield-check text-primary me-1"></i>Private Processing</span>
+                            <span class="text-white"><i class="bi bi-files text-info me-1"></i>Duplicate Detection</span>
+                            <span class="text-white"><i class="bi bi-person-check text-success me-1"></i>Review Before Saving</span>
                         </div>
                     </div>
                 </div>
@@ -110,7 +109,7 @@
                     </div>
                     <h3 class="fw-bold text-white mb-2 fs-5">Executive CSV &amp; A4 PDF Reports</h3>
                     <p class="bento-desc mb-3">
-                        Export arranged, formula-sanitized CSV spreadsheets with category breakdowns, or generate executive A4 landscape PDF audit reports for personal accounting and business expense claims in 1 click.
+                        Export clean CSV spreadsheets with category breakdowns, or generate printable A4 PDF reports for personal budgeting and expense claims in 1 click.
                     </p>
                     <div class="d-flex flex-wrap gap-2">
                         <span class="badge bg-success bg-opacity-20 text-success border border-success border-opacity-25"><i class="bi bi-filetype-csv me-1"></i>Structured CSV</span>

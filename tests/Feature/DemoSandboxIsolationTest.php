@@ -62,7 +62,7 @@ class DemoSandboxIsolationTest extends TestCase
 
         $this->get(route('dashboard'))
             ->assertOk()
-            ->assertSee('Isolated Sandbox');
+            ->assertSee('Exit Demo');
 
         $this->post(route('categories.store'), [
             'name' => self::SANDBOX_HOBBY,
