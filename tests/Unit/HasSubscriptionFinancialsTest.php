@@ -64,12 +64,23 @@ class HasSubscriptionFinancialsTest extends TestCase
         {
             use HasSubscriptionFinancials;
 
-            public function __construct(
-                public float $amount,
-                public string $currency,
-                public string $billing_cycle,
-                public ?float $amount_myr,
-            ) {}
+            /** @var array<string, float|string|null> */
+            private array $attributes;
+
+            public function __construct(float $amount, string $currency, string $cycle, ?float $amountMyr)
+            {
+                $this->attributes = [
+                    'amount' => $amount,
+                    'currency' => $currency,
+                    'billing_cycle' => $cycle,
+                    'amount_myr' => $amountMyr,
+                ];
+            }
+
+            public function __get(string $name): mixed
+            {
+                return $this->attributes[$name] ?? null;
+            }
         };
     }
 }

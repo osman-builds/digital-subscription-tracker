@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Http\Middleware\EnforceSessionSecurity;
 use App\Http\Requests\Auth\LoginRequest;
+use App\Models\User;
 use App\Services\SandboxService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -37,8 +39,13 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        if (auth()->user()?->isSandbox()) {
-            $sandbox->startSession(auth()->id());
+        $user = $request->user();
+        if ($user instanceof User) {
+            EnforceSessionSecurity::stampSession($request, $user);
+
+            if ($user->isSandbox()) {
+                $sandbox->startSession($user->id);
+            }
         }
 
         return redirect()->intended(route('dashboard', absolute: false));

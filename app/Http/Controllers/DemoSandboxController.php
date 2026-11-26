@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Middleware\EnforceSessionSecurity;
 use App\Services\SandboxService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -22,6 +23,7 @@ class DemoSandboxController extends Controller
         $request->session()->regenerate();
         $sandbox->startSession(SandboxService::SANDBOX_USER_ID);
         Auth::login($virtualUser);
+        EnforceSessionSecurity::stampSession($request, $virtualUser);
 
         return redirect()->route('dashboard');
     }

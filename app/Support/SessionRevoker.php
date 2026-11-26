@@ -31,4 +31,17 @@ final class SessionRevoker
 
         $request->session()->regenerate();
     }
+
+    /**
+     * Purge all active database sessions for a user (e.g. after forgotten password reset).
+     */
+    public static function revokeAllSessions(User $user): void
+    {
+        if (config('session.driver') === 'database') {
+            $table = (string) config('session.table', 'sessions');
+            DB::table($table)
+                ->where('user_id', $user->id)
+                ->delete();
+        }
+    }
 }

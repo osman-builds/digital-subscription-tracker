@@ -34,6 +34,8 @@ return [
 
     'lifetime' => (int) env('SESSION_LIFETIME', 120),
 
+    'absolute_lifetime_hours' => (int) env('SESSION_ABSOLUTE_LIFETIME_HOURS', 12),
+
     'expire_on_close' => env('SESSION_EXPIRE_ON_CLOSE', false),
 
     /*

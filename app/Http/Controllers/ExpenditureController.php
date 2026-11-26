@@ -24,7 +24,7 @@ class ExpenditureController extends Controller
         FinancialIntelligenceService $intelligenceService,
         SandboxService $sandbox
     ) {
-        $year = (int) $request->get('year', now()->year);
+        $year = $this->resolveYear($request);
         $user = auth()->user();
         $userId = $user->id;
         $settings = $user->getSettings();
@@ -80,7 +80,7 @@ class ExpenditureController extends Controller
         SandboxService $sandbox,
         ReportExportService $exporter
     ): StreamedResponse {
-        $year = (int) $request->get('year', now()->year);
+        $year = $this->resolveYear($request);
         $user = auth()->user();
         $userId = $user->id;
         $settings = $user->getSettings();
@@ -125,7 +125,7 @@ class ExpenditureController extends Controller
         FinancialIntelligenceService $intelligenceService,
         SandboxService $sandbox
     ): View {
-        $year = (int) $request->get('year', now()->year);
+        $year = $this->resolveYear($request);
         $user = auth()->user();
         $userId = $user->id;
         $settings = $user->getSettings();
@@ -163,6 +163,16 @@ class ExpenditureController extends Controller
             'yearlyTotal', 'categoryBreakdown', 'subscriptionYearly',
             'intelligence', 'billingEvents'
         ));
+    }
+
+    /**
+     * Clamp user-supplied reporting year to a sane historical/forecast range.
+     */
+    private function resolveYear(Request $request): int
+    {
+        $year = (int) $request->get('year', now()->year);
+
+        return max(2000, min(now()->year + 5, $year));
     }
 
     /** @return Collection<int, array{month: string, total: float}> */

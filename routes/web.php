@@ -9,6 +9,7 @@ use App\Http\Controllers\InsightAlertController;
 use App\Http\Controllers\ReceiptScanController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\SubscriptionController;
+use App\Http\Middleware\EnforceSessionSecurity;
 use App\Http\Middleware\EnsureSandboxSessionValid;
 use App\Http\Middleware\RejectBotSubmissions;
 use Illuminate\Support\Facades\Route;
@@ -36,7 +37,7 @@ Route::post('/api/ai/concierge', [AiChatController::class, 'concierge'])
     ->name('ai.concierge');
 
 // ── Protected routes (require login) ─────────────────────────────────────
-Route::middleware(['auth', 'verified', EnsureSandboxSessionValid::class])->group(function () {
+Route::middleware(['auth', 'verified', EnforceSessionSecurity::class, EnsureSandboxSessionValid::class])->group(function () {
 
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
