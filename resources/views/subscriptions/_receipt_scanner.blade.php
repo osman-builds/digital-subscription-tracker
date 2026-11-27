@@ -44,16 +44,33 @@
         </div>
 
         {{-- Verified HITL Result Banner --}}
-        <div id="scanSuccessBanner" class="alert alert-success py-2 px-3 mt-3 mb-0 small d-none" aria-live="polite">
+        <div id="scanSuccessBanner" class="alert alert-success py-3 px-3 mt-3 mb-0 small d-none" aria-live="polite">
             <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
                 <div>
                     <i class="bi bi-check-circle-fill me-1"></i>
-                    <strong>Receipt Extracted — Verify Before Saving</strong>
+                    <strong>Receipt Extracted — Review &amp; Accept to Save</strong>
                     <span id="scanModelBadge" class="badge bg-dark bg-opacity-25 ms-1"></span>
                 </div>
                 <span id="scanConfidenceBadge" class="badge bg-success">Confidence: --%</span>
             </div>
+            <div id="scanExtractedSummary" class="mt-2 p-2 rounded bg-body-tertiary border d-flex flex-wrap gap-3 text-body"></div>
             <div id="scanFieldBadges" class="d-flex flex-wrap gap-2 mt-2"></div>
+            <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mt-3 pt-2 border-top border-success border-opacity-25">
+                <span class="text-muted">
+                    <i class="bi bi-shield-check me-1"></i>Form auto-filled below. Nothing is saved until you accept.
+                </span>
+                <div class="d-flex flex-wrap align-items-center gap-2">
+                    <button type="button" id="btnAcceptAndSaveScan" class="btn btn-success btn-sm fw-semibold px-3">
+                        <i class="bi bi-check2-circle me-1"></i>Accept &amp; Save Subscription
+                    </button>
+                    <button type="button" id="btnReviewScanForm" class="btn btn-outline-secondary btn-sm">
+                        <i class="bi bi-pencil-square me-1"></i>Edit Details Below
+                    </button>
+                    <button type="button" id="btnDiscardScan" class="btn btn-link btn-sm text-danger text-decoration-none px-1">
+                        Discard
+                    </button>
+                </div>
+            </div>
         </div>
 
         {{-- Matched Existing Subscription Action Card (Price Hike / Renewal Update) --}}
@@ -76,11 +93,11 @@
                         <input type="hidden" name="ai_audit_id" id="applyAuditId">
                         <input type="hidden" name="input_source" id="applyInputSource" value="ai_pdf">
                         <button type="submit" class="btn btn-warning btn-sm fw-semibold text-dark">
-                            <i class="bi bi-check2-all me-1"></i>Update Existing &amp; Log Price History
+                            <i class="bi bi-check2-all me-1"></i>Accept &amp; Update Existing Subscription
                         </button>
                     </form>
                 </div>
-                <small class="text-muted">Or scroll down to review &amp; save as a separate subscription instead.</small>
+                <small class="text-muted">Or click <strong>Accept &amp; Save Subscription</strong> above / edit below to save as a separate subscription.</small>
             </div>
         </div>
     </div>
@@ -97,6 +114,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const duplicateAlert = document.getElementById('scanDuplicateAlert');
     const duplicateText = document.getElementById('scanDuplicateText');
     const successBanner = document.getElementById('scanSuccessBanner');
+    const extractedSummary = document.getElementById('scanExtractedSummary');
     const modelBadge = document.getElementById('scanModelBadge');
     const confidenceBadge = document.getElementById('scanConfidenceBadge');
     const fieldBadges = document.getElementById('scanFieldBadges');
@@ -104,6 +122,10 @@ document.addEventListener('DOMContentLoaded', function () {
     const matchedTitle = document.getElementById('scanMatchedTitle');
     const matchedSubtitle = document.getElementById('scanMatchedSubtitle');
     const applyForm = document.getElementById('scanApplyExistingForm');
+    const btnAcceptAndSave = document.getElementById('btnAcceptAndSaveScan');
+    const btnReviewForm = document.getElementById('btnReviewScanForm');
+    const btnDiscardScan = document.getElementById('btnDiscardScan');
+    const createForm = document.getElementById('subscriptionCreateForm');
 
     const scanEndpoint = @json(route('subscriptions.scan_receipt'));
     const csrfToken = @json(csrf_token());
@@ -114,6 +136,9 @@ document.addEventListener('DOMContentLoaded', function () {
         successBanner.classList.add('d-none');
         matchedCard.classList.add('d-none');
         fieldBadges.innerHTML = '';
+        if (extractedSummary) {
+            extractedSummary.innerHTML = '';
+        }
     }
 
     function setLoading(loading) {
@@ -128,6 +153,19 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!el) return;
         el.classList.add('border-primary');
         setTimeout(() => el.classList.remove('border-primary'), 4000);
+    }
+
+    function appendSummaryItem(label, value) {
+        if (!extractedSummary || !value) return;
+        const item = document.createElement('div');
+        const lbl = document.createElement('span');
+        lbl.className = 'text-muted me-1';
+        lbl.textContent = label + ':';
+        const val = document.createElement('strong');
+        val.textContent = value;
+        item.appendChild(lbl);
+        item.appendChild(val);
+        extractedSummary.appendChild(item);
     }
 
     function applyExtractedToForm(data) {
@@ -152,25 +190,57 @@ document.addEventListener('DOMContentLoaded', function () {
         const sourceEl = document.getElementById('sub_input_source');
         const auditEl = document.getElementById('sub_ai_audit_id');
 
-        if (nameEl && ex.name) { nameEl.value = ex.name; highlightField(nameEl); }
-        if (amountEl && ex.amount) { amountEl.value = ex.amount; highlightField(amountEl); }
-        if (currencyEl && ex.currency) { currencyEl.value = ex.currency; highlightField(currencyEl); }
+        if (nameEl) { nameEl.value = ex.name || ''; if (ex.name) highlightField(nameEl); }
+        if (amountEl) { amountEl.value = ex.amount || ''; if (ex.amount) highlightField(amountEl); }
+        if (currencyEl && ex.currency) {
+            currencyEl.value = ex.currency;
+            currencyEl.dispatchEvent(new Event('change'));
+            highlightField(currencyEl);
+        }
         if (cycleEl && ex.billing_cycle) { cycleEl.value = ex.billing_cycle; highlightField(cycleEl); }
         if (startEl && ex.start_date) { startEl.value = ex.start_date; highlightField(startEl); }
         if (nextEl && ex.next_billing_date) { nextEl.value = ex.next_billing_date; highlightField(nextEl); }
-        if (urlEl && ex.website_url) { urlEl.value = ex.website_url; highlightField(urlEl); }
-        if (cancelEl && ex.cancellation_url) { cancelEl.value = ex.cancellation_url; highlightField(cancelEl); }
-        if (logoEl && ex.logo_url) { logoEl.value = ex.logo_url; }
+        if (urlEl) {
+            urlEl.value = ex.website_url || '';
+            urlEl.dataset.autoInferred = 'false';
+            if (ex.website_url) highlightField(urlEl);
+        }
+        if (cancelEl) { cancelEl.value = ex.cancellation_url || ''; if (ex.cancellation_url) highlightField(cancelEl); }
+        if (logoEl) { logoEl.value = ex.logo_url || ''; }
         if (previewEl && ex.logo_url) { previewEl.src = ex.logo_url; }
-        if (catEl && ex.category_id) { catEl.value = String(ex.category_id); highlightField(catEl); }
-        if (descEl && ex.description) { descEl.value = ex.description; }
+        if (catEl) {
+            catEl.value = ex.category_id ? String(ex.category_id) : '';
+            if (ex.category_id) highlightField(catEl);
+        }
+        if (descEl) { descEl.value = ex.description || ''; }
         if (trialEl) {
             trialEl.checked = Boolean(ex.is_trial);
             if (trialWrap) trialWrap.classList.toggle('d-none', !trialEl.checked);
         }
-        if (trialDateEl && ex.trial_ends_at) { trialDateEl.value = ex.trial_ends_at; }
+        if (trialDateEl) { trialDateEl.value = ex.trial_ends_at || ''; }
         if (sourceEl && data.input_source) { sourceEl.value = data.input_source; }
         if (auditEl) { auditEl.value = data.audit_id ? String(data.audit_id) : ''; }
+
+        const cycleLabels = {
+            weekly: 'Weekly',
+            monthly: 'Monthly',
+            quarterly: 'Quarterly',
+            semi_annual: 'Semi-Annual',
+            annual: 'Annual',
+        };
+        if (extractedSummary) {
+            extractedSummary.innerHTML = '';
+            appendSummaryItem('Service', ex.name || 'Needs review');
+            appendSummaryItem('Amount', (ex.currency || '') + ' ' + (ex.amount || '0.00'));
+            appendSummaryItem('Cycle', cycleLabels[ex.billing_cycle] || ex.billing_cycle || 'Monthly');
+            appendSummaryItem('Next Renewal', ex.next_billing_date || '—');
+            if (ex.category_name) {
+                appendSummaryItem('Category', ex.category_name);
+            }
+            if (ex.is_trial) {
+                appendSummaryItem('Trial Ends', ex.trial_ends_at || 'Yes');
+            }
+        }
 
         modelBadge.textContent = data.sandbox_simulated ? 'Demo Sample' : (data.model_used || 'SubShield AI');
         confidenceBadge.textContent = 'Overall Confidence: ' + Number(ex.confidence_score || 0).toFixed(0) + '%';
@@ -179,7 +249,7 @@ document.addEventListener('DOMContentLoaded', function () {
         Object.keys(fieldConf).forEach(function (fieldKey) {
             const pill = document.createElement('span');
             pill.className = 'badge bg-light text-dark border';
-            pill.textContent = fieldKey.replace('_', ' ') + ': ' + fieldConf[fieldKey] + '%';
+            pill.textContent = fieldKey.replace(/_/g, ' ') + ': ' + fieldConf[fieldKey] + '%';
             fieldBadges.appendChild(pill);
         });
         successBanner.classList.remove('d-none');
@@ -189,7 +259,7 @@ document.addEventListener('DOMContentLoaded', function () {
             matchedTitle.textContent = m.name + ' (Current: ' + m.current_currency + ' ' + m.current_amount + ' -> Scanned: ' + m.new_currency + ' ' + m.new_amount + ')';
             let subText = 'Next renewal will update automatically to ' + ex.next_billing_date + ' and record a billing ledger entry.';
             if (m.price_delta !== null && m.price_delta > 0) {
-                subText = 'Price hike of +' + m.symbol + Number(m.price_delta).toFixed(2) + ' (+' + m.price_change_percent + '%) detected! Click to update & log price creep.';
+                subText = 'Price hike of +' + m.symbol + Number(m.price_delta).toFixed(2) + ' (+' + m.price_change_percent + '%) detected! Click to accept, update & log price creep.';
             } else if (m.price_delta !== null && m.price_delta < 0) {
                 subText = 'Price reduction of ' + m.symbol + Number(m.price_delta).toFixed(2) + ' (' + m.price_change_percent + '%) detected.';
             }
@@ -204,6 +274,39 @@ document.addEventListener('DOMContentLoaded', function () {
             document.getElementById('applyInputSource').value = data.input_source || 'ai_pdf';
             matchedCard.classList.remove('d-none');
         }
+    }
+
+    if (btnAcceptAndSave && createForm) {
+        btnAcceptAndSave.addEventListener('click', function () {
+            if (!createForm.reportValidity()) {
+                createForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                return;
+            }
+            btnAcceptAndSave.disabled = true;
+            btnAcceptAndSave.innerHTML = '<span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>Saving...';
+            createForm.submit();
+        });
+    }
+
+    if (btnReviewForm && createForm) {
+        btnReviewForm.addEventListener('click', function () {
+            createForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            const nameEl = document.getElementById('sub_name');
+            if (nameEl) {
+                setTimeout(() => nameEl.focus(), 300);
+            }
+        });
+    }
+
+    if (btnDiscardScan) {
+        btnDiscardScan.addEventListener('click', function () {
+            resetAlerts();
+            const sourceEl = document.getElementById('sub_input_source');
+            const auditEl = document.getElementById('sub_ai_audit_id');
+            if (sourceEl) sourceEl.value = 'manual';
+            if (auditEl) auditEl.value = '';
+            if (fileInput) fileInput.value = '';
+        });
     }
 
     async function rasterizePdfFirstPage(pdfFile) {

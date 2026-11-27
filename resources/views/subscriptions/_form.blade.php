@@ -212,6 +212,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const logoInput = document.getElementById('sub_logo_url');
     const previewImg = document.getElementById('liveLogoPreview');
     const categorySelect = document.getElementById('sub_category_id');
+    const currencySelect = document.getElementById('sub_currency');
+    const amountCurrencySymbol = document.getElementById('amountCurrencySymbol');
     const cycleSelect = document.getElementById('sub_billing_cycle');
     const startDateInput = document.getElementById('sub_start_date');
     const nextDateInput = document.getElementById('sub_next_billing_date');
@@ -219,6 +221,24 @@ document.addEventListener('DOMContentLoaded', function() {
     const btnFetchIcon = document.getElementById('btnFetchIcon');
     const btnToggleCustomLogo = document.getElementById('btnToggleCustomLogo');
     const customLogoWrapper = document.getElementById('customLogoWrapper');
+
+    const currencySymbols = {
+        MYR: 'RM', USD: '$', EUR: '€', GBP: '£', SGD: 'S$', AUD: 'A$',
+        CAD: 'C$', JPY: '¥', CNY: '¥', HKD: 'HK$', INR: '₹', KRW: '₩',
+        THB: '฿', PHP: '₱', IDR: 'Rp', VND: '₫', TWD: 'NT$', NZD: 'NZ$',
+        CHF: 'CHF', SAR: 'SAR', AED: 'AED', TRY: '₺', BRL: 'R$', MXN: 'MX$'
+    };
+
+    function syncCurrencySymbol() {
+        if (!currencySelect || !amountCurrencySymbol) return;
+        const code = (currencySelect.value || 'USD').toUpperCase();
+        amountCurrencySymbol.textContent = currencySymbols[code] || code;
+    }
+
+    if (currencySelect) {
+        currencySelect.addEventListener('change', syncCurrencySymbol);
+        syncCurrencySymbol();
+    }
 
     // Typo notification elements
     const typoAlert = document.getElementById('smartTypoAlert');

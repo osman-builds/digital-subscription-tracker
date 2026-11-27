@@ -129,11 +129,16 @@ class GroqProvider implements AiProviderInterface
     {
         $binary = base64_decode($base64, true);
         $extractedText = is_string($binary) ? $this->extractPrintablePdfText($binary) : '';
+        $escapedPdfText = htmlspecialchars(
+            $extractedText !== '' ? $extractedText : '(empty pdf text)',
+            ENT_QUOTES | ENT_SUBSTITUTE,
+            'UTF-8'
+        );
 
         $payload = [
             'messages' => [
                 ['role' => 'system', 'content' => $prompt],
-                ['role' => 'user', 'content' => "PDF Invoice Text:\n".($extractedText !== '' ? $extractedText : '(empty pdf text)')],
+                ['role' => 'user', 'content' => "<untrusted_pdf_document>\n{$escapedPdfText}\n</untrusted_pdf_document>"],
             ],
             'temperature' => 0.1,
             'response_format' => ['type' => 'json_object'],

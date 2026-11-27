@@ -99,7 +99,7 @@ class AiChatService
             ];
         }
 
-        $violation = $this->guardrails->matchViolation($query, $sanitized);
+        $violation = $this->guardrails->matchViolation($query, $sanitized, PromptGuardrailEvaluator::SURFACE_CONCIERGE);
         if ($violation !== null) {
             Log::warning("Public AI Concierge {$violation['reason']} blocked", ['query' => $sanitized]);
 
@@ -130,15 +130,26 @@ class AiChatService
         }
 
         $systemPrompt = $this->contextBuilder->buildConciergeSystemPrompt();
+        $fencedQuery = $this->contextBuilder->wrapUntrustedUserInput($sanitized, 'user_question');
 
         try {
-            $reply = $this->aiProvider->chat($systemPrompt, $sanitized);
-            $cleanReply = $this->guardrails->sanitizeOutput($reply);
+            $reply = $this->aiProvider->chat($systemPrompt, $fencedQuery);
+            $inspected = $this->guardrails->inspectAndSanitizeOutput($reply, PromptGuardrailEvaluator::SURFACE_CONCIERGE);
 
-            Cache::put($cacheKey, $cleanReply, now()->addHours(24));
+            if ($inspected['flagged']) {
+                Log::warning("Public AI Concierge {$inspected['reason']} blocked", ['query' => $sanitized]);
+
+                return [
+                    'reply' => $inspected['reply'],
+                    'cached' => false,
+                    'flagged' => true,
+                ];
+            }
+
+            Cache::put($cacheKey, $inspected['reply'], now()->addHours(24));
 
             return [
-                'reply' => $cleanReply,
+                'reply' => $inspected['reply'],
                 'cached' => false,
                 'flagged' => false,
             ];
@@ -165,7 +176,7 @@ class AiChatService
             ];
         }
 
-        $violation = $this->guardrails->matchViolation($query, $sanitized);
+        $violation = $this->guardrails->matchViolation($query, $sanitized, PromptGuardrailEvaluator::SURFACE_COPILOT);
         if ($violation !== null) {
             Log::warning("User AI Copilot {$violation['reason']} blocked", ['user_id' => $user->id, 'query' => $sanitized]);
 
@@ -192,14 +203,19 @@ class AiChatService
     ): array {
         $contextXml = $this->contextBuilder->buildUserContextXml($subscriptions, $settings, $intelligence);
         $systemPrompt = $this->contextBuilder->buildCopilotSystemPrompt($contextXml);
+        $fencedQuery = $this->contextBuilder->wrapUntrustedUserInput($sanitized, 'user_query');
 
         try {
-            $reply = $this->aiProvider->chat($systemPrompt, $sanitized);
-            $cleanReply = $this->guardrails->sanitizeOutput($reply);
+            $reply = $this->aiProvider->chat($systemPrompt, $fencedQuery);
+            $inspected = $this->guardrails->inspectAndSanitizeOutput($reply, PromptGuardrailEvaluator::SURFACE_COPILOT);
+
+            if ($inspected['flagged']) {
+                Log::warning("User AI Copilot {$inspected['reason']} blocked", ['user_id' => $user->id, 'query' => $sanitized]);
+            }
 
             return [
-                'reply' => $cleanReply,
-                'flagged' => false,
+                'reply' => $inspected['reply'],
+                'flagged' => $inspected['flagged'],
             ];
         } catch (Throwable $e) {
             Log::error('AI Copilot error: '.$e->getMessage(), ['user_id' => $user->id]);

@@ -15,7 +15,7 @@
         @include('subscriptions._receipt_scanner')
         <div class="card border-0 shadow-sm">
             <div class="card-body p-3 p-sm-4">
-                <form action="{{ route('subscriptions.store') }}" method="POST">
+                <form id="subscriptionCreateForm" action="{{ route('subscriptions.store') }}" method="POST">
                     @csrf
                     @include('subscriptions._form')
                     <div class="d-flex flex-wrap gap-2 mt-4">
