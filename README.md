@@ -10,14 +10,14 @@
 </p>
 
 <p align="center">
-  <a href="https://mysubshield.me"><img src="https://img.shields.io/badge/Live%20App-mysubshield.me-10B981?style=for-the-badge" alt="Live Production"></a>
+  <a href="https://mysubshield.me"><img src="https://img.shields.io/badge/Live_App-mysubshield.me-10B981?style=for-the-badge" alt="Live Production"></a>
   <img src="https://img.shields.io/badge/Release-v1.0.0-6366F1?style=for-the-badge" alt="Version 1.0.0">
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Privacy-Zero%20Bank%20Logins-10B981?style=flat-square" alt="Zero Bank Logins">
-  <img src="https://img.shields.io/badge/Receipts-Not%20Stored-0EA5E9?style=flat-square" alt="Receipts Not Stored">
-  <img src="https://img.shields.io/badge/Tests-170%20Passed%20(926%20assertions)-success?style=flat-square" alt="Test Suite">
+  <img src="https://img.shields.io/badge/Privacy-Zero_Bank_Logins-10B981?style=flat-square" alt="Zero Bank Logins">
+  <img src="https://img.shields.io/badge/Receipts-Not_Stored-0EA5E9?style=flat-square" alt="Receipts Not Stored">
+  <img src="https://img.shields.io/badge/Tests-170_Passed-success?style=flat-square" alt="Test Suite">
   <img src="https://img.shields.io/badge/Lighthouse-100%2F100-success?style=flat-square" alt="Lighthouse 100/100">
 </p>
 
