@@ -16,7 +16,7 @@ class AiChatTest extends TestCase
 {
     use RefreshDatabase;
 
-    private const FAKE_KEY = 'fake-gemini-test-key';
+    private const FAKE_KEY = 'gsk_fake-groq-test-key';
 
     private const CONCIERGE_ROUTE = 'ai.concierge';
 
@@ -28,9 +28,9 @@ class AiChatTest extends TestCase
     {
         parent::setUp();
         Cache::flush();
-        config()->set('services.gemini.key', self::FAKE_KEY);
-        config()->set('services.gemini.model', 'gemini-flash-lite-latest');
-        config()->set('services.gemini.fallback_model', 'gemini-flash-latest');
+        config()->set('services.groq.key', self::FAKE_KEY);
+        config()->set('services.groq.chat_model', 'openai/gpt-oss-20b');
+        config()->set('services.groq.chat_fallback_model', 'openai/gpt-oss-120b');
     }
 
     public function test_public_concierge_validates_input(): void
@@ -112,13 +112,11 @@ class AiChatTest extends TestCase
     public function test_public_concierge_answers_and_caches_faq(): void
     {
         Http::fake([
-            '*generativelanguage.googleapis.com/*' => Http::response([
-                'candidates' => [
+            '*api.groq.com/*' => Http::response([
+                'choices' => [
                     [
-                        'content' => [
-                            'parts' => [
-                                ['text' => 'SubShield never touches your bank credentials. It uses client-side tracking and in-memory AI receipt scanning.'],
-                            ],
+                        'message' => [
+                            'content' => 'SubShield never touches your bank credentials. It uses client-side tracking and private AI receipt scanning.',
                         ],
                     ],
                 ],
@@ -127,7 +125,7 @@ class AiChatTest extends TestCase
 
         $query = 'How does SubShield track subscriptions without bank logins?';
 
-        // 1. First call reaches Gemini
+        // 1. First call reaches Groq
         $res1 = $this->postJson(route(self::CONCIERGE_ROUTE), ['query' => $query]);
         $res1->assertOk()
             ->assertJson([
@@ -146,7 +144,7 @@ class AiChatTest extends TestCase
                 'flagged' => false,
             ]);
 
-        // Exactly 1 request sent to Gemini
+        // Exactly 1 request sent to Groq
         Http::assertSentCount(1);
     }
 
@@ -177,21 +175,19 @@ class AiChatTest extends TestCase
         ]);
 
         Http::fake([
-            '*generativelanguage.googleapis.com/*' => function ($request) {
+            '*api.groq.com/*' => function ($request) {
                 $body = json_decode($request->body(), true);
-                $systemPrompt = $body['systemInstruction']['parts'][0]['text'] ?? '';
+                $systemPrompt = $body['messages'][0]['content'] ?? '';
 
                 // Verify context isolation: system instruction contains Netflix 4K
                 $this->assertStringContainsString(self::NETFLIX_4K, $systemPrompt);
                 $this->assertStringContainsString('19.99 USD', $systemPrompt);
 
                 return Http::response([
-                    'candidates' => [
+                    'choices' => [
                         [
-                            'content' => [
-                                'parts' => [
-                                    ['text' => 'You spend approximately $19.99/mo on Netflix 4K, due in 5 days.'],
-                                ],
+                            'message' => [
+                                'content' => 'You spend approximately $19.99/mo on Netflix 4K, due in 5 days.',
                             ],
                         ],
                     ],

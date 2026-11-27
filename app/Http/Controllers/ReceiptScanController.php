@@ -51,7 +51,7 @@ class ReceiptScanController extends Controller
 
     private function executeLiveScan(ScanReceiptRequest $request, User $user): JsonResponse
     {
-        if (empty(config('services.gemini.key'))) {
+        if (empty(config('services.groq.key'))) {
             return response()->json([
                 'message' => 'AI receipt scanning is not configured on this environment yet.',
             ], 503);

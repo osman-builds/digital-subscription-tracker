@@ -48,13 +48,15 @@ return [
         'hostnames' => array_values(array_filter(array_map('trim', explode(',', (string) env('TURNSTILE_HOSTNAMES', ''))))),
     ],
 
-    // Optional Google Gemini Vision AI (Receipt & PDF invoice extraction)
-    'gemini' => [
-        'key' => env('GEMINI_API_KEY', ''),
-        'model' => env('GEMINI_MODEL', 'gemini-flash-lite-latest'),
-        'fallback_model' => env('GEMINI_FALLBACK_MODEL', 'gemini-flash-latest'),
-        'base_url' => rtrim((string) env('GEMINI_BASE_URL', 'https://generativelanguage.googleapis.com/v1beta'), '/'),
-        'timeout' => (int) env('GEMINI_TIMEOUT', 25),
+    // Groq Cloud AI (OpenAI-compatible fast inference for Chat + Vision Receipt Scanner)
+    'groq' => [
+        'key' => env('GROQ_API_KEY', ''),
+        'chat_model' => env('GROQ_CHAT_MODEL', 'openai/gpt-oss-20b'),
+        'chat_fallback_model' => env('GROQ_CHAT_FALLBACK_MODEL', 'openai/gpt-oss-120b'),
+        'vision_model' => env('GROQ_VISION_MODEL', 'qwen/qwen3.8-27b'),
+        'vision_fallback_model' => env('GROQ_VISION_FALLBACK_MODEL', ''),
+        'base_url' => rtrim((string) env('GROQ_BASE_URL', 'https://api.groq.com/openai/v1'), '/'),
+        'timeout' => (int) env('GROQ_TIMEOUT', 25),
     ],
 
 ];

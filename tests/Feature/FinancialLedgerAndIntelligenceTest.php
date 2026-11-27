@@ -29,7 +29,7 @@ class FinancialLedgerAndIntelligenceTest extends TestCase
 
     private const MONTHLY_CYCLE = 'monthly';
 
-    private const PRIMARY_MODEL = 'gemini-flash-latest';
+    private const PRIMARY_MODEL = 'qwen/qwen3.8-27b';
 
     public function test_creating_and_renewing_subscription_records_fx_snapshotted_billing_ledger(): void
     {

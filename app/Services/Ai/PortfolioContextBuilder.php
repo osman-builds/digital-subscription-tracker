@@ -21,7 +21,7 @@ class PortfolioContextBuilder
             '',
             'KNOWLEDGE BASE:',
             '- ZERO BANK LOGINS: SubShield NEVER connects to bank accounts (unlike Plaid/Yodlee/Rocket Money). Users maintain 100% financial custody.',
-            '- MULTIMODAL AI RECEIPT SCANNER: Powered by Google Gemini Vision. Files are parsed purely in RAM (zero disk storage). Strips personal info, extracts price, currency, cycle, and renewal date.',
+            '- AI RECEIPT SCANNER: Files are parsed privately without disk storage. Automatically extracts price, currency, billing cycle, and renewal date.',
             '- FINANCIAL INTELLIGENCE: Provides a 0-100 Optimization Health Score, automated stealth price creep tracking (logs price hikes and annualized impact), 12-month renewal spike forecasting, and category overlap detection.',
             '- MULTI-CURRENCY FX: Real-time European Central Bank (ECB) rate conversion across 160+ world currencies.',
             '- EXPORTS: Professional CSV spreadsheets (protected against formula injection) and printable A4 landscape PDF audit reports.',

@@ -38,6 +38,6 @@
         <env name="TURNSTILE_SITE_KEY" value=""/>
         <env name="TURNSTILE_SECRET_KEY" value=""/>
         <env name="TURNSTILE_HOSTNAMES" value=""/>
-        <env name="GEMINI_API_KEY" value=""/>
+        <env name="GROQ_API_KEY" value=""/>
     </php>
 </phpunit>

@@ -17,13 +17,15 @@ class ReceiptScannerTest extends TestCase
 
     private const VERIFIED_EMAIL = 'verified.scanner@gmail.com';
 
-    private const GEMINI_KEY = 'fake-gemini-key-for-testing';
+    private const GROQ_KEY = 'gsk_fake-groq-key-for-testing';
 
-    private const GEMINI_KEY_CONFIG = 'services.gemini.key';
+    private const GROQ_KEY_CONFIG = 'services.groq.key';
 
-    private const PRIMARY_MODEL = 'gemini-flash-latest';
+    private const VISION_MODEL = 'qwen/qwen3.8-27b';
 
-    private const FALLBACK_MODEL = 'gemini-flash-lite-latest';
+    private const CHAT_PRIMARY = 'openai/gpt-oss-20b';
+
+    private const CHAT_FALLBACK = 'openai/gpt-oss-120b';
 
     private const JSON_MIME = 'application/json';
 
@@ -33,7 +35,7 @@ class ReceiptScannerTest extends TestCase
 
     private const NEXT_DATE = '2026-12-01';
 
-    private const SAMPLE_PDF_CONTENT = "%PDF-1.4\n1 0 obj\n<< /Type /Catalog >>\nendobj\ntrailer\n<<>>\n%%EOF";
+    private const SAMPLE_PDF_CONTENT = "%PDF-1.4\n1 0 obj\n<< /Type /Catalog >>\n(Netflix MYR 55.00 monthly)\nendobj\ntrailer\n<<>>\n%%EOF";
 
     private const SAMPLE_PNG_BASE64 = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aW1EAAAAASUVORK5CYII=';
 
@@ -47,33 +49,30 @@ class ReceiptScannerTest extends TestCase
 
     public function test_verified_user_can_scan_receipt_in_ram_and_save_verified_subscription(): void
     {
-        config()->set(self::GEMINI_KEY_CONFIG, self::GEMINI_KEY);
-        config()->set('services.gemini.model', self::PRIMARY_MODEL);
-        config()->set('services.gemini.fallback_model', self::FALLBACK_MODEL);
+        config()->set(self::GROQ_KEY_CONFIG, self::GROQ_KEY);
+        config()->set('services.groq.vision_model', self::VISION_MODEL);
 
         Category::create(['name' => 'Entertainment', 'color' => '#ef4444', 'user_id' => null]);
         $user = User::factory()->create(['email' => self::VERIFIED_EMAIL]);
 
         Http::fake([
-            '*generativelanguage.googleapis.com/*' => Http::response([
-                'candidates' => [[
-                    'content' => [
-                        'parts' => [[
-                            'text' => json_encode([
-                                'name' => self::NETFLIX_NAME,
-                                'amount' => 55.00,
-                                'currency' => 'MYR',
-                                'billing_cycle' => self::MONTHLY_CYCLE,
-                                'start_date' => self::START_DATE,
-                                'next_billing_date' => self::NEXT_DATE,
-                                'is_trial' => false,
-                                'website_url' => self::NETFLIX_URL,
-                                'category_suggestion' => 'Entertainment',
-                                'description' => 'Standard HD Plan',
-                                'confidence_score' => 96,
-                                'field_confidence' => ['name' => 99, 'amount' => 97],
-                            ]),
-                        ]],
+            '*api.groq.com/*' => Http::response([
+                'choices' => [[
+                    'message' => [
+                        'content' => json_encode([
+                            'name' => self::NETFLIX_NAME,
+                            'amount' => 55.00,
+                            'currency' => 'MYR',
+                            'billing_cycle' => self::MONTHLY_CYCLE,
+                            'start_date' => self::START_DATE,
+                            'next_billing_date' => self::NEXT_DATE,
+                            'is_trial' => false,
+                            'website_url' => self::NETFLIX_URL,
+                            'category_suggestion' => 'Entertainment',
+                            'description' => 'Standard HD Plan',
+                            'confidence_score' => 96,
+                            'field_confidence' => ['name' => 99, 'amount' => 97],
+                        ]),
                     ],
                 ]],
             ], 200),
@@ -93,6 +92,7 @@ class ReceiptScannerTest extends TestCase
                 'input_type' => 'image',
                 'input_source' => 'ai_image',
                 'file_sha256' => $expectedSha,
+                'model_used' => self::VISION_MODEL,
                 'extracted' => [
                     'name' => self::NETFLIX_NAME,
                     'amount' => self::AMOUNT_55,
@@ -140,9 +140,9 @@ class ReceiptScannerTest extends TestCase
         ]);
     }
 
-    public function test_duplicate_pdf_receipt_is_short_circuited_without_second_gemini_api_call(): void
+    public function test_duplicate_pdf_receipt_is_short_circuited_without_second_ai_api_call(): void
     {
-        config()->set(self::GEMINI_KEY_CONFIG, self::GEMINI_KEY);
+        config()->set(self::GROQ_KEY_CONFIG, self::GROQ_KEY);
         $user = User::factory()->create(['email' => self::VERIFIED_EMAIL]);
 
         $sub = Subscription::create([
@@ -162,7 +162,7 @@ class ReceiptScannerTest extends TestCase
             'subscription_id' => $sub->id,
             'input_type' => 'pdf',
             'file_sha256' => hash('sha256', self::SAMPLE_PDF_CONTENT),
-            'model_used' => self::PRIMARY_MODEL,
+            'model_used' => self::VISION_MODEL,
             'confidence_score' => 95.0,
             'status' => 'applied_new',
             'verified_at' => now(),
@@ -184,21 +184,21 @@ class ReceiptScannerTest extends TestCase
         Http::assertNothingSent();
     }
 
-    public function test_gemini_503_high_demand_automatically_falls_back_to_flash_lite_and_strips_unsafe_urls(): void
+    public function test_groq_503_high_demand_automatically_falls_back_to_secondary_model_and_strips_unsafe_urls(): void
     {
-        config()->set(self::GEMINI_KEY_CONFIG, self::GEMINI_KEY);
-        config()->set('services.gemini.model', self::PRIMARY_MODEL);
-        config()->set('services.gemini.fallback_model', self::FALLBACK_MODEL);
+        config()->set(self::GROQ_KEY_CONFIG, self::GROQ_KEY);
+        config()->set('services.groq.chat_model', self::CHAT_PRIMARY);
+        config()->set('services.groq.chat_fallback_model', self::CHAT_FALLBACK);
 
         $user = User::factory()->create(['email' => self::VERIFIED_EMAIL]);
 
         Http::fake([
-            '*models/'.self::PRIMARY_MODEL.':generateContent' => Http::response(['error' => ['message' => 'High demand']], 503),
-            '*models/'.self::FALLBACK_MODEL.':generateContent' => Http::response([
-                'candidates' => [[
-                    'content' => [
-                        'parts' => [[
-                            'text' => json_encode([
+            '*api.groq.com/*' => Http::sequence()
+                ->push(['error' => ['message' => 'High demand']], 503)
+                ->push([
+                    'choices' => [[
+                        'message' => [
+                            'content' => json_encode([
                                 'name' => 'Custom Cloud Lab',
                                 'amount' => 19.99,
                                 'currency' => 'USD',
@@ -207,10 +207,9 @@ class ReceiptScannerTest extends TestCase
                                 'cancellation_url' => 'javascript:alert(1)',
                                 'confidence_score' => 88,
                             ]),
-                        ]],
-                    ],
-                ]],
-            ], 200),
+                        ],
+                    ]],
+                ], 200),
         ]);
 
         $pdf = UploadedFile::fake()->createWithContent('cloud.pdf', self::SAMPLE_PDF_CONTENT);
@@ -219,7 +218,7 @@ class ReceiptScannerTest extends TestCase
 
         $response->assertOk()
             ->assertJson([
-                'model_used' => self::FALLBACK_MODEL,
+                'model_used' => self::CHAT_FALLBACK,
                 'extracted' => [
                     'name' => 'Custom Cloud Lab',
                     'website_url' => null,
@@ -232,7 +231,7 @@ class ReceiptScannerTest extends TestCase
 
     public function test_scanning_matching_existing_subscription_and_applying_updates_ledger_and_enforces_anti_idor(): void
     {
-        config()->set(self::GEMINI_KEY_CONFIG, self::GEMINI_KEY);
+        config()->set(self::GROQ_KEY_CONFIG, self::GROQ_KEY);
         $user = User::factory()->create(['email' => self::VERIFIED_EMAIL]);
         $otherUser = User::factory()->create(['email' => 'intruder@gmail.com']);
 
@@ -250,20 +249,18 @@ class ReceiptScannerTest extends TestCase
         ]);
 
         Http::fake([
-            '*generativelanguage.googleapis.com/*' => Http::response([
-                'candidates' => [[
-                    'content' => [
-                        'parts' => [[
-                            'text' => json_encode([
-                                'name' => self::NETFLIX_NAME,
-                                'amount' => 63.00,
-                                'currency' => 'MYR',
-                                'billing_cycle' => self::MONTHLY_CYCLE,
-                                'next_billing_date' => '2026-12-30',
-                                'website_url' => self::NETFLIX_URL,
-                                'confidence_score' => 94,
-                            ]),
-                        ]],
+            '*api.groq.com/*' => Http::response([
+                'choices' => [[
+                    'message' => [
+                        'content' => json_encode([
+                            'name' => self::NETFLIX_NAME,
+                            'amount' => 63.00,
+                            'currency' => 'MYR',
+                            'billing_cycle' => self::MONTHLY_CYCLE,
+                            'next_billing_date' => '2026-12-30',
+                            'website_url' => self::NETFLIX_URL,
+                            'confidence_score' => 94,
+                        ]),
                     ],
                 ]],
             ], 200),
@@ -318,7 +315,7 @@ class ReceiptScannerTest extends TestCase
 
     public function test_disguised_non_image_file_is_rejected_and_unverified_and_sandbox_are_guarded(): void
     {
-        config()->set(self::GEMINI_KEY_CONFIG, self::GEMINI_KEY);
+        config()->set(self::GROQ_KEY_CONFIG, self::GROQ_KEY);
         Http::fake();
 
         $verified = User::factory()->create(['email' => self::VERIFIED_EMAIL]);

@@ -8,7 +8,7 @@ use App\Models\Category;
 use App\Models\Subscription;
 use App\Models\User;
 use App\Notifications\WelcomeNotification;
-use App\Services\Ai\GeminiProvider;
+use App\Services\Ai\GroqProvider;
 use App\Services\FxRateService;
 use App\Services\SandboxCategoryStore;
 use App\Services\SandboxSubscriptionStore;
@@ -33,7 +33,7 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->scoped(FxRateService::class);
-        $this->app->bind(AiProviderInterface::class, GeminiProvider::class);
+        $this->app->bind(AiProviderInterface::class, GroqProvider::class);
     }
 
     /**

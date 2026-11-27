@@ -172,7 +172,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (sourceEl && data.input_source) { sourceEl.value = data.input_source; }
         if (auditEl) { auditEl.value = data.audit_id ? String(data.audit_id) : ''; }
 
-        modelBadge.textContent = data.sandbox_simulated ? 'Sandbox Demo Simulator' : (data.model_used || 'Gemini Flash');
+        modelBadge.textContent = data.sandbox_simulated ? 'Demo Sample' : (data.model_used || 'SubShield AI');
         confidenceBadge.textContent = 'Overall Confidence: ' + Number(ex.confidence_score || 0).toFixed(0) + '%';
 
         const fieldConf = ex.field_confidence || {};
@@ -206,9 +206,38 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+    async function rasterizePdfFirstPage(pdfFile) {
+        try {
+            if (!window.pdfjsLib) {
+                await new Promise((resolve, reject) => {
+                    const s = document.createElement('script');
+                    s.src = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js';
+                    s.crossOrigin = 'anonymous';
+                    s.onload = resolve;
+                    s.onerror = reject;
+                    document.head.appendChild(s);
+                });
+            }
+            if (!window.pdfjsLib) return pdfFile;
+            const buffer = await pdfFile.arrayBuffer();
+            const pdf = await window.pdfjsLib.getDocument({ data: buffer, disableWorker: true }).promise;
+            const page = await pdf.getPage(1);
+            const viewport = page.getViewport({ scale: 2.0 });
+            const canvas = document.createElement('canvas');
+            canvas.width = viewport.width;
+            canvas.height = viewport.height;
+            await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
+            const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/png'));
+            if (!blob) return pdfFile;
+            return new File([blob], pdfFile.name.replace(/\.pdf$/i, '.png'), { type: 'image/png' });
+        } catch (e) {
+            return pdfFile;
+        }
+    }
+
     async function runScan(allowEmptyForSandbox) {
         resetAlerts();
-        const file = fileInput.files && fileInput.files[0];
+        let file = fileInput.files && fileInput.files[0];
 
         if (!file && !allowEmptyForSandbox) {
             errorAlert.textContent = 'Please select a receipt image (JPG/PNG/WebP) or PDF invoice first.';
@@ -216,13 +245,16 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
-        const formData = new FormData();
-        if (file) {
-            formData.append('receipt', file);
-        }
-
         setLoading(true);
         try {
+            const formData = new FormData();
+            if (file) {
+                if (file.type === 'application/pdf' || /\.pdf$/i.test(file.name)) {
+                    file = await rasterizePdfFirstPage(file);
+                }
+                formData.append('receipt', file);
+            }
+
             const response = await fetch(scanEndpoint, {
                 method: 'POST',
                 headers: {
@@ -246,7 +278,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 const target = data.existing_subscription_name
                     ? ' This exact receipt was already verified for "' + data.existing_subscription_name + '".'
                     : ' This exact receipt was already verified earlier.';
-                duplicateText.textContent = target + ' Gemini API was skipped to protect your quota.';
+                duplicateText.textContent = target + ' AI scan was skipped to protect your quota.';
                 duplicateAlert.classList.remove('d-none');
                 return;
             }

@@ -61,7 +61,7 @@ class ReceiptScannerService
     ) {}
 
     /**
-     * Validate upload magic bytes in RAM, guard duplicates by SHA-256, call Gemini, and sanitize output.
+     * Validate upload magic bytes in RAM, guard duplicates by SHA-256, call AI provider, and sanitize output.
      *
      * @return array<string, mixed>
      */
@@ -81,21 +81,21 @@ class ReceiptScannerService
         $base64 = base64_encode($bytes);
         unset($bytes);
 
-        $geminiResult = $this->aiProvider->extractReceipt($mime, $base64, $this->buildExtractionPrompt());
+        $aiResult = $this->aiProvider->extractReceipt($mime, $base64, $this->buildExtractionPrompt());
         unset($base64);
 
         $categories = Category::forUser($user->id)->orderBy('name')->get();
         $activeSubs = Subscription::forUser($user->id)->active()->get();
         $baseCurrency = $user->getSettings()->base_currency ?? 'MYR';
 
-        $extracted = $this->sanitizePayload($geminiResult['data'], $baseCurrency, $categories);
+        $extracted = $this->sanitizePayload($aiResult['data'], $baseCurrency, $categories);
         $matchedSub = $this->matchExistingSubscription($extracted, $activeSubs);
 
         $audit = AiExtractionAudit::create([
             'user_id' => $user->id,
             'input_type' => $inputType,
             'file_sha256' => $sha256,
-            'model_used' => $geminiResult['model'],
+            'model_used' => $aiResult['model'],
             'confidence_score' => $extracted['confidence_score'],
             'status' => 'pending',
         ]);
@@ -107,7 +107,7 @@ class ReceiptScannerService
             'input_type' => $inputType,
             'input_source' => $inputType === 'pdf' ? 'ai_pdf' : 'ai_image',
             'file_sha256' => $sha256,
-            'model_used' => $geminiResult['model'],
+            'model_used' => $aiResult['model'],
             'extracted' => $extracted,
             'matched_subscription' => $matchedSub,
         ];
