@@ -138,30 +138,26 @@ class AiChatService
 
             if ($inspected['flagged']) {
                 Log::warning("Public AI Concierge {$inspected['reason']} blocked", ['query' => $sanitized]);
-
-                return [
-                    'reply' => $inspected['reply'],
-                    'cached' => false,
-                    'flagged' => true,
-                ];
+            } else {
+                Cache::put($cacheKey, $inspected['reply'], now()->addHours(24));
             }
 
-            Cache::put($cacheKey, $inspected['reply'], now()->addHours(24));
-
-            return [
+            $result = [
                 'reply' => $inspected['reply'],
                 'cached' => false,
-                'flagged' => false,
+                'flagged' => $inspected['flagged'],
             ];
         } catch (Throwable $e) {
             Log::error('AI Concierge error: '.$e->getMessage());
 
-            return [
+            $result = [
                 'reply' => 'SubShield AI is momentarily busy. SubShield is a privacy-first subscription tracker featuring zero bank logins, multimodal AI receipt scanning, and live currency conversion. You can also explore the 1-hour interactive sandbox anytime!',
                 'cached' => false,
                 'flagged' => false,
             ];
         }
+
+        return $result;
     }
 
     /**

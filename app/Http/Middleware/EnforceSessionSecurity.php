@@ -42,36 +42,38 @@ class EnforceSessionSecurity
     {
         $user = $request->user();
 
-        if (! $user instanceof User) {
-            return $next($request);
+        if ($user instanceof User && ! $this->initializeMissingSessionBindings($request, $user)) {
+            $violation = $this->detectViolation($request, $user);
+
+            if ($violation !== null) {
+                return $this->terminateSession($request, $user, $violation['reason'], $violation['message']);
+            }
         }
 
-        $session = $request->session();
+        return $next($request);
+    }
 
-        if (! $session->has(self::KEY_STARTED_AT) || ! $session->has(self::KEY_UA_HASH)) {
+    /**
+     * Ensure legacy or newly hydrated sessions carry required security bindings.
+     * Returns true when bindings were freshly initialized on this request.
+     */
+    private function initializeMissingSessionBindings(Request $request, User $user): bool
+    {
+        $session = $request->session();
+        $freshlyBootstrapped = ! $session->has(self::KEY_STARTED_AT) || ! $session->has(self::KEY_UA_HASH);
+
+        if ($freshlyBootstrapped) {
             $session->put([
                 self::KEY_STARTED_AT => now()->timestamp,
                 self::KEY_UA_HASH => self::computeUserAgentHash($request),
             ]);
-
-            if ($this->isSessionBackedLogin($request) && ! $session->has(self::KEY_OWNER_MAC)) {
-                $session->put(self::KEY_OWNER_MAC, self::computeOwnerMac((int) $user->id));
-            }
-
-            return $next($request);
         }
 
         if ($this->isSessionBackedLogin($request) && ! $session->has(self::KEY_OWNER_MAC)) {
             $session->put(self::KEY_OWNER_MAC, self::computeOwnerMac((int) $user->id));
         }
 
-        $violation = $this->detectViolation($request, $user);
-
-        if ($violation !== null) {
-            return $this->terminateSession($request, $user, $violation['reason'], $violation['message']);
-        }
-
-        return $next($request);
+        return $freshlyBootstrapped;
     }
 
     /**
@@ -80,40 +82,39 @@ class EnforceSessionSecurity
     private function detectViolation(Request $request, User $user): ?array
     {
         $session = $request->session();
+        $violation = null;
 
-        if ($session->has(self::KEY_OWNER_MAC)) {
-            $storedOwnerMac = (string) $session->get(self::KEY_OWNER_MAC, '');
-            $expectedOwnerMac = self::computeOwnerMac((int) $user->id);
-
-            if (! hash_equals($expectedOwnerMac, $storedOwnerMac)) {
-                return [
-                    'reason' => 'session_owner_mismatch',
-                    'message' => 'Your session could not be verified. Please sign in again.',
-                ];
-            }
-        }
-
-        $storedUaHash = (string) $session->get(self::KEY_UA_HASH, '');
-        $currentUaHash = self::computeUserAgentHash($request);
-
-        if (! hash_equals($storedUaHash, $currentUaHash)) {
-            return [
+        if ($session->has(self::KEY_OWNER_MAC)
+            && ! hash_equals(self::computeOwnerMac((int) $user->id), (string) $session->get(self::KEY_OWNER_MAC, ''))) {
+            $violation = [
+                'reason' => 'session_owner_mismatch',
+                'message' => 'Your session could not be verified. Please sign in again.',
+            ];
+        } elseif (! hash_equals((string) $session->get(self::KEY_UA_HASH, ''), self::computeUserAgentHash($request))) {
+            $violation = [
                 'reason' => 'session_fingerprint_mismatch',
                 'message' => 'Your session was invalidated due to a browser security mismatch. Please sign in again.',
             ];
-        }
-
-        $maxHours = max(1, (int) config('session.absolute_lifetime_hours', 12));
-        $startedAt = (int) $session->get(self::KEY_STARTED_AT, 0);
-
-        if (! $user->isSandbox() && (now()->timestamp - $startedAt) > ($maxHours * 3600)) {
-            return [
+        } elseif ($this->isAbsoluteLifetimeExceeded($request, $user)) {
+            $violation = [
                 'reason' => 'absolute_session_expired',
                 'message' => 'For your security, your session has expired. Please sign in again.',
             ];
         }
 
-        return null;
+        return $violation;
+    }
+
+    private function isAbsoluteLifetimeExceeded(Request $request, User $user): bool
+    {
+        if ($user->isSandbox()) {
+            return false;
+        }
+
+        $maxHours = max(1, (int) config('session.absolute_lifetime_hours', 12));
+        $startedAt = (int) $request->session()->get(self::KEY_STARTED_AT, 0);
+
+        return (now()->timestamp - $startedAt) > ($maxHours * 3600);
     }
 
     private function terminateSession(Request $request, User $user, string $reason, string $message): Response

@@ -160,23 +160,19 @@ class PromptGuardrailEvaluator
             ? self::SAFE_CONCIERGE_IMPERSONATION_REPLY
             : self::SAFE_IMPERSONATION_REPLY;
 
+        $matched = null;
+
         if ($this->isPromptInjection($rawQuery) || $this->isPromptInjection($sanitizedQuery)) {
-            return ['reason' => 'prompt injection', 'reply' => self::SAFE_CAN_REPLY];
+            $matched = ['reason' => 'prompt injection', 'reply' => self::SAFE_CAN_REPLY];
+        } elseif ($this->isSecretOrTenantFishing($rawQuery) || $this->isSecretOrTenantFishing($sanitizedQuery)) {
+            $matched = ['reason' => 'secret/tenant fishing', 'reply' => self::SAFE_SECRET_REPLY];
+        } elseif ($this->isMalwareOrCodeRequest($rawQuery) || $this->isMalwareOrCodeRequest($sanitizedQuery)) {
+            $matched = ['reason' => 'malware/script request', 'reply' => self::SAFE_CODE_REPLY];
+        } elseif ($this->isAuthorityImpersonation($rawQuery) || $this->isAuthorityImpersonation($sanitizedQuery)) {
+            $matched = ['reason' => 'authority impersonation', 'reply' => $impersonationReply];
         }
 
-        if ($this->isSecretOrTenantFishing($rawQuery) || $this->isSecretOrTenantFishing($sanitizedQuery)) {
-            return ['reason' => 'secret/tenant fishing', 'reply' => self::SAFE_SECRET_REPLY];
-        }
-
-        if ($this->isMalwareOrCodeRequest($rawQuery) || $this->isMalwareOrCodeRequest($sanitizedQuery)) {
-            return ['reason' => 'malware/script request', 'reply' => self::SAFE_CODE_REPLY];
-        }
-
-        if ($this->isAuthorityImpersonation($rawQuery) || $this->isAuthorityImpersonation($sanitizedQuery)) {
-            return ['reason' => 'authority impersonation', 'reply' => $impersonationReply];
-        }
-
-        return null;
+        return $matched;
     }
 
     public function sanitizeInput(string $query): string
@@ -214,36 +210,28 @@ class PromptGuardrailEvaluator
     public function inspectAndSanitizeOutput(string $rawReply, string $surface = self::SURFACE_COPILOT): array
     {
         if ($this->matchesAny($rawReply, self::OUTPUT_LEAK_PATTERNS)) {
-            return [
+            $result = [
                 'reply' => self::SAFE_SECRET_REPLY,
                 'flagged' => true,
                 'reason' => 'output prompt/secret leak',
             ];
-        }
-
-        if ($this->matchesAny($rawReply, self::OUTPUT_CODE_PATTERNS)) {
-            return [
+        } elseif ($this->matchesAny($rawReply, self::OUTPUT_CODE_PATTERNS)) {
+            $result = [
                 'reply' => $surface === self::SURFACE_CONCIERGE ? self::SAFE_CODE_REPLY : self::SAFE_CAN_REPLY,
                 'flagged' => true,
                 'reason' => 'output forbidden code',
             ];
-        }
-
-        $clean = $this->sanitizeOutput($rawReply);
-
-        if ($this->matchesAny($clean, self::OUTPUT_LEAK_PATTERNS)) {
-            return [
-                'reply' => self::SAFE_SECRET_REPLY,
-                'flagged' => true,
-                'reason' => 'sanitized output leak',
+        } else {
+            $clean = $this->sanitizeOutput($rawReply);
+            $leaked = $this->matchesAny($clean, self::OUTPUT_LEAK_PATTERNS);
+            $result = [
+                'reply' => $leaked ? self::SAFE_SECRET_REPLY : $clean,
+                'flagged' => $leaked,
+                'reason' => $leaked ? 'sanitized output leak' : null,
             ];
         }
 
-        return [
-            'reply' => $clean,
-            'flagged' => false,
-            'reason' => null,
-        ];
+        return $result;
     }
 
     /**

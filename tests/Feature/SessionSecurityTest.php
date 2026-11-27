@@ -17,6 +17,10 @@ class SessionSecurityTest extends TestCase
 {
     use RefreshDatabase;
 
+    private const BROWSER_USER_AGENT = 'Mozilla/5.0 SubShieldBrowser';
+
+    private const VALID_PASSWORD = 'ValidPass123';
+
     protected function tearDown(): void
     {
         Carbon::setTestNow();
@@ -29,25 +33,25 @@ class SessionSecurityTest extends TestCase
         Carbon::setTestNow(Carbon::parse('2026-11-26 08:00:00'));
 
         $user = User::factory()->create([
-            'password' => Hash::make('ValidPass123'),
+            'password' => Hash::make(self::VALID_PASSWORD),
         ]);
 
-        $this->withHeader('User-Agent', 'Mozilla/5.0 SubShieldBrowser')
+        $this->withHeader('User-Agent', self::BROWSER_USER_AGENT)
             ->post('/login', [
                 'email' => $user->email,
-                'password' => 'ValidPass123',
+                'password' => self::VALID_PASSWORD,
             ])
             ->assertRedirect(route('dashboard', absolute: false));
 
         // Still valid after 6 hours
         Carbon::setTestNow(Carbon::parse('2026-11-26 14:00:00'));
-        $this->withHeader('User-Agent', 'Mozilla/5.0 SubShieldBrowser')
+        $this->withHeader('User-Agent', self::BROWSER_USER_AGENT)
             ->get(route('dashboard'))
             ->assertOk();
 
         // Expired after 13 hours (past the 12-hour absolute cap)
         Carbon::setTestNow(Carbon::parse('2026-11-26 21:00:00'));
-        $this->withHeader('User-Agent', 'Mozilla/5.0 SubShieldBrowser')
+        $this->withHeader('User-Agent', self::BROWSER_USER_AGENT)
             ->get(route('dashboard'))
             ->assertRedirect(route('login'));
 
@@ -57,13 +61,13 @@ class SessionSecurityTest extends TestCase
     public function test_stolen_session_replayed_with_different_user_agent_is_terminated(): void
     {
         $user = User::factory()->create([
-            'password' => Hash::make('ValidPass123'),
+            'password' => Hash::make(self::VALID_PASSWORD),
         ]);
 
         $this->withHeader('User-Agent', 'Mozilla/5.0 LegitimateBrowser/1.0')
             ->post('/login', [
                 'email' => $user->email,
-                'password' => 'ValidPass123',
+                'password' => self::VALID_PASSWORD,
             ])
             ->assertRedirect(route('dashboard', absolute: false));
 

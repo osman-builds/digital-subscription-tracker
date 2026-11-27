@@ -325,7 +325,7 @@ class ReceiptScannerService
         $stripped = strip_tags($value);
         $stripped = (string) preg_replace('/[\x00-\x1F\x7F\x{00AD}\x{200B}-\x{200F}\x{202A}-\x{202E}\x{2060}-\x{206F}\x{FEFF}]/u', ' ', $stripped);
         // Strip embedded card numbers (13-19 digits with optional spaces/dashes) and emails for strict PII hygiene
-        $stripped = (string) preg_replace('/\b(?:\d[ -]*?){13,19}\b/', '', $stripped);
+        $stripped = (string) preg_replace('/\b\d(?:[ -]?\d){12,18}\b/', '', $stripped);
         $stripped = (string) preg_replace('/\b[A-Z0-9._%+\-]+@[A-Z0-9.\-]+\.[A-Z]{2,}\b/i', '', $stripped);
         // Strip unsafe URI schemes, event handlers, and prompt-injection control delimiters
         $stripped = (string) preg_replace('/(?:javascript|vbscript|data):[^\s"\'<>]+/i', '', $stripped);
